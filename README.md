@@ -36,7 +36,7 @@ Rules for `api/` and `lib/server/`: relative imports only (no `@/` alias), keep 
 
 ## Deploying
 
-- **Live (frozen):** https://recipecheckout.vercel.app, commit `0a6ecab`. Leave it alone until a new version is ready to replace it.
+- **Live (frozen):** https://recipecheckout.vercel.app, commit `0a6ecab` plus the slide 10 change in `10b7d3c` (deployed from a worktree of `0a6ecab`, not from this branch). Leave it alone until a new version is ready to replace it.
 - **Dev:** https://recipecheckout2.vercel.app, a separate Vercel project with the same env vars.
 
 `scripts/deploy.sh` deploys to dev by default. `scripts/deploy.sh live` promotes to the live site, so only run it on purpose.
