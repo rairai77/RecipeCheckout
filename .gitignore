@@ -1,0 +1,10 @@
+node_modules/
+.expo/
+dist/
+.vercel/
+.env
+.env*.local
+*.log
+expo-env.d.ts
+.vercel
+.env*
