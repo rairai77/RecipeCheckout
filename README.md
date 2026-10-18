@@ -33,6 +33,13 @@ npx tsx scripts/try-search.ts 70500887 "chicken thighs" "garlic"   # real Kroger
 
 Rules for `api/` and `lib/server/`: relative imports only (no `@/` alias), keep TypeScript at Expo's pinned `~6.0`, and nothing in `app/` may import server code.
 
+## Deploying
+
+- **Live (frozen):** https://recipecheckout.vercel.app, commit `0a6ecab`. Leave it alone until a new version is ready to replace it.
+- **Dev:** https://recipecheckout2.vercel.app, a separate Vercel project with the same env vars.
+
+`scripts/deploy.sh` deploys to dev by default. `scripts/deploy.sh live` promotes to the live site, so only run it on purpose.
+
 ## Demo replay
 
 Add `?demo=1` to the URL to replay a recorded real run (BBC Good Food chicken tikka masala, QFC stores near South Lake Union, where two items fall through to the second-nearest store) with no network calls, in case venue wifi or an API fails. Any recipe link works in this mode. `?demo=0` turns it off. The recording lives in `lib/client/demo-run.json`. `?mock=1` uses small hand-written mock data for UI development instead.
