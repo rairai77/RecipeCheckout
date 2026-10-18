@@ -1,6 +1,6 @@
 import type { ItemResult, SearchRequest } from '../shared/types';
 import { searchProducts } from './kroger';
-import { pickBest, scoreCandidates, type Scored } from './match';
+import { hasStrictHit, pickBest, scoreCandidates, type Scored } from './match';
 
 export function limiter(concurrency: number) {
   let active = 0;
@@ -38,8 +38,8 @@ export async function searchItemsAtStore(req: SearchRequest): Promise<ItemResult
           const products = await limit(() => searchProducts(term, req.storeId));
           const scored = scoreCandidates(term, item, products);
           attempts.push({ term, scored });
-          // a relevant hit (available or not) means the term works; don't spend calls on alternates
-          if (scored.some((s) => s.relevant)) break;
+          // an exact hit means the term works; only spend calls on alternates for loose or no matches
+          if (hasStrictHit(scored)) break;
         }
       } catch (err) {
         console.error(`search failed for "${item.searchTerm}" at ${req.storeId}:`, (err as Error).message);

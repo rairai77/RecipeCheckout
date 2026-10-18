@@ -1,7 +1,7 @@
 import type { RecipeResponse } from '../lib/shared/types';
 import { errorJson, json } from '../lib/server/http';
 import { extractIngredientsWithLlm, normalizeIngredients } from '../lib/server/llm';
-import { RecipeFetchError, extractRecipe, fetchHtml, ingredientWindowText, linesFromText } from '../lib/server/recipe';
+import { RecipeFetchError, fetchRecipePage, ingredientWindowText, linesFromText } from '../lib/server/recipe';
 
 const cache = new Map<string, RecipeResponse>();
 
@@ -26,12 +26,11 @@ export async function POST(request: Request): Promise<Response> {
     const cached = cache.get(url);
     if (cached) return json(cached);
 
-    const html = await fetchHtml(url);
+    const { html, via, recipe: found } = await fetchRecipePage(url);
     let title: string;
     let image: string | undefined;
     let lines: string[];
     let extraction: RecipeResponse['extraction'];
-    const found = extractRecipe(html);
     if (found) {
       ({ title, image, lines } = found);
       extraction = found.method;
@@ -46,7 +45,7 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const { items, by } = await normalizeIngredients(lines.slice(0, 80));
-    const result: RecipeResponse = { title, image, sourceUrl: url, extraction, normalizedBy: by, items };
+    const result: RecipeResponse = { title, image, sourceUrl: url, extraction, fetchedVia: via, normalizedBy: by, items };
     if (by === 'llm') cache.set(url, result);
     return json(result);
   } catch (err) {

@@ -33,6 +33,8 @@ export interface RecipeResponse {
   image?: string;
   sourceUrl?: string;
   extraction: 'jsonld' | 'selectors' | 'llm' | 'text';
+  /** how the page was fetched: directly, from a Wayback Machine capture, or via a reader proxy */
+  fetchedVia?: 'direct' | 'archive' | 'reader';
   normalizedBy: 'llm' | 'heuristic';
   items: Item[];
 }

@@ -20,9 +20,72 @@ export class RecipeFetchError extends Error {
 const BROWSER_HEADERS = {
   'User-Agent':
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
   'Accept-Language': 'en-US,en;q=0.9',
+  'Upgrade-Insecure-Requests': '1',
+  'Sec-Fetch-Dest': 'document',
+  'Sec-Fetch-Mode': 'navigate',
+  'Sec-Fetch-Site': 'none',
+  'Sec-Fetch-User': '?1',
+  'Sec-Ch-Ua': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+  'Sec-Ch-Ua-Mobile': '?0',
+  'Sec-Ch-Ua-Platform': '"macOS"',
 };
+
+export type FetchVia = 'direct' | 'archive' | 'reader';
+
+/**
+ * Fetches a recipe page. Big recipe sites (AllRecipes, Serious Eats, Simply Recipes, Food Network...) put
+ * Cloudflare bot walls in front of datacenter IPs like Vercel's, which no header set gets past. When the direct
+ * fetch is blocked or has no recipe in it, try the latest good Wayback Machine capture, then the r.jina.ai reader.
+ */
+export async function fetchRecipePage(url: string): Promise<{ html: string; via: FetchVia; recipe?: ExtractedRecipe }> {
+  let direct: string | undefined;
+  let firstError: RecipeFetchError | undefined;
+  try {
+    direct = await fetchHtml(url);
+    const recipe = extractRecipe(direct);
+    if (recipe) return { html: direct, via: 'direct', recipe };
+  } catch (err) {
+    if (!(err instanceof RecipeFetchError) || err.code === 'bad_url') throw err;
+    firstError = err;
+  }
+  for (const [via, fetcher] of [
+    ['archive', fetchFromArchive],
+    ['reader', fetchFromReader],
+  ] as const) {
+    try {
+      const html = await fetcher(url);
+      const recipe = html ? extractRecipe(html) : undefined;
+      if (html && recipe) return { html, via, recipe };
+    } catch (err) {
+      console.error(`${via} fallback failed for ${url}:`, (err as Error).message);
+    }
+  }
+  if (direct) return { html: direct, via: 'direct' };
+  throw firstError ?? new RecipeFetchError('Could not load that page.', 'network');
+}
+
+async function fetchFromArchive(url: string): Promise<string | undefined> {
+  const cdx = await fetch(
+    `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(url)}&filter=statuscode:200&fl=timestamp&limit=-1&output=json`,
+    { signal: AbortSignal.timeout(8000) },
+  );
+  if (!cdx.ok) return undefined;
+  const rows = (await cdx.json()) as string[][];
+  const ts = rows.length > 1 ? rows[rows.length - 1][0] : undefined;
+  if (!ts) return undefined;
+  const res = await fetch(`https://web.archive.org/web/${ts}id_/${url}`, { signal: AbortSignal.timeout(12000) });
+  return res.ok ? res.text() : undefined;
+}
+
+async function fetchFromReader(url: string): Promise<string | undefined> {
+  const res = await fetch(`https://r.jina.ai/${url}`, {
+    headers: { 'X-Return-Format': 'html' },
+    signal: AbortSignal.timeout(15000),
+  });
+  return res.ok ? res.text() : undefined;
+}
 
 export async function fetchHtml(url: string): Promise<string> {
   let parsed: URL;
