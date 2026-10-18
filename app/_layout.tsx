@@ -2,11 +2,11 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../components/theme';
-import { isMockMode } from '../lib/client/mock';
+import { isDemoMode, isMockMode } from '../lib/client/mock';
 import { AppStateProvider } from '../lib/client/state';
 
 export default function RootLayout() {
-  const mock = isMockMode();
+  const badge = isDemoMode() ? 'DEMO REPLAY' : isMockMode() ? 'MOCK DATA' : null;
   return (
     <AppStateProvider>
       <StatusBar style="dark" />
@@ -22,9 +22,9 @@ export default function RootLayout() {
           <Stack.Screen name="review" options={{ title: 'Review ingredients · RecipeCheckout' }} />
           <Stack.Screen name="results" options={{ title: 'Shopping list · RecipeCheckout' }} />
         </Stack>
-        {mock ? (
+        {badge ? (
           <View style={styles.mockBadge} pointerEvents="none">
-            <Text style={styles.mockText}>MOCK DATA</Text>
+            <Text style={styles.mockText}>{badge}</Text>
           </View>
         ) : null}
       </View>

@@ -8,6 +8,7 @@
  * Screens should import `client` from this module, never call lib/client/api.ts directly.
  */
 import * as real from './api';
+import * as demo from './demo';
 import { ApiCallError } from './api';
 import type {
   Aisle,
@@ -27,37 +28,47 @@ import type {
 // Dev switch
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = 'recipecheckout:mock';
-let mockFlag: boolean | undefined;
+const flags: Record<string, boolean | undefined> = {};
 
-export function isMockMode(): boolean {
-  if (mockFlag !== undefined) return mockFlag;
-  mockFlag = false;
-  if (typeof window === 'undefined' || !window.location) return mockFlag;
+/** Reads a `?name=1` URL flag, remembered in sessionStorage for the tab; `?name=0` clears it. */
+function urlFlag(name: string): boolean {
+  if (flags[name] !== undefined) return flags[name]!;
+  flags[name] = false;
+  if (typeof window === 'undefined' || !window.location) return false;
+  const key = `recipecheckout:${name}`;
   try {
-    const p = new URLSearchParams(window.location.search).get('mock');
+    const p = new URLSearchParams(window.location.search).get(name);
     if (p === '1') {
-      window.sessionStorage?.setItem(STORAGE_KEY, '1');
-      mockFlag = true;
+      window.sessionStorage?.setItem(key, '1');
+      flags[name] = true;
     } else if (p === '0') {
-      window.sessionStorage?.removeItem(STORAGE_KEY);
+      window.sessionStorage?.removeItem(key);
     } else {
-      mockFlag = window.sessionStorage?.getItem(STORAGE_KEY) === '1';
+      flags[name] = window.sessionStorage?.getItem(key) === '1';
     }
   } catch {
     // sessionStorage can throw in private mode; ignore.
   }
-  return mockFlag;
+  return flags[name]!;
+}
+
+export function isMockMode(): boolean {
+  return urlFlag('mock');
+}
+
+/** `?demo=1`: replay a recorded real run (BBC Good Food chicken tikka masala near Capitol Hill) with no network calls. */
+export function isDemoMode(): boolean {
+  return urlFlag('demo');
 }
 
 /** Real or mock API, picked per call. */
 export const client = {
   fetchRecipe: (input: { url: string } | { text: string }): Promise<RecipeResponse> =>
-    isMockMode() ? mockFetchRecipe(input) : real.fetchRecipe(input),
+    isDemoMode() ? demo.fetchRecipe() : isMockMode() ? mockFetchRecipe(input) : real.fetchRecipe(input),
   fetchStores: (loc: { lat: number; lng: number } | { zip: string }): Promise<StoresResponse> =>
-    isMockMode() ? mockFetchStores(loc) : real.fetchStores(loc),
+    isDemoMode() ? demo.fetchStores() : isMockMode() ? mockFetchStores(loc) : real.fetchStores(loc),
   searchStore: (req: SearchRequest): Promise<SearchResponse> =>
-    isMockMode() ? mockSearchStore(req) : real.searchStore(req),
+    isDemoMode() ? demo.searchStore(req) : isMockMode() ? mockSearchStore(req) : real.searchStore(req),
 };
 
 // ---------------------------------------------------------------------------

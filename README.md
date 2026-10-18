@@ -32,3 +32,11 @@ npx tsx scripts/try-search.ts 70500887 "chicken thighs" "garlic"   # real Kroger
 ```
 
 Rules for `api/` and `lib/server/`: relative imports only (no `@/` alias), keep TypeScript at Expo's pinned `~6.0`, and nothing in `app/` may import server code.
+
+## Demo replay
+
+Add `?demo=1` to the URL to replay a recorded real run (BBC Good Food chicken tikka masala, QFC stores near Capitol Hill) with no network calls, in case venue wifi or an API fails. Any recipe link works in this mode. `?demo=0` turns it off. The recording lives in `lib/client/demo-run.json`. `?mock=1` uses small hand-written mock data for UI development instead.
+
+## Recipe sites
+
+Pages are fetched directly with browser headers. Sites behind Cloudflare bot walls (AllRecipes, Serious Eats, Simply Recipes) block Vercel's datacenter IPs regardless of headers, so the server falls back to the latest good Wayback Machine capture, then the r.jina.ai reader. If all fail, the UI offers "paste ingredients instead".
