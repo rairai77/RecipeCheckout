@@ -2,5 +2,18 @@
   "framework": null,
   "buildCommand": "npx expo export -p web",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/pitch",
+      "destination": "/pitch/index.html"
+    },
+    {
+      "source": "/demo",
+      "destination": "/demo/index.html"
+    },
+    {
+      "source": "/((?!api/|pitch/|demo/).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
