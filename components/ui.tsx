@@ -59,7 +59,7 @@ export function NavBar() {
   );
 }
 
-export function Logo({ size = 34 }: { size?: number }) {
+export function Logo({ size = 34, light }: { size?: number; light?: boolean }) {
   return (
     <View style={styles.logoRow}>
       <View style={[styles.logoMark, { width: size, height: size, borderRadius: size * 0.3 }]}>
@@ -70,8 +70,8 @@ export function Logo({ size = 34 }: { size?: number }) {
           </View>
         ))}
       </View>
-      <Text style={styles.wordmark}>
-        Recipe<Text style={{ color: colors.accent }}>Checkout</Text>
+      <Text style={[styles.wordmark, { fontSize: Math.round(size * 0.65) }, light && { color: '#fff' }]}>
+        Recipe<Text style={{ color: light ? '#9FE0B8' : colors.accent }}>Checkout</Text>
       </Text>
     </View>
   );
