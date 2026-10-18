@@ -1,0 +1,8 @@
+{
+  "framework": null,
+  "outputDirectory": "public",
+  "functions": {
+    "api/browser.ts": { "maxDuration": 60, "includeFiles": "node_modules/@sparticuz/chromium/bin/**" },
+    "api/probe.ts": { "maxDuration": 60, "includeFiles": "node_modules/@sparticuz/chromium/bin/**" }
+  }
+}

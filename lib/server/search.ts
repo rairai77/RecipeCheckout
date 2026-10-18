@@ -1,5 +1,5 @@
 import type { ItemResult, SearchRequest } from '../shared/types';
-import { searchProducts } from './kroger';
+import { searchProducts } from './providers';
 import { hasStrictHit, pickBest, scoreCandidates, type Scored } from './match';
 
 export function limiter(concurrency: number) {
