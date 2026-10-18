@@ -1,9 +1,32 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '../components/theme';
+import { Platform, StyleSheet, Text, View } from 'react-native';
+import { colors, fonts } from '../components/theme';
 import { isDemoMode, isMockMode } from '../lib/client/mock';
 import { AppStateProvider } from '../lib/client/state';
+
+// Web: load the Google Fonts at runtime (web.output is "single", so there is no +html.tsx to put a <link> in).
+if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getElementById('rc-fonts')) {
+  const head = document.head;
+  for (const href of ['https://fonts.googleapis.com', 'https://fonts.gstatic.com']) {
+    const l = document.createElement('link');
+    l.rel = 'preconnect';
+    l.href = href;
+    if (href.includes('gstatic')) l.crossOrigin = 'anonymous';
+    head.appendChild(l);
+  }
+  const css = document.createElement('link');
+  css.id = 'rc-fonts';
+  css.rel = 'stylesheet';
+  css.href =
+    'https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..800;1,9..144,500..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap';
+  head.appendChild(css);
+  const meta = document.createElement('meta');
+  meta.name = 'theme-color';
+  meta.content = colors.bg;
+  head.appendChild(meta);
+  document.body.style.backgroundColor = colors.bg;
+}
 
 export default function RootLayout() {
   const badge = isDemoMode() ? 'DEMO REPLAY' : isMockMode() ? 'MOCK DATA' : null;
@@ -36,13 +59,14 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   mockBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#FDE68A',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    opacity: 0.9,
+    top: 22,
+    right: 16,
+    backgroundColor: colors.saffronSoft,
+    borderWidth: 1,
+    borderColor: '#F0D59E',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
-  mockText: { fontSize: 11, fontWeight: '800', color: '#78350F', letterSpacing: 0.5 },
+  mockText: { fontFamily: fonts.body, fontSize: 11, fontWeight: '800', color: colors.warn, letterSpacing: 0.6 },
 });

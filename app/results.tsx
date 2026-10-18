@@ -1,10 +1,11 @@
 import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Platform, Share, StyleSheet, Text, View } from 'react-native';
-import { effectivePrice, money, qtyLabel } from '../components/format';
-import { StoreCard, type StoreRow } from '../components/StoreCard';
-import { colors, radius } from '../components/theme';
-import { BackLink, Button, Card, Notice, Screen } from '../components/ui';
+import { Platform, Share, StyleSheet, Text, View } from 'react-native';
+import { cap, deptStyle, effectivePrice, money, qtyLabel } from '../components/format';
+import { RecipeBanner } from '../components/RecipeBanner';
+import { StoreCard, StoreSkeleton, type StoreRow } from '../components/StoreCard';
+import { chainColor, colors, fonts, radius, useBreakpoint, web } from '../components/theme';
+import { Button, Card, FadeIn, Notice, Page, Skeleton, Spinner } from '../components/ui';
 import { client } from '../lib/client/mock';
 import { useAppState } from '../lib/client/state';
 import { compareAisles, formatAisle } from '../lib/shared/aisleSort';
@@ -26,6 +27,7 @@ const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 export default function Results() {
   const router = useRouter();
   const { recipe, selectedIds, location, loadStores } = useAppState();
+  const { isDesktop } = useBreakpoint();
 
   const items = useMemo(() => (recipe ? recipe.items.filter((i) => selectedIds.includes(i.id)) : []), [recipe, selectedIds]);
   const itemsRef = useRef(items);
@@ -142,6 +144,8 @@ export default function Results() {
   const unpriced = allRows.filter((r) => effectivePrice(r.product) === undefined).length;
   const active = runs.find((r) => r.state === 'searching');
   const searchedStores = runs.filter((r) => r.state === 'done' || r.state === 'error').length;
+  const errored = runs.filter((r) => r.state === 'error');
+  const done = phase === 'done';
 
   const copyList = async () => {
     const text = buildPlainList(recipe.title, cards, misses, total);
@@ -167,142 +171,249 @@ export default function Results() {
     setTimeout(() => setCopied('idle'), 2500);
   };
 
+  const copyLabel = copied === 'ok' ? '✓ Copied!' : copied === 'fail' ? "Couldn't copy" : 'Copy list';
+  const statusLine =
+    phase === 'stores'
+      ? `Finding stores near ${location.label}…`
+      : active
+        ? `Searching ${active.count} item${active.count === 1 ? '' : 's'} at ${active.store.name}…`
+        : done
+          ? `Found ${allRows.length} of ${items.length} item${items.length === 1 ? '' : 's'} at ${cards.length} store${cards.length === 1 ? '' : 's'}`
+          : phase === 'no_stores'
+            ? 'No stores nearby'
+            : phase === 'error'
+              ? 'Something went wrong'
+              : 'Getting ready…';
+
+  const progress = (
+    <Card style={styles.panel}>
+      <View style={styles.statusRow} accessibilityLiveRegion="polite">
+        {done ? <Text style={styles.statusCheck}>✓</Text> : phase === 'searching' || phase === 'stores' ? <Spinner /> : null}
+        <Text style={styles.statusText}>{statusLine}</Text>
+      </View>
+      {phase === 'no_stores' ? (
+        <Text style={styles.muted}>No QFC, Fred Meyer or other Kroger-family stores within 10 miles of {location.label}. Try another location.</Text>
+      ) : null}
+      {phase === 'error' ? (
+        <View>
+          <Text style={[styles.muted, { color: colors.danger }]}>{fatal}</Text>
+          <Button small variant="secondary" label="Try again" onPress={() => setAttempt((a) => a + 1)} style={{ alignSelf: 'flex-start', marginTop: 10 }} />
+        </View>
+      ) : null}
+      {phase === 'stores'
+        ? [0, 1, 2].map((i) => (
+            <View key={i} style={styles.runRow}>
+              <Skeleton width={28} height={28} radius={8} />
+              <View style={{ flex: 1, gap: 6 }}>
+                <Skeleton width="60%" height={10} />
+                <Skeleton width="100%" height={4} />
+              </View>
+            </View>
+          ))
+        : runs.map((r) => <RunRow key={r.store.id} run={r} />)}
+      {errored.length ? <Text style={[styles.muted, { color: colors.danger, marginTop: 8 }]}>Some stores couldn't be searched; their items moved on to the next store.</Text> : null}
+    </Card>
+  );
+
+  const notFound =
+    done && misses.length ? (
+      <FadeIn>
+        <Card style={styles.panel}>
+          <Text style={styles.panelTitle}>Not found nearby</Text>
+          {misses.map(({ item, reason }, i) => {
+            const d = deptStyle(item.department);
+            return (
+              <View key={item.id} style={[styles.missRow, i > 0 && styles.missBorder]}>
+                <View style={[styles.missEmoji, { backgroundColor: d.tint }]}>
+                  <Text style={{ fontSize: 16 }}>{d.emoji}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.missName}>
+                    {cap(item.name)}
+                    {qtyLabel(item) ? <Text style={styles.missQty}> · {qtyLabel(item)}</Text> : null}
+                  </Text>
+                  <Text style={styles.missReason}>
+                    {reason === 'no_match' ? `No good match for “${item.searchTerm}”` : `Out of stock at ${searchedStores} nearby store${searchedStores === 1 ? '' : 's'}`}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </Card>
+      </FadeIn>
+    ) : null;
+
+  const summary = (
+    <Card style={[styles.panel, styles.summary]}>
+      <Text style={styles.summaryLabel}>Estimated total</Text>
+      {done || allRows.length ? <Text style={styles.summaryTotal}>{money(total)}</Text> : <Skeleton width={150} height={44} radius={10} style={{ marginVertical: 7 }} />}
+      <Text style={styles.muted}>
+        {allRows.length} item{allRows.length === 1 ? '' : 's'} across {cards.length} store{cards.length === 1 ? '' : 's'}
+        {unpriced ? ` · ${unpriced} without price` : ''}
+      </Text>
+      <Button
+        label={copyLabel}
+        icon={copied === 'idle' ? '📋' : undefined}
+        onPress={copyList}
+        disabled={!done || !allRows.length}
+        variant={copied === 'ok' ? 'secondary' : 'primary'}
+        style={{ marginTop: 16 }}
+        accessibilityLabel="Copy list"
+      />
+      <Text style={styles.summaryHint}>Plain text, grouped by store and aisle. Paste it into Notes or a text.</Text>
+    </Card>
+  );
+
+  const again = done ? (
+    <Button variant="ghost" small label="↻ Search again" onPress={() => setAttempt((a) => a + 1)} style={{ alignSelf: 'center', marginTop: 4 }} />
+  ) : null;
+
+  const main = (
+    <View>
+      {done && !allRows.length && !misses.length ? <Notice tone="warn">No results came back. Check your connection and try again.</Notice> : null}
+      {cards.map((c) => (
+        <FadeIn key={c.store.id}>
+          <StoreCard store={c.store} rows={c.rows} onPick={(itemId, pid) => setPicks((p) => ({ ...p, [itemId]: pid }))} />
+        </FadeIn>
+      ))}
+      {active ? <StoreSkeleton store={active.store} count={active.count} /> : null}
+      {phase === 'stores' ? <SkeletonPlaceholder /> : null}
+    </View>
+  );
+
+  const banner = (
+    <RecipeBanner
+      compact
+      title={recipe.title}
+      image={recipe.image}
+      eyebrow="Shopping list"
+      chips={[`${items.length} item${items.length === 1 ? '' : 's'}`, `📍 ${location.label}`]}
+      back={{ label: 'Edit ingredients', onPress: () => (router.canGoBack() ? router.back() : router.replace('/review')) }}
+    />
+  );
+
+  if (isDesktop) {
+    return (
+      <Page maxWidth={1180} top={banner}>
+        <View style={styles.columns}>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            {main}
+            {again}
+          </View>
+          <View style={styles.sidebar}>
+            {summary}
+            {progress}
+            {notFound}
+          </View>
+        </View>
+      </Page>
+    );
+  }
+
   return (
-    <Screen
+    <Page
+      maxWidth={760}
+      top={banner}
       footer={
-        phase === 'done' && allRows.length ? (
-          <View style={styles.footerRow}>
+        done && allRows.length ? (
+          <View style={styles.bar}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.totalLabel}>Estimated total</Text>
-              <Text style={styles.total}>
+              <Text style={styles.barLabel}>Estimated total</Text>
+              <Text style={styles.barTotal}>
                 {money(total)}
-                <Text style={styles.totalNote}>
+                <Text style={styles.barNote}>
                   {'  '}
                   {allRows.length} item{allRows.length === 1 ? '' : 's'}
-                  {unpriced ? ` · ${unpriced} without price` : ''}
                 </Text>
               </Text>
             </View>
-            <Button
-              label={copied === 'ok' ? 'Copied!' : copied === 'fail' ? "Couldn't copy" : 'Copy list'}
-              onPress={copyList}
-              variant={copied === 'ok' ? 'secondary' : 'primary'}
-              style={{ minWidth: 130 }}
-            />
+            <Button label={copyLabel} onPress={copyList} variant={copied === 'ok' ? 'secondary' : 'primary'} style={{ minWidth: 140 }} accessibilityLabel="Copy list" />
+          </View>
+        ) : phase === 'searching' || phase === 'stores' ? (
+          <View style={[styles.bar, { minHeight: 52 }]}>
+            <Spinner />
+            <Text style={styles.barStatus} numberOfLines={2}>
+              {statusLine}
+            </Text>
           </View>
         ) : undefined
       }
     >
-      <BackLink label="Edit ingredients" onPress={() => (router.canGoBack() ? router.back() : router.replace('/review'))} />
-      <Text style={styles.title}>{recipe.title}</Text>
-      <Text style={styles.subtitle}>
-        Shopping list for {items.length} item{items.length === 1 ? '' : 's'} near {location.label}
-      </Text>
-
-      {/* Progress */}
-      <Card style={styles.progressCard}>
-        {phase === 'stores' ? (
-          <ProgressLine spinning text={`Finding stores near ${location.label}…`} />
-        ) : phase === 'no_stores' ? (
-          <Text style={styles.progressText}>No QFC, Fred Meyer or other Kroger-family stores within 10 miles of {location.label}.</Text>
-        ) : phase === 'error' ? (
-          <View>
-            <Text style={[styles.progressText, { color: colors.danger }]}>{fatal}</Text>
-            <Button small variant="secondary" label="Try again" onPress={() => setAttempt((a) => a + 1)} style={{ alignSelf: 'flex-start', marginTop: 8 }} />
-          </View>
-        ) : (
-          runs.map((r) => <RunLine key={r.store.id} run={r} />)
-        )}
-        {phase === 'done' ? (
-          <Text style={styles.doneText}>
-            Done · searched {searchedStores} store{searchedStores === 1 ? '' : 's'}. Tap an item to swap it for another match.
-          </Text>
-        ) : null}
-      </Card>
-
-      {active ? (
-        <View style={styles.activeBanner}>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={styles.activeText}>
-            Searching {active.count} item{active.count === 1 ? '' : 's'} at {active.store.name}…
-          </Text>
-        </View>
-      ) : null}
-
-      {cards.map((c) => (
-        <StoreCard key={c.store.id} store={c.store} rows={c.rows} onPick={(itemId, pid) => setPicks((p) => ({ ...p, [itemId]: pid }))} />
-      ))}
-
-      {phase === 'done' && misses.length ? (
-        <Card>
-          <Text style={styles.missTitle}>Not found nearby</Text>
-          {misses.map(({ item, reason }) => (
-            <View key={item.id} style={styles.missRow}>
-              <Text style={styles.missName}>
-                {item.name}
-                {qtyLabel(item) ? <Text style={styles.missQty}> · {qtyLabel(item)}</Text> : null}
-              </Text>
-              <Text style={styles.missReason}>
-                {reason === 'no_match'
-                  ? `No good match for “${item.searchTerm}”`
-                  : `Not in stock at ${runs.filter((r) => r.state === 'done').length || 'the'} nearby store${runs.filter((r) => r.state === 'done').length === 1 ? '' : 's'}`}
-              </Text>
-            </View>
-          ))}
-        </Card>
-      ) : null}
-
-      {phase === 'done' && !allRows.length && !misses.length ? (
-        <Notice tone="warn">No results came back. Check your connection and try again.</Notice>
-      ) : null}
-      {phase === 'done' ? (
-        <Button variant="ghost" small label="Search again" onPress={() => setAttempt((a) => a + 1)} style={{ alignSelf: 'center' }} />
-      ) : null}
-    </Screen>
+      {progress}
+      {main}
+      {notFound}
+      {again}
+    </Page>
   );
 }
 
-function ProgressLine({ text, spinning }: { text: string; spinning?: boolean }) {
+function SkeletonPlaceholder() {
   return (
-    <View style={styles.progressLine}>
-      {spinning ? <ActivityIndicator size="small" color={colors.accent} /> : null}
-      <Text style={[styles.progressText, spinning && { marginLeft: 8 }]}>{text}</Text>
+    <View style={styles.skelCard}>
+      <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', marginBottom: 18 }}>
+        <Skeleton width={48} height={48} radius={12} />
+        <View style={{ flex: 1, gap: 8 }}>
+          <Skeleton width="50%" height={16} />
+          <Skeleton width="70%" height={10} />
+        </View>
+      </View>
+      {[0, 1, 2].map((i) => (
+        <View key={i} style={{ flexDirection: 'row', gap: 14, alignItems: 'center', paddingVertical: 10 }}>
+          <Skeleton width={64} height={68} radius={10} />
+          <View style={{ flex: 1, gap: 8 }}>
+            <Skeleton width="30%" height={10} />
+            <Skeleton width="80%" height={14} />
+          </View>
+        </View>
+      ))}
     </View>
   );
 }
 
-function RunLine({ run }: { run: Run }) {
+function RunRow({ run }: { run: Run }) {
   const { store, state } = run;
-  const icon = state === 'done' ? '✓' : state === 'error' ? '!' : state === 'skipped' ? '–' : '•';
-  const iconColor = state === 'done' ? colors.accent : state === 'error' ? colors.danger : colors.faint;
+  const c = chainColor(store.chain);
   let text: string;
   switch (state) {
     case 'waiting':
-      text = 'waiting';
+      text = 'Waiting';
       break;
     case 'searching':
-      text = `searching ${run.count} item${run.count === 1 ? '' : 's'}…`;
+      text = `Searching ${run.count}…`;
       break;
     case 'done':
       text = `${run.found.length} of ${run.count} found`;
       break;
     case 'error':
-      text = `couldn't search (${run.error})`;
+      text = "Couldn't search";
       break;
     default:
-      text = 'not needed';
+      text = 'Not needed';
   }
+  const barColor = state === 'done' ? colors.accentBright : state === 'error' ? colors.danger : colors.border;
+  const fill = state === 'done' ? (run.count ? Math.max(0.06, run.found.length / run.count) : 1) : state === 'error' ? 1 : 0;
   return (
-    <View style={styles.progressLine}>
-      {state === 'searching' ? (
-        <ActivityIndicator size="small" color={colors.accent} style={{ width: 16 }} />
-      ) : (
-        <Text style={[styles.runIcon, { color: iconColor }]}>{icon}</Text>
-      )}
-      <Text style={styles.progressText} numberOfLines={2}>
-        <Text style={styles.runStore}>{store.name}</Text>
-        <Text style={styles.runDist}> · {store.distanceMi.toFixed(1)} mi</Text> — {text}
-      </Text>
+    <View style={[styles.runRow, state === 'skipped' && { opacity: 0.55 }]}>
+      <View style={[styles.runBadge, { backgroundColor: c.bg }]}>
+        <Text style={styles.runBadgeText}>{c.initials}</Text>
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={styles.runName} numberOfLines={1}>
+          {store.name}
+        </Text>
+        <View style={styles.runTop}>
+          <Text style={styles.runDist}>{store.distanceMi.toFixed(1)} mi away</Text>
+          <Text style={[styles.runState, state === 'done' && { color: colors.accentDark }, state === 'error' && { color: colors.danger }]}>{text}</Text>
+        </View>
+        <View style={styles.track}>
+          {state === 'searching' ? <View style={[styles.indeterminate]} /> : <View style={[styles.fill, { width: `${fill * 100}%`, backgroundColor: barColor }]} />}
+        </View>
+        {state === 'error' && run.error ? (
+          <Text style={[styles.muted, { fontSize: 12, marginTop: 4 }]} numberOfLines={2}>
+            {run.error}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -353,32 +464,51 @@ function legacyCopy(text: string): boolean {
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 26, fontWeight: '800', color: colors.text, letterSpacing: -0.3 },
-  subtitle: { fontSize: 14, color: colors.muted, marginTop: 4, marginBottom: 16 },
-  progressCard: { paddingVertical: 12, gap: 6 },
-  progressLine: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 2 },
-  progressText: { fontSize: 14, color: colors.text, flexShrink: 1, lineHeight: 20 },
-  runIcon: { width: 16, textAlign: 'center', fontWeight: '800', fontSize: 14 },
-  runStore: { fontWeight: '700' },
-  runDist: { color: colors.muted },
-  doneText: { fontSize: 12, color: colors.muted, marginTop: 6 },
-  activeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.accentSoft,
-    borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
+  columns: { flexDirection: 'row', alignItems: 'flex-start', gap: 28 },
+  sidebar: { width: 340, gap: 16, ...web({ position: 'sticky', top: 16 }) },
+  panel: { padding: 18, marginBottom: 16 },
+  summary: { padding: 22 },
+  summaryLabel: { fontFamily: fonts.body, fontSize: 12, fontWeight: '800', color: colors.muted, letterSpacing: 0.6, textTransform: 'uppercase' },
+  summaryTotal: { fontFamily: fonts.display, fontSize: 48, lineHeight: 54, fontWeight: '700', color: colors.ink, letterSpacing: -1, marginVertical: 2 },
+  summaryHint: { fontFamily: fonts.body, fontSize: 12, color: colors.faint, marginTop: 10, lineHeight: 17 },
+  muted: { fontFamily: fonts.body, fontSize: 14, color: colors.muted, lineHeight: 20 },
+  panelTitle: { fontFamily: fonts.display, fontSize: 20, fontWeight: '700', color: colors.ink, marginBottom: 8 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6, minHeight: 24 },
+  statusCheck: { color: '#fff', backgroundColor: colors.accentBright, width: 22, height: 22, borderRadius: 11, textAlign: 'center', lineHeight: 22, fontWeight: '800', fontSize: 13, overflow: 'hidden' },
+  statusText: { fontFamily: fonts.body, fontSize: 15, fontWeight: '700', color: colors.text, flex: 1, lineHeight: 21 },
+  runRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
+  runBadge: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  runBadgeText: { color: '#fff', fontFamily: fonts.body, fontWeight: '800', fontSize: 9, letterSpacing: 0.3 },
+  runTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 1, marginBottom: 6 },
+  runName: { fontFamily: fonts.body, fontSize: 14, fontWeight: '700', color: colors.text, flexShrink: 1 },
+  runDist: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontWeight: '500' },
+  runState: { fontFamily: fonts.body, fontSize: 12, fontWeight: '700', color: colors.muted },
+  track: { height: 5, borderRadius: 3, backgroundColor: colors.bgDeep, overflow: 'hidden' },
+  fill: { height: 5, borderRadius: 3, ...web({ transitionProperty: 'width', transitionDuration: '500ms' }) },
+  indeterminate: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: '40%',
+    borderRadius: 3,
+    backgroundColor: colors.accentBright,
+    ...web({
+      animationKeyframes: [{ '0%': { left: '-40%' }, '100%': { left: '100%' } }],
+      animationDuration: '1.1s',
+      animationIterationCount: 'infinite',
+      animationTimingFunction: 'ease-in-out',
+    }),
   },
-  activeText: { marginLeft: 10, color: colors.accentDark, fontWeight: '600', fontSize: 14, flexShrink: 1 },
-  missTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: 6 },
-  missRow: { paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  missName: { fontSize: 15, fontWeight: '600', color: colors.text },
-  missQty: { fontWeight: '400', color: colors.muted },
-  missReason: { fontSize: 12, color: colors.muted, marginTop: 2 },
-  footerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  totalLabel: { fontSize: 12, color: colors.muted, fontWeight: '600' },
-  total: { fontSize: 22, fontWeight: '800', color: colors.text },
-  totalNote: { fontSize: 12, fontWeight: '500', color: colors.muted },
+  missRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 },
+  missBorder: { borderTopWidth: 1, borderTopColor: colors.border },
+  missEmoji: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  missName: { fontFamily: fonts.body, fontSize: 15, fontWeight: '700', color: colors.text },
+  missQty: { fontWeight: '500', color: colors.muted },
+  missReason: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 2 },
+  skelCard: { backgroundColor: '#fff', borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 18, marginBottom: 20 },
+  bar: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  barLabel: { fontFamily: fonts.body, fontSize: 11, color: colors.muted, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
+  barTotal: { fontFamily: fonts.display, fontSize: 26, fontWeight: '700', color: colors.ink },
+  barNote: { fontFamily: fonts.body, fontSize: 12, fontWeight: '600', color: colors.muted },
+  barStatus: { fontFamily: fonts.body, fontSize: 14, fontWeight: '700', color: colors.text, flex: 1 },
 });

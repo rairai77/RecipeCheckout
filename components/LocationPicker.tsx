@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { getBrowserLocation, isValidZip, LocationError, locationKey, SEATTLE_PRESET } from '../lib/client/location';
 import { useAppState } from '../lib/client/state';
-import { colors, radius } from './theme';
+import { chainColor, colors, fonts, radius, transition, web } from './theme';
+import { pstate } from './ui';
 
 export type LocationMode = 'gps' | 'zip' | 'preset';
 
@@ -18,7 +19,6 @@ export function LocationPicker({ mode, onModeChange, zip, onZipChange: setZip }:
   const { location, setLocation, stores, loadStores } = useAppState();
   const [locating, setLocating] = useState(false);
   const [gpsMessage, setGpsMessage] = useState<string | null>(null);
-  const narrow = useWindowDimensions().width < 560;
 
   const useMyLocation = async () => {
     onModeChange('gps');
@@ -68,10 +68,20 @@ export function LocationPicker({ mode, onModeChange, zip, onZipChange: setZip }:
       );
     } else if (stores.status === 'ready' && stores.key === key) {
       storeLine = stores.data.stores.length ? (
-        <Text style={styles.storeLine}>
-          <Text style={styles.storeLead}>Nearby: </Text>
-          {stores.data.stores.map((s) => `${s.name} (${s.distanceMi.toFixed(1)} mi)`).join(' · ')}
-        </Text>
+        <View style={styles.storeChips}>
+          <Text style={styles.storeLead}>Nearby:</Text>
+          {stores.data.stores.map((s) => {
+            const c = chainColor(s.chain);
+            return (
+              <View key={s.id} style={styles.storeChip}>
+                <View style={[styles.storeDot, { backgroundColor: c.bg }]} />
+                <Text style={styles.storeChipText}>
+                  {s.name} <Text style={styles.storeDist}>{s.distanceMi.toFixed(1)} mi</Text>
+                </Text>
+              </View>
+            );
+          })}
+        </View>
       ) : (
         <Text style={[styles.storeLine, { color: colors.danger }]}>
           No QFC / Fred Meyer / Kroger-family stores found near {location.label}.
@@ -79,10 +89,8 @@ export function LocationPicker({ mode, onModeChange, zip, onZipChange: setZip }:
       );
     } else if (stores.status === 'error' && stores.key === key) {
       storeLine = (
-        <Pressable onPress={() => loadStores().catch(() => {})}>
-          <Text style={[styles.storeLine, { color: colors.danger }]}>
-            Couldn't load stores ({stores.message}). Tap to retry.
-          </Text>
+        <Pressable accessibilityRole="button" onPress={() => loadStores().catch(() => {})} style={{ minHeight: 44, justifyContent: 'center' }}>
+          <Text style={[styles.storeLine, { color: colors.danger }]}>Couldn't load stores ({stores.message}). Tap to retry.</Text>
         </Pressable>
       );
     }
@@ -90,123 +98,101 @@ export function LocationPicker({ mode, onModeChange, zip, onZipChange: setZip }:
 
   return (
     <View>
-      <View style={[styles.options, narrow && styles.optionsNarrow]}>
-        <Option
-          selected={mode === 'gps'}
-          title="Use my location"
-          subtitle={locating ? 'Locating…' : mode === 'gps' && 'lat' in location ? 'Got it' : 'Ask the browser'}
-          onPress={useMyLocation}
-          busy={locating}
-          narrow={narrow}
-        />
-        <Option selected={mode === 'zip'} title="ZIP code" subtitle={mode === 'zip' && isValidZip(zip) ? zip : 'Any US ZIP'} onPress={chooseZip} narrow={narrow} />
-        <Option selected={mode === 'preset'} title="Seattle" subtitle="Capitol Hill" onPress={choosePreset} narrow={narrow} />
+      <View style={styles.options} accessibilityRole="radiogroup">
+        <Chip selected={mode === 'gps'} icon="📍" label={locating ? 'Locating…' : 'Use my location'} onPress={useMyLocation} busy={locating} />
+        <Chip selected={mode === 'zip'} icon="🔢" label={mode === 'zip' && isValidZip(zip) ? `ZIP ${zip}` : 'ZIP code'} onPress={chooseZip} />
+        <Chip selected={mode === 'preset'} icon="🏙️" label="Seattle · Capitol Hill" onPress={choosePreset} />
       </View>
 
       {mode === 'zip' ? (
         <TextInput
-          style={styles.zipInput}
+          style={[styles.zipInput, web({ outlineStyle: 'none' })]}
           value={zip}
           onChangeText={onZipChange}
-          placeholder="e.g. 98102"
+          placeholder="5-digit ZIP, e.g. 98102"
           placeholderTextColor={colors.faint}
           keyboardType="number-pad"
           inputMode="numeric"
           maxLength={5}
           autoFocus
-          accessibilityLabel="ZIP code"
+          accessibilityLabel="Enter ZIP code"
         />
       ) : null}
 
       {gpsMessage ? <Text style={styles.warn}>{gpsMessage}</Text> : null}
-      {storeLine}
+      {storeLine ? <View style={{ marginTop: 12 }}>{storeLine}</View> : null}
     </View>
   );
 }
 
-function Option({
-  selected,
-  title,
-  subtitle,
-  onPress,
-  busy,
-  narrow,
-}: {
-  selected: boolean;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-  busy?: boolean;
-  narrow?: boolean;
-}) {
+function Chip({ selected, icon, label, onPress, busy }: { selected: boolean; icon: string; label: string; onPress: () => void; busy?: boolean }) {
   return (
     <Pressable
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
+      accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => [styles.option, narrow && styles.optionNarrow, selected && styles.optionOn, pressed && { opacity: 0.85 }]}
+      style={(s) => {
+        const { hovered, pressed } = pstate(s);
+        return [
+          styles.chip,
+          transition,
+          hovered && !selected && { borderColor: colors.accentBright, backgroundColor: colors.accentTint },
+          selected && styles.chipOn,
+          pressed && { opacity: 0.85 },
+        ];
+      }}
     >
-      <View style={styles.row}>
-        <View style={[styles.radio, selected && styles.radioOn]}>{selected ? <View style={styles.radioDot} /> : null}</View>
-        <Text style={[styles.optionTitle, selected && { color: colors.accentDark }]}>
-          {title}
-        </Text>
-      </View>
-      <View style={[styles.row, styles.subRow]}>
-        {busy ? <ActivityIndicator size="small" color={colors.accent} style={{ marginRight: 6, transform: [{ scale: 0.7 }] }} /> : null}
-        <Text style={styles.optionSub} numberOfLines={2}>
-          {subtitle}
-        </Text>
-      </View>
+      {busy ? <ActivityIndicator size="small" color={selected ? '#fff' : colors.accent} style={{ marginRight: 6 }} /> : <Text style={styles.chipIcon}>{icon}</Text>}
+      <Text style={[styles.chipText, selected && { color: '#fff' }]}>{label}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  options: { flexDirection: 'row', gap: 8 },
-  optionsNarrow: { flexDirection: 'column' },
-  option: {
-    flexGrow: 1,
-    flexBasis: 0,
-    minWidth: 0,
+  options: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 44,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
     borderWidth: 1.5,
     borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
     backgroundColor: '#fff',
   },
-  optionNarrow: { flexBasis: 'auto', flexGrow: 0 },
-  optionOn: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
-  optionTitle: { fontSize: 15, fontWeight: '700', color: colors.text, flexShrink: 1 },
-  optionSub: { fontSize: 13, color: colors.muted, flexShrink: 1 },
+  chipOn: { backgroundColor: colors.accent, borderColor: colors.accent },
+  chipIcon: { fontSize: 15, marginRight: 6 },
+  chipText: { fontFamily: fonts.body, fontSize: 14, fontWeight: '700', color: colors.text },
   row: { flexDirection: 'row', alignItems: 'center' },
-  subRow: { marginTop: 4, marginLeft: 26 },
-  radio: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: '#B9C6BB',
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioOn: { borderColor: colors.accent },
-  radioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent },
   zipInput: {
-    marginTop: 10,
+    marginTop: 12,
     borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minHeight: 48,
     fontSize: 16,
+    fontFamily: fonts.body,
     color: colors.text,
     backgroundColor: '#fff',
-    maxWidth: 200,
+    maxWidth: 260,
   },
-  warn: { marginTop: 10, color: colors.warn, fontSize: 14, lineHeight: 20 },
-  storeLine: { marginTop: 10, color: colors.muted, fontSize: 13, lineHeight: 19 },
-  storeLead: { fontWeight: '700', color: colors.text },
+  warn: { marginTop: 12, color: colors.warn, fontSize: 14, lineHeight: 20, fontFamily: fonts.body, fontWeight: '600' },
+  storeLine: { color: colors.muted, fontSize: 13, lineHeight: 19, fontFamily: fonts.body },
+  storeChips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 },
+  storeLead: { fontFamily: fonts.body, fontWeight: '700', color: colors.text, fontSize: 13, marginRight: 2 },
+  storeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.bg,
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  storeDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
+  storeChipText: { fontFamily: fonts.body, fontSize: 12, fontWeight: '600', color: colors.text },
+  storeDist: { color: colors.muted, fontWeight: '500' },
 });
