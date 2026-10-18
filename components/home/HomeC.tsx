@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { useEffect, useRef, useState, type ComponentRef, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -33,7 +33,15 @@ const BAR_MAX = 760;
 const WHITE_DIM = 'rgba(255,255,255,0.86)';
 const HEADLINE_ACCENT = '#F7C978';
 
-export default function HomeC() {
+export interface HomeCProps {
+  /**
+   * Replaces the default background (warm gradient → photo → dark overlay). Rendered absolutely behind
+   * everything; it must keep enough contrast for the white headline (include its own overlay if needed).
+   */
+  background?: ReactNode;
+}
+
+export default function HomeC({ background }: HomeCProps = {}) {
   const f = useHomeForm();
   const { width, height } = useWindowDimensions();
   const stacked = width < STACK_BELOW;
@@ -61,22 +69,26 @@ export default function HomeC() {
 
   return (
     <View style={styles.root}>
-      {/* Background: warm gradient fallback → photo → dark overlay. */}
-      <View style={[StyleSheet.absoluteFill, styles.warm]} pointerEvents="none" />
-      <View
-        style={[StyleSheet.absoluteFill, styles.photo, { opacity: imgReady ? 1 : 0 }, imgReady && styles.photoIn]}
-        pointerEvents="none"
-        aria-hidden
-      >
-        <Image
-          source={{ uri: HERO_IMAGE }}
-          resizeMode="cover"
-          onLoad={() => setImgReady(true)}
-          style={StyleSheet.absoluteFill}
-          accessibilityIgnoresInvertColors
-        />
-      </View>
-      <View style={[StyleSheet.absoluteFill, styles.overlay]} pointerEvents="none" />
+      {/* Background: warm gradient fallback → photo → dark overlay, unless a variant passes its own. */}
+      {background ?? (
+        <>
+          <View style={[StyleSheet.absoluteFill, styles.warm]} pointerEvents="none" />
+          <View
+            style={[StyleSheet.absoluteFill, styles.photo, { opacity: imgReady ? 1 : 0 }, imgReady && styles.photoIn]}
+            pointerEvents="none"
+            aria-hidden
+          >
+            <Image
+              source={{ uri: HERO_IMAGE }}
+              resizeMode="cover"
+              onLoad={() => setImgReady(true)}
+              style={StyleSheet.absoluteFill}
+              accessibilityIgnoresInvertColors
+            />
+          </View>
+          <View style={[StyleSheet.absoluteFill, styles.overlay]} pointerEvents="none" />
+        </>
+      )}
 
       <ScrollView
         style={styles.scroll}
