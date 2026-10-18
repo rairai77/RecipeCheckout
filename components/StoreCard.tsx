@@ -4,6 +4,7 @@ import { aisleGroupName } from '../lib/shared/aisleSort';
 import type { CheaperOption } from '../lib/shared/cheaper';
 import { lineCost, saleLimit } from '../lib/shared/price';
 import type { PackPlan } from '../lib/shared/packs';
+import { FAR_MI, milesLabel } from '../lib/shared/plan';
 import type { Item, Product, Store } from '../lib/shared/types';
 import { AisleSign } from './AisleSign';
 import { aisleDetail, aisleSpoken, cap, effectivePrice, money, qtyLabel, stockBadge, type StockTone } from './format';
@@ -38,6 +39,9 @@ type Props = {
   onSkip: (itemId: string, skipped: boolean) => void;
   /** One line under the header explaining why this (farther) store is on the list. */
   reason?: string;
+  /** One of the shopper's preferred stores (the star in the header). */
+  preferred?: boolean;
+  onTogglePreferred?: () => void;
 };
 
 export function StoreHeader({ store, right }: { store: Store; right?: ReactNode }) {
@@ -55,7 +59,11 @@ export function StoreHeader({ store, right }: { store: Store; right?: ReactNode 
             {store.name}
           </Text>
           <Text style={styles.address} numberOfLines={2}>
-            <Text style={styles.dist}>{store.distanceMi.toFixed(1)} mi</Text> · {store.address}
+            <Text style={[styles.dist, store.distanceMi > FAR_MI && styles.far]}>
+              {milesLabel(store.distanceMi)}
+              {store.distanceMi > FAR_MI ? ' away' : ''}
+            </Text>{' '}
+            · {store.address}
           </Text>
         </View>
         {right}
@@ -64,7 +72,7 @@ export function StoreHeader({ store, right }: { store: Store; right?: ReactNode 
   );
 }
 
-export function StoreCard({ store, rows, onPick, onSkip, reason }: Props) {
+export function StoreCard({ store, rows, onPick, onSkip, reason, preferred, onTogglePreferred }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
   const { isPhone } = useBreakpoint();
   const kept = rows.filter((r) => !r.skipped);
@@ -75,14 +83,17 @@ export function StoreCard({ store, rows, onPick, onSkip, reason }: Props) {
       <StoreHeader
         store={store}
         right={
-          <Pressable
-            accessibilityRole="link"
-            accessibilityLabel={`Open ${store.name} in Maps`}
-            onPress={() => Linking.openURL(store.mapsUrl)}
-            style={(s) => [styles.mapsBtn, isPhone && styles.mapsBtnPhone, transition, pstate(s).hovered && { backgroundColor: colors.accentSoft, borderColor: colors.accentBright }]}
-          >
-            <Text style={styles.mapsText}>{isPhone ? '🗺️ Maps' : '🗺️ Open in Maps'}</Text>
-          </Pressable>
+          <View style={[styles.headerBtns, isPhone && styles.headerBtnsPhone]}>
+            {onTogglePreferred ? <StarButton store={store} on={!!preferred} onPress={onTogglePreferred} /> : null}
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel={`Open ${store.name} in Maps`}
+              onPress={() => Linking.openURL(store.mapsUrl)}
+              style={(s) => [styles.mapsBtn, isPhone && styles.mapsBtnPhone, transition, pstate(s).hovered && { backgroundColor: colors.accentSoft, borderColor: colors.accentBright }]}
+            >
+              <Text style={styles.mapsText}>{isPhone ? '🗺️ Maps' : '🗺️ Open in Maps'}</Text>
+            </Pressable>
+          </View>
         }
       />
       {reason ? (
@@ -115,6 +126,32 @@ export function StoreCard({ store, rows, onPick, onSkip, reason }: Props) {
         />
       ))}
     </View>
+  );
+}
+
+/** Star toggle: a preferred store is checked before nearer ones, on every list. */
+function StarButton({ store, on, onPress }: { store: Store; on: boolean; onPress: () => void }) {
+  const { isPhone } = useBreakpoint();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={on ? `Preferred store: ${store.name}. Remove from your stores` : `Add ${store.name} to your stores`}
+      {...({ 'aria-pressed': on } as object)}
+      onPress={onPress}
+      hitSlop={4}
+      style={(s) => [
+        styles.starBtn,
+        isPhone && styles.starBtnPhone,
+        on && styles.starBtnOn,
+        transition,
+        pstate(s).hovered && { borderColor: on ? colors.saffron : colors.borderStrong, backgroundColor: on ? colors.saffronSoft : colors.bg },
+      ]}
+    >
+      <Text style={[styles.starIcon, on && styles.starIconOn]} aria-hidden>
+        {on ? '★' : '☆'}
+      </Text>
+      {isPhone ? null : <Text style={[styles.starText, on && { color: colors.warn }]}>{on ? 'Preferred' : 'Prefer'}</Text>}
+    </Pressable>
   );
 }
 
@@ -321,21 +358,6 @@ function Badge({ label, tone }: { label: string; tone: StockTone }) {
   );
 }
 
-/** Placeholder card while a store is being searched. */
-export function StoreSkeleton({ store, count }: { store: Store; count: number }) {
-  return (
-    <View style={styles.card} accessibilityLabel={`Searching ${count} items at ${store.name}`}>
-      <StoreHeader store={store} />
-      <View style={styles.countLine}>
-        <Text style={styles.countText}>
-          Searching {count} item{count === 1 ? '' : 's'}…
-        </Text>
-      </View>
-      <SkeletonRows count={count} />
-    </View>
-  );
-}
-
 /** Typical rendered row heights, so placeholders take the space the real rows will (keeps layout shift low). */
 export const ROW_HEIGHT = { phone: 150, wide: 118 };
 
@@ -391,6 +413,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   mapsText: { color: colors.accentDark, fontWeight: '700', fontSize: 14, fontFamily: fonts.body },
+  far: { color: colors.warn },
+  headerBtns: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerBtnsPhone: { flexDirection: 'column-reverse', alignItems: 'flex-end', gap: 6 },
+  starBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: '#fff',
+  },
+  starBtnPhone: { minHeight: 40, width: 40, paddingHorizontal: 0, justifyContent: 'center' },
+  starBtnOn: { borderColor: '#F0D59E', backgroundColor: colors.saffronSoft },
+  starIcon: { fontSize: 18, lineHeight: 20, color: colors.muted },
+  starIconOn: { color: colors.warn },
+  starText: { fontFamily: fonts.body, fontSize: 14, fontWeight: '700', color: colors.muted },
   countLine: {
     flexDirection: 'row',
     justifyContent: 'space-between',
