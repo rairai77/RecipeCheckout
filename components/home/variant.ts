@@ -1,10 +1,10 @@
-export type HomeVariant = 'a' | 'b' | 'c' | 'ca' | 'cb';
-const VARIANTS: readonly string[] = ['a', 'b', 'c', 'ca', 'cb'];
+export type HomeVariant = 'a' | 'b' | 'c' | 'ca' | 'cb' | 'cc';
+const VARIANTS: readonly string[] = ['a', 'b', 'c', 'ca', 'cb', 'cc'];
 
 const KEY = 'recipecheckout:home';
 let cached: HomeVariant | undefined;
 
-/** `?home=a|b|c|ca|cb` picks the home page design; remembered in sessionStorage for the tab. Default 'a'. */
+/** `?home=a|b|c|ca|cb|cc` picks the home page design; remembered in sessionStorage for the tab. Default 'a'. */
 export function getHomeVariant(): HomeVariant {
   if (cached) return cached;
   let v: HomeVariant = 'a';

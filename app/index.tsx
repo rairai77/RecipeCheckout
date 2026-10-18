@@ -3,9 +3,10 @@ import HomeB from '../components/home/HomeB';
 import HomeC from '../components/home/HomeC';
 import HomeCA from '../components/home/HomeCA';
 import HomeCB from '../components/home/HomeCB';
+import HomeCC from '../components/home/HomeCC';
 import { getHomeVariant } from '../components/home/variant';
 
-/** Home page: `?home=a|b|c|ca|cb` picks the design (default a); all share components/home/useHomeForm.ts. */
+/** Home page: `?home=a|b|c|ca|cb|cc` picks the design (default a); all share components/home/useHomeForm.ts. */
 export default function Home() {
   switch (getHomeVariant()) {
     case 'b':
@@ -16,6 +17,8 @@ export default function Home() {
       return <HomeCA />;
     case 'cb':
       return <HomeCB />;
+    case 'cc':
+      return <HomeCC />;
     default:
       return <HomeA />;
   }
