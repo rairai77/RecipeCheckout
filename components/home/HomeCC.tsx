@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import HomeC from './HomeC';
 import { ProduceDefs, layoutAisle } from './HomeCCArt';
@@ -25,6 +25,7 @@ const CSS = `
 }
 .cc-in { animation: ccIn 1400ms cubic-bezier(.2,.7,.2,1) both; }
 .cc-drift { animation: ccDrift 70s ease-in-out infinite alternate; will-change: transform; }
+.cc-paused .cc-drift { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .cc-in, .cc-drift { animation: none !important; }
 }
@@ -39,6 +40,7 @@ function VectorAisle() {
   const cw = W + OX * 2;
   const ch = H + OY * 2;
   const art = useMemo(() => (Platform.OS === 'web' ? layoutAisle(cw, ch, W >= 700) : null), [cw, ch, W]);
+  const hidden = useTabHidden();
 
   if (Platform.OS !== 'web') {
     return <View style={[StyleSheet.absoluteFill, styles.fallback]} pointerEvents="none" />;
@@ -48,7 +50,7 @@ function VectorAisle() {
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none" aria-hidden>
-      <div style={{ ...full, overflow: 'hidden', backgroundColor: '#0C0D0B' }}>
+      <div className={hidden ? 'cc-paused' : undefined} style={{ ...full, overflow: 'hidden', backgroundColor: '#0C0D0B' }}>
         <style>{CSS}</style>
         <div className="cc-in" style={full}>
           <div className="cc-drift" style={{ position: 'absolute', left: -OX, top: -OY, width: cw, height: ch }}>
@@ -70,6 +72,19 @@ function VectorAisle() {
       </div>
     </View>
   );
+}
+
+/** True while the browser tab is in the background, so the drift can pause. */
+function useTabHidden(): boolean {
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const update = () => setHidden(document.visibilityState === 'hidden');
+    update();
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
+  return hidden;
 }
 
 const styles = StyleSheet.create({

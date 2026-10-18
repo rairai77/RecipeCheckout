@@ -122,3 +122,21 @@ test('the packing liquid is not the product ("Crushed Tomatoes in Tomato Puree" 
   const diced = scoreCandidates('diced tomatoes', item, [p('Kroger® Petite Diced Tomatoes in Tomato Juice')]);
   assert.equal(diced[0].tier, 2);
 });
+
+test('small recipe amounts prefer the smallest suitable pack, large ones are unaffected', () => {
+  const dairy = { searchTerm: 'butter', department: 'dairy' as const, avoidWords: [] as string[] };
+  const products = [
+    p('Kroger® Salted Butter Sticks', { size: '4 sticks / 16 oz / 2 pk', categories: ['Dairy'] }),
+    p('Land O Lakes Salted Butter Sticks', { size: '4 sticks / 16 oz', categories: ['Dairy'] }),
+    p('Kerrygold Salted Butter', { size: '8 oz', categories: ['Dairy'] }),
+  ];
+  const scored = scoreCandidates('butter', dairy, products);
+  const small = pickBest('i2', [{ term: 'butter', scored }], { ...dairy, quantity: '25', unit: 'g' });
+  assert.equal(small.best?.description, 'Kerrygold Salted Butter');
+  const large = pickBest('i2', [{ term: 'butter', scored }], { ...dairy, quantity: '2', unit: 'lb' });
+  assert.equal(large.best?.description, 'Kroger® Salted Butter Sticks');
+  // never beats a better tier: an exact match in a big can wins over a loose match in a small one
+  const pantry = { searchTerm: 'tomato puree', department: 'pantry' as const, avoidWords: [] as string[] };
+  const puree = scoreCandidates('tomato puree', pantry, [p('Cento Tomato Puree', { size: '28 oz' }), p('Crushed Tomatoes in Tomato Puree', { size: '6 oz' })]);
+  assert.equal(pickBest('i8', [{ term: 'tomato puree', scored: puree }], { ...pantry, quantity: '4', unit: 'tbsp' }).best?.description, 'Cento Tomato Puree');
+});

@@ -37,3 +37,10 @@ export function formatAisle(aisle?: Aisle): string {
     .replace(/\s+\d+$/, '');
   return label;
 }
+
+/** Heading for a group of items in the same aisle or section: "Produce", "Aisle 9", "Meat". */
+export function aisleGroupName(aisle?: Aisle): string {
+  if (isProduceAisle(aisle)) return 'Produce';
+  if (aisle?.isNumbered && aisle.number) return `Aisle ${aisle.number}`;
+  return aisle ? formatAisle(aisle) : 'Aisle unknown';
+}

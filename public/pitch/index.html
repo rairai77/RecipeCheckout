@@ -165,7 +165,7 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 .mapcard .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .mapcard .mh b{font:750 30px/1.1 var(--serif);color:var(--ink)}
 .mapcard .mh .chip{font-size:24px}
-.mapcard .cap{font:600 22px/1.3 var(--sans);color:var(--muted);margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mapcard .cap{font:600 24px/1.3 var(--sans);color:var(--muted);margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .map{display:block;width:100%;height:auto}
 .m-floor{fill:#FCFAF5;stroke:var(--line);stroke-width:2}
 .m-back{fill:#EFE7D9}
@@ -173,12 +173,12 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 .m-veg{fill:#E3F1E4}
 .m-shelf{fill:#DED5C5}
 .m-al rect{fill:#E9E1D2}
-.m-al text{font:800 13px var(--sans);fill:#6D7468;text-anchor:middle}
+.m-al text{font:800 18px var(--sans);fill:#6D7468;text-anchor:middle}
 .m-al.hit rect{fill:var(--sign)}
 .m-al.hit text{fill:#fff}
 .m-al.miss rect{fill:var(--tomato)}
 .m-al.miss text{fill:#fff}
-.m-lbl{font:800 17px var(--sans);letter-spacing:.18em}
+.m-lbl{font:800 20px var(--sans);letter-spacing:.18em}
 .m-door{fill:#fff;stroke:var(--line-2);stroke-width:2;stroke-dasharray:6 6}
 .m-reg{fill:#E2D9C9}
 .route-clean{fill:none;stroke:var(--green-2);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
@@ -187,7 +187,7 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 .pin{transform-box:fill-box;transform-origin:center;transform:scale(0);transition:transform .45s var(--spring)}
 .pin.on{transform:scale(1)}
 .pin circle{stroke:#fff;stroke-width:3}
-.pin text{font:800 15px var(--sans);fill:#fff;text-anchor:middle;dominant-baseline:central}
+.pin text{font:800 22px var(--sans);fill:#fff;text-anchor:middle;dominant-baseline:central}
 .head{transition:opacity .3s}
 
 /* ---------- 3 · solution / morph ---------- */
@@ -279,7 +279,9 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 /* ---------- 5 · route ---------- */
 .s-route .wrap{display:grid;grid-template-columns:880px 1fr;gap:56px;height:100%}
 .s-route h2{font-size:76px}
-.s-route .mapcard{margin-top:34px}
+.s-route .mapcard{margin-top:20px}
+.s-route .why{font:600 26px/1.35 var(--sans);color:var(--muted);margin-top:12px;max-width:880px}
+.s-route .why b{color:var(--ink)}
 .listp{background:var(--paper);border:1px solid var(--line);border-radius:30px;overflow:hidden;box-shadow:0 2px 4px rgba(29,42,33,.04),0 30px 60px -24px rgba(29,42,33,.25);display:flex;flex-direction:column;align-self:start}
 .listp .store{display:flex;align-items:center;gap:16px;padding:16px 26px;border-top:7px solid #C8202F}
 .listp .qfc{width:52px;height:52px;border-radius:14px;background:#C8202F;color:#fff;display:grid;place-items:center;font:800 16px/1 var(--sans)}
@@ -421,7 +423,7 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 .s-close .qrcard{position:relative;right:auto;top:auto;width:470px;padding:40px}
 .s-close .qrcard .qr{width:360px;height:360px}
 
-/* ---------- added: problem stat, cart mock, next tags, weekend, team ---------- */
+/* ---------- added: problem stat, cart mock, next tags, weekend ---------- */
 .walk{margin-top:36px;display:flex;align-items:center;gap:26px;padding:24px 30px;border-radius:26px;background:var(--tomato-soft);border:1px solid #F5CFC4}
 .walk .x2{font:800 112px/.9 var(--serif);color:var(--tomato);letter-spacing:-.03em;font-variation-settings:"opsz" 144;flex:none}
 .walk .x2 .times{font:800 .62em/1 var(--sans);margin-left:4px;vertical-align:.12em}
@@ -445,8 +447,6 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 .weekend .lbl{flex:none;font:800 20px/1.25 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--saffron);width:170px}
 .weekend p{font:500 25px/1.42 var(--sans);color:rgba(246,240,228,.92)}
 .weekend p b{color:#fff;font-weight:700}
-.s-close .team{display:inline-flex;align-items:center;gap:10px;margin-top:22px;font:700 24px/1 var(--sans);color:#fff;padding:12px 20px;border-radius:999px;border:2px dashed rgba(255,255,255,.45);background:rgba(0,0,0,.25)}
-.s-close .team i{font-style:normal;color:var(--saffron)}
 .laptop a.demo{display:block;position:absolute;inset:0;z-index:2;cursor:pointer}
 
 /* ---------- notes ---------- */
@@ -505,7 +505,7 @@ body.notes-open #notes{transform:none}
   <div class="center">
     <div class="eyebrow" data-in style="--d:.1s">Your recipe → your store's shelves</div>
     <h1 data-in style="--d:.2s">Any recipe,<br><em>sorted by aisle.</em></h1>
-    <p class="lede" data-in style="--d:.4s">Paste a recipe link. Every ingredient, located at your nearest grocery store: aisle or department, plus side, shelf, price and stock where the store lists them.</p>
+    <p class="lede" data-in style="--d:.4s">Paste a recipe link. Every ingredient, located at your nearest grocery stores: aisle or department, plus side, shelf, price and stock where the store lists them.</p>
     <div class="searchbar" data-in style="--d:.6s">
       <div class="f">
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#5E8F74" stroke-width="2.2" stroke-linecap="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>
@@ -543,7 +543,7 @@ body.notes-open #notes{transform:none}
 <section class="slide dark s-fix" data-title="Paste a recipe. Walk the store once." data-time="18" aria-label="Solution">
   <div class="kicker" data-in>The fix</div>
   <h2 data-in style="--d:.1s">Paste a recipe. <em>Walk the store once.</em></h2>
-  <p class="lede" data-in style="--d:.25s">RecipeCheckout reads any recipe, finds every ingredient in your nearest store's live catalog, and hands back one list in aisle order, with price and stock.</p>
+  <p class="lede" data-in style="--d:.25s">RecipeCheckout reads any recipe, finds every ingredient in your nearest stores' live catalogs, and hands back one list in aisle order, with price and stock.</p>
   <div class="morph" id="morph" data-in style="--d:.4s">
     <div class="mc recipe"><div class="lab">📖 From the recipe</div><div class="raw x" id="m-raw"></div><div class="src">bbcgoodfood.com · tikka masala</div></div>
     <div class="arrow a1"><svg viewBox="0 0 60 30"><path d="M2 15h52M42 4l13 11-13 11"/></svg></div>
@@ -593,11 +593,12 @@ body.notes-open #notes{transform:none}
 </section>
 
 <!-- 5 · ROUTE -->
-<section class="slide light s-route" data-title="Same trip, one clean loop" data-time="12" aria-label="Result">
+<section class="slide light s-route" data-title="One loop, plus one stop" data-time="12" aria-label="Result">
   <div class="wrap">
     <div>
       <div class="kicker" data-in>The result</div>
-      <h2 data-in style="--d:.08s">Same trip, <em>one clean loop.</em></h2>
+      <h2 data-in style="--d:.08s">One loop, <em>plus one stop.</em></h2>
+      <p class="why" id="why" data-in style="--d:.14s">2 items weren't in stock at <b>QFC Uptown</b>, so they come from <b>QFC Broadway Market</b>, the next-nearest QFC.</p>
       <div class="mapcard" data-in="pop" style="--d:.2s">
         <div id="map-clean"></div>
         <div class="cap">Illustrative floor plan · real aisles at <span data-run="store0">QFC Uptown</span></div>
@@ -673,12 +674,12 @@ body.notes-open #notes{transform:none}
 <!-- 8 · VISA -->
 <section class="slide dark s-visa" data-title="Why Visa: Reimagine Shopping" data-time="18" aria-label="Visa Reimagine Shopping">
   <div class="kicker" data-in>Visa · Reimagine Shopping</div>
-  <h2 data-in style="--d:.08s">GenAI that makes grocery shopping<br><em>intuitive and personal.</em></h2>
+  <h2 data-in style="--d:.08s">GenAI reads the recipe.<br><em>Rules plan the trip.</em></h2>
   <div class="journey">
     <div class="track"><i></i></div>
     <div class="stops">
       <div class="stop" style="--t:.6s"><div class="dot">💡</div><div class="card" data-in style="--d:.3s"><small>01 · Discovery</small><h3>Start from a recipe</h3><p>Inspiration is a recipe, not a search box. <b>GenAI turns messy recipe text</b> into a shoppable list.</p></div></div>
-      <div class="stop" style="--t:1.3s"><div class="dot">⚖️</div><div class="card" data-in style="--d:.42s"><small>02 · Decision-making</small><h3>The right product</h3><p>Out of dozens of results, the right one, with <b>live price, stock and aisle</b>. Alternatives one tap away.</p></div></div>
+      <div class="stop" style="--t:1.3s"><div class="dot">⚖️</div><div class="card" data-in style="--d:.42s"><small>02 · Decision-making</small><h3>AI reads, rules pick</h3><p>AI turns each line into a search term; <b>transparent rules pick the shelf</b>, with live price, stock and aisle.</p></div></div>
       <div class="stop" style="--t:2s"><div class="dot">📍</div><div class="card" data-in style="--d:.54s"><small>03 · Personalization</small><h3>Fits your kitchen</h3><p>Your nearest store, <b>staples you already have unchecked</b>, your swaps. No account needed.</p></div></div>
       <div class="stop next" style="--t:2.7s"><div class="dot">🧾</div><div class="card" data-in style="--d:.66s"><small>04 · Checkout</small><h3>Today: the total</h3><p><b>Estimated total before you leave</b>, in walking order.</p><div class="cartbtn"><span class="nexttag">Next build</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><p style="margin-top:10px">Kroger Cart API; <b>pay with your card</b> at pickup.</p></div></div>
     </div>
@@ -711,7 +712,7 @@ body.notes-open #notes{transform:none}
       <h3>📣 How it spreads</h3>
       <ul class="spread">
         <li><span class="em">🔁</span><div><b>Creators distribute it.</b> Links go where their audience already is.</div></li>
-        <li><span class="em">👀</span><div><b>Every shared list is a demo</b> for the next cook.</div></li>
+        <li><span class="em">👀</span><div><b>Lists travel:</b> Copy list pastes into Notes or a group chat.</div></li>
         <li><span class="em">📱</span><div><b>One Expo codebase:</b> web today, iOS and Android next.</div></li>
         <li><span class="em">🪙</span><div><b>~$0.001 of AI per recipe</b> keeps a free tier sustainable.</div></li>
       </ul>
@@ -726,8 +727,8 @@ body.notes-open #notes{transform:none}
   <h2 data-in style="--d:.08s">Next aisle: <em>from list to checkout.</em></h2>
   <div class="signs">
     <div class="rail"></div>
-    <div class="hang" style="--d:.2s"><div class="bigsign gold"><div><small>NEXT · 1</small><b>Send to pickup cart</b></div></div><p>Kroger's public Cart API (OAuth <b>cart.basic:write</b>). <b>Pay with your card</b> at pickup.</p></div>
-    <div class="hang" style="--d:.35s"><div class="bigsign"><div><small>NEXT · 2</small><b>More chains</b></div></div><p>Wegmans' public product data has shelf locations. <b>More grocers via partnerships.</b></p></div>
+    <div class="hang" style="--d:.2s"><div class="bigsign gold"><div><small>NEXT · 1</small><b>Pickup cart</b></div></div><p><b>Send to pickup cart</b> via Kroger's public Cart API. <b>Pay with your card</b> at pickup.</p></div>
+    <div class="hang" style="--d:.35s"><div class="bigsign"><div><small>NEXT · 2</small><b>More chains</b></div></div><p>Other grocers' product APIs, then <b>partnerships</b>.</p></div>
     <div class="hang" style="--d:.5s"><div class="bigsign"><div><small>NEXT · 3</small><b>In-store map</b></div></div><p>Draw the route on the <b>real floor plan</b>, not just aisle order.</p></div>
     <div class="hang" style="--d:.65s"><div class="bigsign"><div><small>NEXT · 4</small><b>Pantry memory</b></div></div><p>Remember what's already at home, so it <b>never lands on the list</b>.</p></div>
     <div class="hang" style="--d:.8s"><div class="bigsign"><div><small>NEXT · 5</small><b>Native apps</b></div></div><p>The same Expo codebase, shipped to <b>iOS and Android</b>.</p></div>
@@ -744,7 +745,6 @@ body.notes-open #notes{transform:none}
       <h1 data-in style="--d:.1s;margin-top:48px">Any recipe,<br><em>sorted by aisle.</em></h1>
       <div class="url" data-in style="--d:.3s"><i></i>recipecheckout.vercel.app</div>
       <div class="thanks" data-in style="--d:.45s">Thank you! Built at DubHacks '26. Questions?</div>
-      <div class="team" data-in style="--d:.52s"><i>Team:</i> [names]</div>
       <div class="tracks" data-in style="--d:.6s"><span class="main">Visa: Reimagine Shopping</span><span>SideShift: Best Startup Idea</span><span>DubHacks NEXT</span><span>MLH Commit</span></div>
     </div>
     <div class="qrcard" data-in="pop" style="--d:.35s">
@@ -769,7 +769,7 @@ body.notes-open #notes{transform:none}
     <svg viewBox="0 0 96 96" aria-hidden="true"><path d="M78 30a34 34 0 0 0-52-10" fill="none" stroke="#F7C978" stroke-width="4" stroke-linecap="round"/><path d="M24 12l1 9 9-1" fill="none" stroke="#F7C978" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><g class="ph"><rect x="34" y="22" width="28" height="52" rx="6" fill="none" stroke="#F6F0E4" stroke-width="4"/><circle cx="48" cy="66" r="2.5" fill="#F6F0E4"/></g></svg>
     <h2 id="rot-h">Turn your phone sideways</h2>
     <p>This deck is 16:9 and reads best in landscape. Swipe or tap to change slides.</p>
-    <a href="/demo">▶ Watch the 80-second demo instead</a>
+    <a href="/demo">▶ Watch the 1-minute demo instead</a>
     <button type="button" id="rot-dismiss">View slides anyway</button>
   </div>
 </div>
@@ -796,6 +796,7 @@ const RUN = {               // source: lib/client/demo-run.json + live /?demo=1&
   ingredients: 12,          // lines in the recipe (slide 4 card)
   items: 11,                // items shopped after pantry staples are unchecked (vegetable oil)
   total: 58.20,             // estimated total, dollars ($41.72 Uptown + $16.48 Broadway Market)
+  missReason: 'in stock',   // why stores[0] missed items: demo-run.json status "unavailable" = listed but not in stock there
   stores: [                 // nearest first; found = items bought at that store
     { name: 'QFC Uptown',          logo: 'QFC', dist: '0.5 mi', addr: '500 Mercer St, Seattle', found: 9 },
     { name: 'QFC Broadway Market', logo: 'QFC', dist: '0.7 mi', found: 2 },
@@ -822,23 +823,25 @@ const splitText = fellThrough.length
   ? `${S0.found} at ${S0.name}, ${fellThrough.map(st => `${st.found} at ${st.name}`).join(', ')}`
   : `all ${S0.found} at the first store`;
 
-/* ---------- speaker notes (~400 spoken words; [cues] and "If asked" lines are not spoken) ---------- */
+/* ---------- speaker notes (~390 spoken words; [cues] and "If asked" lines are not spoken) ---------- */
 const DEMO_URL = 'https://recipecheckout.vercel.app/?demo=1&clean=1';
 const NOTES = [
-  "Hi, we're RecipeCheckout: <b>any recipe, sorted by aisle.</b> Paste a recipe link and every ingredient is located at your nearest grocery store, with live price and stock.",
+  "Hi, we're RecipeCheckout: <b>any recipe, sorted by aisle.</b> Paste a recipe link and every ingredient is located at your nearest grocery stores, with live price and stock.",
   "Recipes are written for cooks, not stores. Which product is \"double cream\" here? And recipe order isn't aisle order: this red line is that trip, <b>about twice the walking</b>. Then you find out it's out of stock at the shelf." +
     "<span class=\"qa\">If asked: ≈2× = the two routes measured on this illustrative plan ({LM} vs {LC} units); the aisles are real.</span>",
-  "So: <b>paste a recipe, walk the store once.</b> Take \"150 ml double cream\". The AI makes it heavy cream, in dairy, never whipped topping or creamer. Then we find the real product at your store: aisle 1, left side, shelf 5, $7.99, in stock.",
-  "Four steps. We read the recipe, with fallbacks for sites that block bots. <b>One</b> Claude Haiku call turns every line into a search term. Kroger's API searches your nearest store, all items in parallel. We sort by aisle, and misses fall through to the next store.",
-  `Same recipe, one clean loop. A <b>real recorded run</b>${fellThrough.length ? '' : ` at ${S0.name}`}: ${foundAll} of ${RUN.items} found, ${splitText}, about ${money(RUN.total)}. The simmer sauce is flagged "closest match". That dashed button is our next build.`,
+  "So: <b>paste a recipe, walk the store once.</b> \"150 ml double cream\": the AI makes it heavy cream, never whipped topping or creamer. Then the real product at your store: aisle 1, left side, shelf 5, $7.99, in stock.",
+  "Four steps. We read the recipe, with fallbacks for blocked sites. <b>One</b> Claude Haiku call turns each line into a search term. Kroger's API searches the nearest store in parallel; we sort by aisle, and misses fall through to the next store.",
+  `A <b>real recorded run</b>: ` + (fellThrough.length
+    ? `one loop for ${S0.found} items at ${S0.name}. It didn't have ${foundAll - S0.found} ${RUN.missReason}, so we found them at the next ${fellThrough[0].logo}; you can skip them. One is a flagged "closest match". About ${money(RUN.total)}.`
+    : `all ${foundAll} items at ${S0.name}, one clean loop, about ${money(RUN.total)}.`) + ` That dashed button is our next build.`,
   `<span class="cue">[Click the laptop or press D to open the <a href="${DEMO_URL}" target="_blank" rel="noopener">demo replay</a>. Backup: press V for the <a href="/demo" target="_blank" rel="noopener">/demo video</a>. About 30 s.]</span> ` +
-    "It's live. This is a replay of a real run, so it's fast and wifi-proof. Start a list… check ingredients: pantry staples start unchecked… find in stores… and here's the list, by aisle, with price and stock. Scan the code to run any recipe. No sign-up.",
+    "<b>The app is live:</b> scan and try any recipe. On stage I'm using a recorded real run, so wifi can't bite. Start a list… staples start unchecked… find in stores… the list, by aisle, with price and stock. No sign-up.",
   `Two numbers: <b>one AI call per recipe, about a tenth of a cent</b>, and 97% of about 120 products we searched at QFC Broadway Market had a shelf location. Blocked sites fall through to Wayback, a reader proxy, then paste.` +
     "<span class=\"qa\">If asked, stack: Expo Router + React Native Web, Vercel functions, Kroger Locations &amp; Products APIs, Claude Haiku 5.5 via OpenRouter, offline demo replay. Product picking is rules, not AI: term words, avoid words, department, aisle, stock.</span>",
-  "For Visa's <b>Reimagine Shopping</b>: discovery starts from a recipe, decisions get the right product with live price and stock, and it's personal to your store and pantry. Checkout, honestly: today it's an estimated total. Our first build after DubHacks is <b>Send to pickup cart</b> through Kroger's public Cart API; you pay with your card at pickup.",
+  "For Visa's <b>Reimagine Shopping</b>: GenAI reads the recipe, rules pick the shelf. Discovery, decision, personal. Checkout is next: <b>Send to pickup cart</b> through Kroger's Cart API, paid with your card at pickup.",
   "Our user: the home cook who finds recipes online. Revenue: \"shop this recipe\" links for creators, clearly labelled sponsored swaps, and affiliate fees on pickup orders. Creators are distribution. <b>Next to validate:</b> will creators add the link, and will grocers pay?",
   "Next: the pickup cart, more chains, the real floor plan, pantry memory, native apps. This weekend we redesigned the home screen three times and fixed a bug that turned white sugar into monkfruit.",
-  "RecipeCheckout: <b>any recipe, sorted by aisle.</b> Scan to try it. Thank you!"
+  "<span class=\"cue\">[Introduce the team: names and roles, one line each.]</span> RecipeCheckout: <b>any recipe, sorted by aisle.</b> Scan to try it. Thank you!"
 ];
 window.__NOTES_WORDS__ = (() => {
   const d = document.createElement('div');
@@ -856,8 +859,19 @@ document.getElementById('runs').innerHTML = RUN.stores.map((st, i) =>
   (st.found ? `<span class="ok">${i === 0 ? `${st.found} of ${RUN.items} found` : `+${st.found} found here`}</span>` : `<span class="nn">not needed</span>`) + `</em></div></div>`).join('');
 document.getElementById('store0-meta').textContent = [S0.dist, S0.addr].filter(Boolean).join(' · ');
 document.getElementById('found').querySelector('span').innerHTML = fellThrough.length
-  ? `${foundAll} of ${RUN.items} found<br>${S0.found} here · +${foundAll - S0.found} next store${fellThrough.length > 1 ? 's' : ''}`
+  ? `${foundAll} of ${RUN.items} found<br>${S0.found} here · ${foundAll - S0.found} at next store${fellThrough.length > 1 ? 's' : ''}`
   : `${foundAll} of ${RUN.items} found<br>at the first store`;
+{ // slide 5: say why some items come from another store (or that they don't)
+  const sec = document.getElementById('why').closest('section'), h = sec.querySelector('h2'), w = document.getElementById('why');
+  if (fellThrough.length) {
+    const n = foundAll - S0.found;
+    w.innerHTML = `${n} item${n > 1 ? 's' : ''} ${n > 1 ? "weren't" : "wasn't"} ${RUN.missReason} at <b>${S0.name}</b>, so ${n > 1 ? 'they come' : 'it comes'} from ` +
+      `<b>${fellThrough.map(st => st.name).join('</b> and <b>')}</b>, the next-nearest ${fellThrough.length > 1 ? 'stores' : fellThrough[0].logo}.`;
+  } else {
+    h.innerHTML = 'Same trip, <em>one clean loop.</em>'; sec.dataset.title = 'Same trip, one clean loop';
+    w.innerHTML = `Every item at <b>${S0.name}</b>.`;
+  }
+}
 { const t = document.getElementById('total'); t.dataset.count = RUN.total; t.textContent = money(RUN.total); }
 
 /* ---------- logo-centered QR (static, generated offline; error level H) ---------- */
@@ -905,12 +919,12 @@ function mapSVG(kind){
   let labels = '';
   for (let k = 1; k <= 13; k++){
     const cls = hit.includes(k) ? (clean ? 'hit' : 'miss') : '';
-    labels += `<g class="m-al ${cls}"><rect x="${AX(k)-15}" y="476" width="30" height="24" rx="6"/><text x="${AX(k)}" y="493">${k}</text></g>`;
+    labels += `<g class="m-al ${cls}"><rect x="${AX(k)-19}" y="472" width="38" height="30" rx="7"/><text x="${AX(k)}" y="494">${k}</text></g>`;
   }
-  s += `<rect class="m-door" x="22" y="626" width="112" height="74" rx="14"/><text class="m-lbl" x="78" y="670" fill="#8A8F84" text-anchor="middle" style="font-size:15px">ENTER</text>`;
+  s += `<rect class="m-door" x="22" y="626" width="112" height="74" rx="14"/><text class="m-lbl" x="78" y="670" fill="#8A8F84" text-anchor="middle" style="font-size:18px">ENTER</text>`;
   for (let i = 0; i < 4; i++) s += `<rect class="m-reg" x="${520+78*i}" y="592" width="48" height="58" rx="9"/>`;
-  s += `<text class="m-lbl" x="661" y="686" fill="#8A8F84" text-anchor="middle" style="font-size:15px">CHECKOUT</text>`;
-  s += `<rect class="m-door" x="866" y="626" width="112" height="74" rx="14"/><text class="m-lbl" x="922" y="670" fill="#8A8F84" text-anchor="middle" style="font-size:15px">EXIT</text>`;
+  s += `<text class="m-lbl" x="661" y="686" fill="#8A8F84" text-anchor="middle" style="font-size:18px">CHECKOUT</text>`;
+  s += `<rect class="m-door" x="866" y="626" width="112" height="74" rx="14"/><text class="m-lbl" x="922" y="670" fill="#8A8F84" text-anchor="middle" style="font-size:18px">EXIT</text>`;
 
   let pts, order;
   if (clean){ // aisle order, as the app lists QFC Uptown: produce → aisle 1 → aisle 9 → meat → checkout
@@ -929,7 +943,7 @@ function mapSVG(kind){
   s += `<path class="r-measure" d="${d}" fill="none" stroke="none"/>` + labels;
   order.forEach((k,i) => {
     const [x,y] = ITEMS[k];
-    s += `<g class="pin" data-k="${k}" data-i="${i}" transform="translate(${x} ${y})"><circle r="17" fill="${clean ? '#1F7A4D' : '#D9472B'}"/><text y="1">${i+1}</text></g>`;
+    s += `<g class="pin" data-k="${k}" data-i="${i}" transform="translate(${x} ${y})"><circle r="21" fill="${clean ? '#1F7A4D' : '#D9472B'}"/><text y="1">${i+1}</text></g>`;
   });
   s += `<circle class="head" r="11" fill="${clean ? '#F7C978' : '#fff'}" stroke="${clean ? '#155C39' : '#D9472B'}" stroke-width="4" cx="${pts[0][0]}" cy="${pts[0][1]}" opacity="0"/>`;
   return s + `</svg>`;

@@ -7,8 +7,8 @@
  * Recipe input
  * - `mode`: 'url' | 'text'. `setMode(m)`, `toggleMode()` switch between the link box and the paste box (clears the error).
  * - `url`, `setUrl(s)`, `text`, `setText(s)`: controlled input values.
- * - `urlPlaceholder`: placeholder for the link box ("Paste a recipe link…", or a demo hint in ?demo=1).
- * - `submit()`: validates, then calls fetchRecipe (real, ?mock=1 or ?demo=1 replay) and navigates to /review.
+ * - `urlPlaceholder`: placeholder for the link box ("Paste a recipe link…").
+ * - `submit(url?)`: validates (an explicit `url` is used instead of the box, e.g. from an example chip), then calls fetchRecipe (real, ?mock=1 or ?demo=1 replay) and navigates to /review.
  *   On 'blocked' | 'no_recipe' | 'not_found' | 'network' errors it switches `mode` to 'text' (paste fallback)
  *   and sets `error`. Safe to call repeatedly (ignored while loading). Wire it to the button and onSubmitEditing.
  * - `loading`: true while the recipe is being read.
@@ -56,7 +56,7 @@ export type HomeForm = {
   text: string;
   setText: (s: string) => void;
   urlPlaceholder: string;
-  submit: () => Promise<void>;
+  submit: (overrideUrl?: string) => Promise<void>;
   loading: boolean;
   loadingSteps: string[];
   loadingStep: number;
@@ -80,11 +80,12 @@ export type HomeForm = {
 
   /** Label of the default Seattle location option. */
   presetLabel: string;
-  /** "Try an example" links that fill the recipe box. */
+  /** "Try an example" links (empty in ?demo=1, where the replay would ignore them). */
   examples: { label: string; site: string; url: string }[];
+  /** Fills the recipe box with the example and submits it. */
   pickExample: (url: string) => void;
   /** Opens the recorded replay (no API calls): straight to /review with the sample recipe. */
-  runSample: () => void;
+  runSample: () => Promise<void>;
 };
 
 /** Recipe links that are known to work end to end (the first one is the recorded sample run). */
@@ -137,12 +138,13 @@ export function useHomeForm(): HomeForm {
     setError(null);
   };
 
-  const submit = async () => {
+  const submit = async (overrideUrl?: string) => {
     if (loading) return;
     setError(null);
-    const input = mode === 'url' ? url.trim() : text.trim();
+    const asUrl = overrideUrl !== undefined || mode === 'url';
+    const input = overrideUrl !== undefined ? overrideUrl.trim() : mode === 'url' ? url.trim() : text.trim();
     if (!input && !isDemo) {
-      setError(mode === 'url' ? 'Paste a recipe link first.' : 'Paste at least one ingredient line.');
+      setError(asUrl ? 'Paste a recipe link first.' : 'Paste at least one ingredient line.');
       return;
     }
     if (zipMissing) {
@@ -154,7 +156,7 @@ export function useHomeForm(): HomeForm {
     setLoading(true);
     loadStores().catch(() => {}); // make sure stores are on their way while the recipe is read
     try {
-      const recipe = await client.fetchRecipe(mode === 'url' ? { url: input } : { text: input });
+      const recipe = await client.fetchRecipe(asUrl ? { url: input } : { text: input });
       if (!recipe.items.length) {
         setError("We couldn't find any ingredients there. Paste them below instead.");
         setModeState('text');
@@ -165,7 +167,7 @@ export function useHomeForm(): HomeForm {
     } catch (e) {
       const code = e instanceof ApiCallError ? e.code : undefined;
       const msg = e instanceof Error ? e.message : 'Something went wrong.';
-      if (mode === 'url' && code && PASTE_FALLBACK_CODES.has(code)) {
+      if (asUrl && code && PASTE_FALLBACK_CODES.has(code)) {
         setError(`${msg} Paste the ingredient list instead.`);
         setModeState('text');
       } else {
@@ -240,7 +242,7 @@ export function useHomeForm(): HomeForm {
     setUrl,
     text,
     setText,
-    urlPlaceholder: isDemo ? 'Demo: no link needed' : 'Paste a recipe link…',
+    urlPlaceholder: 'Paste a recipe link…',
     submit,
     loading,
     loadingSteps: LOADING_STEPS,
@@ -266,21 +268,29 @@ export function useHomeForm(): HomeForm {
     },
 
     presetLabel: shortLocationLabel(preset.label),
-    examples: EXAMPLES,
+    examples: isDemo ? [] : EXAMPLES,
     pickExample: (u: string) => {
-      setModeState('url');
-      setError(null);
-      setUrl(u);
-    },
-    runSample: () => {
       if (loading) return;
+      setModeState('url');
+      setUrl(u);
+      void submit(u);
+    },
+    runSample: async () => {
+      if (loading) return;
+      let recipe;
+      try {
+        recipe = await sampleRecipe();
+      } catch {
+        setError("Couldn't load the sample run. Check your connection and try again.");
+        return;
+      }
       startSampleRun();
       const o = sampleOrigin();
       const loc: UserLocation = { lat: o.lat, lng: o.lng, label: o.label };
       setLocMode('preset');
       setLocationNotice(null);
       setLocation(loc);
-      setRecipe(sampleRecipe());
+      setRecipe(recipe);
       router.push('/review');
     },
   };

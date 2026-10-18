@@ -42,7 +42,7 @@ async function main() {
   console.log(`Origin: ${stores.origin.label}`);
   stores.stores.forEach((s, i) => console.log(`  ${i + 1}. ${s.name} (${s.id}) ${s.distanceMi} mi`));
 
-  const items = run.recipe.items.map(({ id, name, searchTerm, altTerms, department, avoidWords }) => ({ id, name, searchTerm, altTerms, department, avoidWords }));
+  const items = run.recipe.items.map(({ id, name, searchTerm, altTerms, department, avoidWords, quantity, unit }) => ({ id, name, searchTerm, altTerms, department, avoidWords, quantity, unit }));
   const searches: Record<string, SearchResponse> = {};
   for (const s of stores.stores) {
     const t = Date.now();
@@ -82,6 +82,7 @@ async function main() {
   if (outArg) writeFileSync(outArg, JSON.stringify(out, null, 2) + '\n');
   if (write) {
     writeFileSync(FILE, JSON.stringify(out, null, 2) + '\n');
+    writeFileSync(new URL('../lib/client/demo-meta.json', import.meta.url), JSON.stringify({ origin: stores.origin }, null, 2) + '\n');
     console.log(`Saved ${FILE.pathname}`);
   }
 }

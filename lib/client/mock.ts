@@ -59,7 +59,9 @@ export function isMockMode(): boolean {
 
 /** `?demo=1`: replay a recorded real run (BBC Good Food chicken tikka masala, Seattle) with no network calls. */
 export function isDemoMode(): boolean {
-  return urlFlag('demo');
+  const on = urlFlag('demo');
+  if (on) demo.preloadDemo();
+  return on;
 }
 
 const SAMPLE_KEY = 'recipecheckout:sample';

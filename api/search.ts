@@ -19,6 +19,8 @@ export async function POST(request: Request): Promise<Response> {
     altTerms: Array.isArray(it.altTerms) ? it.altTerms.map(String).slice(0, 2) : [],
     department: it.department ?? 'other',
     avoidWords: Array.isArray(it.avoidWords) ? it.avoidWords.map(String).slice(0, 10) : [],
+    quantity: typeof it.quantity === 'string' ? it.quantity.slice(0, 40) : undefined,
+    unit: typeof it.unit === 'string' ? it.unit.slice(0, 40) : undefined,
   }));
   const start = Date.now();
   try {

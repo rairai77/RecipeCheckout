@@ -96,7 +96,7 @@ export default function HomeC({ background }: HomeCProps = {}) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={[styles.content, { minHeight: height }]}>
-          <View style={[styles.nav, { paddingHorizontal: isPhone ? 16 : 32 }]} accessibilityRole="header">
+          <View style={[styles.nav, { paddingHorizontal: isPhone ? 16 : 32 }]}>
             <LogoLight />
           </View>
 
@@ -288,7 +288,8 @@ function GoButton({ f, onPress, label, style }: { f: HomeForm; onPress: () => vo
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={f.loading ? f.loadingSteps[f.loadingStep] : 'Build my shopping list'}
+      // The accessible name starts with the visible label (WCAG 2.5.3), so "click Go" works with voice control.
+      accessibilityLabel={f.loading ? f.loadingSteps[f.loadingStep] : label === 'Go' ? 'Go: build my shopping list' : label}
       accessibilityState={{ busy: f.loading, disabled: f.loading }}
       disabled={f.loading}
       onPress={onPress}
@@ -506,7 +507,7 @@ function WhiteSpinner() {
   return <View style={styles.spinner} accessibilityElementsHidden />;
 }
 
-/** "Try an example": a recorded sample run plus a couple of recipe links that fill the box. */
+/** "Try an example": a recorded sample run plus a couple of recipe links that fill the box and submit. In ?demo=1 only the sample run. */
 function Examples({ f }: { f: HomeForm }) {
   const { width } = useWindowDimensions();
   const tight = width < 440;
@@ -529,7 +530,7 @@ function Examples({ f }: { f: HomeForm }) {
         <Pressable
           key={ex.url}
           accessibilityRole="button"
-          accessibilityLabel={`Fill in an example recipe: ${ex.label}, ${ex.site}`}
+          accessibilityLabel={`Try an example recipe: ${ex.label}, ${ex.site}`}
           onPress={() => f.pickExample(ex.url)}
           hitSlop={6}
           style={(s) => [chip, transition, pstate(s).hovered && styles.chipHover]}
@@ -553,7 +554,8 @@ function BelowBar({ f }: { f: HomeForm }) {
           <Text style={styles.errorText}>{f.error}</Text>
         </View>
       ) : null}
-      {f.error && !f.isDemo ? (
+      {/* The sample-run chip is only hidden in paste mode; offer it here instead. */}
+      {f.error && !f.isDemo && f.mode === 'text' ? (
         <Pressable accessibilityRole="button" onPress={f.runSample} style={(s) => [styles.toggle, transition, pstate(s).hovered && { opacity: 1 }]}>
           <Text style={[styles.toggleText, { color: HEADLINE_ACCENT }]}>Or see a recorded sample run</Text>
         </Pressable>

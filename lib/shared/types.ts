@@ -94,7 +94,7 @@ export interface ItemResult {
 
 export interface SearchRequest {
   storeId: string;
-  items: Pick<Item, 'id' | 'name' | 'searchTerm' | 'altTerms' | 'department' | 'avoidWords'>[];
+  items: (Pick<Item, 'id' | 'name' | 'searchTerm' | 'altTerms' | 'department' | 'avoidWords'> & Partial<Pick<Item, 'quantity' | 'unit'>>)[];
 }
 
 export interface SearchResponse {

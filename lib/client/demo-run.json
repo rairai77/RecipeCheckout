@@ -322,52 +322,28 @@
           "status": "found",
           "termUsed": "vegetable oil",
           "best": {
-            "productId": "0001111085605",
-            "description": "Kroger® 100% Pure Vegetable Oil",
-            "brand": "Kroger",
-            "size": "48 fl oz",
-            "price": 5.29,
-            "promoPrice": 4.99,
+            "productId": "0001111014719",
+            "description": "Smart Way™ Vegetable Oil",
+            "brand": "Smart Way",
+            "size": "16 fl oz",
+            "price": 1.79,
             "stockLevel": "HIGH",
             "inStore": true,
             "aisle": {
               "label": "AISLE 5",
               "number": "5",
               "side": "R",
-              "shelf": "2",
+              "shelf": "3",
               "bay": "31",
               "isNumbered": true
             },
-            "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
+            "image": "https://www.kroger.com/product/images/medium/front/0001111014719",
             "categories": [
               "Baking Goods"
             ],
-            "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
+            "url": "https://www.kroger.com/p/smart-way-vegetable-oil/0001111014719"
           },
           "candidates": [
-            {
-              "productId": "0001111085605",
-              "description": "Kroger® 100% Pure Vegetable Oil",
-              "brand": "Kroger",
-              "size": "48 fl oz",
-              "price": 5.29,
-              "promoPrice": 4.99,
-              "stockLevel": "HIGH",
-              "inStore": true,
-              "aisle": {
-                "label": "AISLE 5",
-                "number": "5",
-                "side": "R",
-                "shelf": "2",
-                "bay": "31",
-                "isNumbered": true
-              },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
-              "categories": [
-                "Baking Goods"
-              ],
-              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
-            },
             {
               "productId": "0001111014719",
               "description": "Smart Way™ Vegetable Oil",
@@ -413,26 +389,49 @@
               "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085607"
             },
             {
-              "productId": "0001111085606",
+              "productId": "0001111085605",
               "description": "Kroger® 100% Pure Vegetable Oil",
               "brand": "Kroger",
-              "size": "1 gal",
-              "price": 10.49,
-              "stockLevel": "LOW",
+              "size": "48 fl oz",
+              "price": 5.29,
+              "promoPrice": 4.99,
+              "stockLevel": "HIGH",
               "inStore": true,
               "aisle": {
                 "label": "AISLE 5",
                 "number": "5",
                 "side": "R",
-                "shelf": "1",
+                "shelf": "2",
                 "bay": "31",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111085606",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
               "categories": [
                 "Baking Goods"
               ],
-              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085606"
+              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
+            },
+            {
+              "productId": "0019600524395",
+              "description": "Crisco Pure Vegetable Oil, Gluten-Free, 16 fl oz",
+              "brand": "Crisco",
+              "size": "16 fl oz",
+              "price": 3.99,
+              "stockLevel": "HIGH",
+              "inStore": true,
+              "aisle": {
+                "label": "AISLE 5",
+                "number": "5",
+                "side": "R",
+                "shelf": "3",
+                "bay": "31",
+                "isNumbered": true
+              },
+              "image": "https://www.kroger.com/product/images/medium/front/0019600524395",
+              "categories": [
+                "Baking Goods"
+              ],
+              "url": "https://www.kroger.com/p/crisco-pure-vegetable-oil-gluten-free-16-fl-oz/0019600524395"
             },
             {
               "productId": "0019600570833",
@@ -457,26 +456,26 @@
               "url": "https://www.kroger.com/p/crisco-pure-vegetable-oil/0019600570833"
             },
             {
-              "productId": "0019600524395",
-              "description": "Crisco Pure Vegetable Oil, Gluten-Free, 16 fl oz",
-              "brand": "Crisco",
-              "size": "16 fl oz",
-              "price": 3.99,
-              "stockLevel": "HIGH",
+              "productId": "0001111085606",
+              "description": "Kroger® 100% Pure Vegetable Oil",
+              "brand": "Kroger",
+              "size": "1 gal",
+              "price": 10.49,
+              "stockLevel": "LOW",
               "inStore": true,
               "aisle": {
                 "label": "AISLE 5",
                 "number": "5",
                 "side": "R",
-                "shelf": "3",
+                "shelf": "1",
                 "bay": "31",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0019600524395",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111085606",
               "categories": [
                 "Baking Goods"
               ],
-              "url": "https://www.kroger.com/p/crisco-pure-vegetable-oil-gluten-free-16-fl-oz/0019600524395"
+              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085606"
             }
           ]
         },
@@ -485,49 +484,49 @@
           "status": "found",
           "termUsed": "butter",
           "best": {
-            "productId": "0001111010080",
-            "description": "Kroger® Salted Butter Sticks",
-            "brand": "Kroger",
-            "size": "4 sticks / 16 oz / 2 pk",
-            "price": 7.99,
+            "productId": "0076770700214",
+            "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
+            "brand": "Kerrygold",
+            "size": "8 oz",
+            "price": 5.99,
             "stockLevel": "HIGH",
             "inStore": true,
             "aisle": {
               "label": "DAIRY",
               "number": "100",
               "side": "R",
-              "shelf": "1",
+              "shelf": "4",
               "bay": "12",
               "isNumbered": false
             },
-            "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
+            "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
             "categories": [
               "Dairy"
             ],
-            "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
+            "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
           },
           "candidates": [
             {
-              "productId": "0001111010080",
-              "description": "Kroger® Salted Butter Sticks",
-              "brand": "Kroger",
-              "size": "4 sticks / 16 oz / 2 pk",
-              "price": 7.99,
+              "productId": "0076770700214",
+              "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
+              "brand": "Kerrygold",
+              "size": "8 oz",
+              "price": 5.99,
               "stockLevel": "HIGH",
               "inStore": true,
               "aisle": {
                 "label": "DAIRY",
                 "number": "100",
                 "side": "R",
-                "shelf": "1",
+                "shelf": "4",
                 "bay": "12",
                 "isNumbered": false
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
+              "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
+              "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
             },
             {
               "productId": "0002640000010",
@@ -553,8 +552,31 @@
               "url": "https://www.kroger.com/p/darigold-natural-salted-butter-sticks/0002640000010"
             },
             {
-              "productId": "0001111010081",
-              "description": "Kroger® Unsalted Butter Sticks",
+              "productId": "0001111011669",
+              "description": "Private Selection® Grass Fed Salted Butter Block",
+              "brand": "Private Selection",
+              "size": "8 oz",
+              "price": 5.49,
+              "promoPrice": 3.99,
+              "stockLevel": "HIGH",
+              "inStore": true,
+              "aisle": {
+                "label": "DAIRY",
+                "number": "100",
+                "side": "R",
+                "shelf": "6",
+                "bay": "11",
+                "isNumbered": false
+              },
+              "image": "https://www.kroger.com/product/images/medium/front/0001111011669",
+              "categories": [
+                "Dairy"
+              ],
+              "url": "https://www.kroger.com/p/private-selection-grass-fed-salted-butter-block/0001111011669"
+            },
+            {
+              "productId": "0001111010080",
+              "description": "Kroger® Salted Butter Sticks",
               "brand": "Kroger",
               "size": "4 sticks / 16 oz / 2 pk",
               "price": 7.99,
@@ -565,14 +587,14 @@
                 "number": "100",
                 "side": "R",
                 "shelf": "1",
-                "bay": "11",
+                "bay": "12",
                 "isNumbered": false
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111010081",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kroger-unsalted-butter-sticks-big-deal-/0001111010081"
+              "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
             },
             {
               "productId": "0004720015260",
@@ -598,48 +620,26 @@
               "url": "https://www.kroger.com/p/challenge-salted-butter/0004720015260"
             },
             {
-              "productId": "0076770700214",
-              "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
-              "brand": "Kerrygold",
-              "size": "8 oz",
-              "price": 5.99,
+              "productId": "0001111010081",
+              "description": "Kroger® Unsalted Butter Sticks",
+              "brand": "Kroger",
+              "size": "4 sticks / 16 oz / 2 pk",
+              "price": 7.99,
               "stockLevel": "HIGH",
               "inStore": true,
               "aisle": {
                 "label": "DAIRY",
                 "number": "100",
                 "side": "R",
-                "shelf": "4",
-                "bay": "12",
+                "shelf": "1",
+                "bay": "11",
                 "isNumbered": false
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111010081",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
-            },
-            {
-              "productId": "0003450015164",
-              "description": "Land O Lakes Salted Butter Sticks",
-              "brand": "Land O' Lakes",
-              "size": "4 sticks / 16 oz",
-              "price": 6.49,
-              "stockLevel": "HIGH",
-              "inStore": true,
-              "aisle": {
-                "label": "DAIRY",
-                "number": "100",
-                "side": "R",
-                "shelf": "2",
-                "bay": "12",
-                "isNumbered": false
-              },
-              "image": "https://www.kroger.com/product/images/medium/front/0003450015164",
-              "categories": [
-                "Dairy"
-              ],
-              "url": "https://www.kroger.com/p/land-o-lakes-salted-butter-sticks/0003450015164"
+              "url": "https://www.kroger.com/p/kroger-unsalted-butter-sticks-big-deal-/0001111010081"
             }
           ]
         },
@@ -1877,7 +1877,7 @@
           ]
         }
       ],
-      "ms": 2049
+      "ms": 2957
     },
     "70500881": {
       "storeId": "70500881",
@@ -1887,52 +1887,28 @@
           "status": "found",
           "termUsed": "vegetable oil",
           "best": {
-            "productId": "0001111085605",
-            "description": "Kroger® 100% Pure Vegetable Oil",
-            "brand": "Kroger",
-            "size": "48 fl oz",
-            "price": 5.29,
-            "promoPrice": 4.99,
+            "productId": "0001111014719",
+            "description": "Smart Way™ Vegetable Oil",
+            "brand": "Smart Way",
+            "size": "16 fl oz",
+            "price": 1.79,
             "stockLevel": "HIGH",
             "inStore": true,
             "aisle": {
               "label": "AISLE 8",
               "number": "8",
               "side": "L",
-              "shelf": "2",
+              "shelf": "3",
               "bay": "23",
               "isNumbered": true
             },
-            "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
+            "image": "https://www.kroger.com/product/images/medium/front/0001111014719",
             "categories": [
               "Baking Goods"
             ],
-            "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
+            "url": "https://www.kroger.com/p/smart-way-vegetable-oil/0001111014719"
           },
           "candidates": [
-            {
-              "productId": "0001111085605",
-              "description": "Kroger® 100% Pure Vegetable Oil",
-              "brand": "Kroger",
-              "size": "48 fl oz",
-              "price": 5.29,
-              "promoPrice": 4.99,
-              "stockLevel": "HIGH",
-              "inStore": true,
-              "aisle": {
-                "label": "AISLE 8",
-                "number": "8",
-                "side": "L",
-                "shelf": "2",
-                "bay": "23",
-                "isNumbered": true
-              },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
-              "categories": [
-                "Baking Goods"
-              ],
-              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
-            },
             {
               "productId": "0001111014719",
               "description": "Smart Way™ Vegetable Oil",
@@ -1978,26 +1954,27 @@
               "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085607"
             },
             {
-              "productId": "0001111085606",
+              "productId": "0001111085605",
               "description": "Kroger® 100% Pure Vegetable Oil",
               "brand": "Kroger",
-              "size": "1 gal",
-              "price": 10.49,
+              "size": "48 fl oz",
+              "price": 5.29,
+              "promoPrice": 4.99,
               "stockLevel": "HIGH",
               "inStore": true,
               "aisle": {
                 "label": "AISLE 8",
                 "number": "8",
                 "side": "L",
-                "shelf": "1",
+                "shelf": "2",
                 "bay": "23",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111085606",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
               "categories": [
                 "Baking Goods"
               ],
-              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085606"
+              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
             },
             {
               "productId": "0019600570833",
@@ -2042,6 +2019,28 @@
                 "Baking Goods"
               ],
               "url": "https://www.kroger.com/p/crisco-pure-vegetable-oil-gluten-free-16-fl-oz/0019600524395"
+            },
+            {
+              "productId": "0001111085606",
+              "description": "Kroger® 100% Pure Vegetable Oil",
+              "brand": "Kroger",
+              "size": "1 gal",
+              "price": 10.49,
+              "stockLevel": "HIGH",
+              "inStore": true,
+              "aisle": {
+                "label": "AISLE 8",
+                "number": "8",
+                "side": "L",
+                "shelf": "1",
+                "bay": "23",
+                "isNumbered": true
+              },
+              "image": "https://www.kroger.com/product/images/medium/front/0001111085606",
+              "categories": [
+                "Baking Goods"
+              ],
+              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085606"
             }
           ]
         },
@@ -2050,49 +2049,49 @@
           "status": "found",
           "termUsed": "butter",
           "best": {
-            "productId": "0001111010080",
-            "description": "Kroger® Salted Butter Sticks",
-            "brand": "Kroger",
-            "size": "4 sticks / 16 oz / 2 pk",
-            "price": 7.99,
+            "productId": "0076770700214",
+            "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
+            "brand": "Kerrygold",
+            "size": "8 oz",
+            "price": 5.99,
             "stockLevel": "HIGH",
             "inStore": true,
             "aisle": {
               "label": "AISLE 1",
               "number": "1",
               "side": "L",
-              "shelf": "1",
-              "bay": "11",
+              "shelf": "4",
+              "bay": "10",
               "isNumbered": true
             },
-            "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
+            "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
             "categories": [
               "Dairy"
             ],
-            "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
+            "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
           },
           "candidates": [
             {
-              "productId": "0001111010080",
-              "description": "Kroger® Salted Butter Sticks",
-              "brand": "Kroger",
-              "size": "4 sticks / 16 oz / 2 pk",
-              "price": 7.99,
+              "productId": "0076770700214",
+              "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
+              "brand": "Kerrygold",
+              "size": "8 oz",
+              "price": 5.99,
               "stockLevel": "HIGH",
               "inStore": true,
               "aisle": {
                 "label": "AISLE 1",
                 "number": "1",
                 "side": "L",
-                "shelf": "1",
-                "bay": "11",
+                "shelf": "4",
+                "bay": "10",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
+              "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
+              "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
             },
             {
               "productId": "0002640000010",
@@ -2118,8 +2117,31 @@
               "url": "https://www.kroger.com/p/darigold-natural-salted-butter-sticks/0002640000010"
             },
             {
-              "productId": "0001111010081",
-              "description": "Kroger® Unsalted Butter Sticks",
+              "productId": "0001111011669",
+              "description": "Private Selection® Grass Fed Salted Butter Block",
+              "brand": "Private Selection",
+              "size": "8 oz",
+              "price": 5.49,
+              "promoPrice": 3.99,
+              "stockLevel": "HIGH",
+              "inStore": true,
+              "aisle": {
+                "label": "AISLE 1",
+                "number": "1",
+                "side": "L",
+                "shelf": "6",
+                "bay": "10",
+                "isNumbered": true
+              },
+              "image": "https://www.kroger.com/product/images/medium/front/0001111011669",
+              "categories": [
+                "Dairy"
+              ],
+              "url": "https://www.kroger.com/p/private-selection-grass-fed-salted-butter-block/0001111011669"
+            },
+            {
+              "productId": "0001111010080",
+              "description": "Kroger® Salted Butter Sticks",
               "brand": "Kroger",
               "size": "4 sticks / 16 oz / 2 pk",
               "price": 7.99,
@@ -2133,11 +2155,11 @@
                 "bay": "11",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111010081",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kroger-unsalted-butter-sticks-big-deal-/0001111010081"
+              "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
             },
             {
               "productId": "0004720015260",
@@ -2163,48 +2185,26 @@
               "url": "https://www.kroger.com/p/challenge-salted-butter/0004720015260"
             },
             {
-              "productId": "0076770700214",
-              "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
-              "brand": "Kerrygold",
-              "size": "8 oz",
-              "price": 5.99,
+              "productId": "0001111010081",
+              "description": "Kroger® Unsalted Butter Sticks",
+              "brand": "Kroger",
+              "size": "4 sticks / 16 oz / 2 pk",
+              "price": 7.99,
               "stockLevel": "HIGH",
               "inStore": true,
               "aisle": {
                 "label": "AISLE 1",
                 "number": "1",
                 "side": "L",
-                "shelf": "4",
-                "bay": "10",
+                "shelf": "1",
+                "bay": "11",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111010081",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
-            },
-            {
-              "productId": "0003450015164",
-              "description": "Land O Lakes Salted Butter Sticks",
-              "brand": "Land O' Lakes",
-              "size": "4 sticks / 16 oz",
-              "price": 6.49,
-              "stockLevel": "HIGH",
-              "inStore": true,
-              "aisle": {
-                "label": "AISLE 1",
-                "number": "1",
-                "side": "L",
-                "shelf": "2",
-                "bay": "10",
-                "isNumbered": true
-              },
-              "image": "https://www.kroger.com/product/images/medium/front/0003450015164",
-              "categories": [
-                "Dairy"
-              ],
-              "url": "https://www.kroger.com/p/land-o-lakes-salted-butter-sticks/0003450015164"
+              "url": "https://www.kroger.com/p/kroger-unsalted-butter-sticks-big-deal-/0001111010081"
             }
           ]
         },
@@ -2338,18 +2338,19 @@
           "status": "unavailable",
           "termUsed": "tikka masala simmer sauce",
           "best": {
-            "productId": "0006927610247",
-            "description": "Patak's® Tikka Masala Spicy Curry Simmer Sauce",
-            "brand": "Patak's",
-            "size": "15 oz",
-            "price": 6.49,
+            "productId": "0089175600016",
+            "description": "Maya Kaimal® Mild Tikka Masala Indian Simmer Sauce",
+            "brand": "Maya Kaimal",
+            "size": "12.5 oz",
+            "price": 7.49,
+            "promoPrice": 6.89,
             "inStore": false,
-            "image": "https://www.kroger.com/product/images/medium/front/0006927610247",
+            "image": "https://www.kroger.com/product/images/medium/front/0089175600016",
             "categories": [
               "International",
               "Condiment & Sauces"
             ],
-            "url": "https://www.kroger.com/p/patak-s-tikka-masala-spicy-curry-simmer-sauce/0006927610247"
+            "url": "https://www.kroger.com/p/maya-kaimal-mild-tikka-masala-indian-simmer-sauce/0089175600016"
           },
           "candidates": [],
           "substitute": {
@@ -3376,7 +3377,7 @@
           ]
         }
       ],
-      "ms": 1693
+      "ms": 1736
     },
     "70500887": {
       "storeId": "70500887",
@@ -3386,52 +3387,28 @@
           "status": "found",
           "termUsed": "vegetable oil",
           "best": {
-            "productId": "0001111085605",
-            "description": "Kroger® 100% Pure Vegetable Oil",
-            "brand": "Kroger",
-            "size": "48 fl oz",
-            "price": 5.29,
-            "promoPrice": 4.99,
+            "productId": "0001111014719",
+            "description": "Smart Way™ Vegetable Oil",
+            "brand": "Smart Way",
+            "size": "16 fl oz",
+            "price": 1.79,
             "stockLevel": "HIGH",
             "inStore": true,
             "aisle": {
               "label": "AISLE 7",
               "number": "7",
               "side": "R",
-              "shelf": "2",
+              "shelf": "3",
               "bay": "2",
               "isNumbered": true
             },
-            "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
+            "image": "https://www.kroger.com/product/images/medium/front/0001111014719",
             "categories": [
               "Baking Goods"
             ],
-            "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
+            "url": "https://www.kroger.com/p/smart-way-vegetable-oil/0001111014719"
           },
           "candidates": [
-            {
-              "productId": "0001111085605",
-              "description": "Kroger® 100% Pure Vegetable Oil",
-              "brand": "Kroger",
-              "size": "48 fl oz",
-              "price": 5.29,
-              "promoPrice": 4.99,
-              "stockLevel": "HIGH",
-              "inStore": true,
-              "aisle": {
-                "label": "AISLE 7",
-                "number": "7",
-                "side": "R",
-                "shelf": "2",
-                "bay": "2",
-                "isNumbered": true
-              },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
-              "categories": [
-                "Baking Goods"
-              ],
-              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
-            },
             {
               "productId": "0001111014719",
               "description": "Smart Way™ Vegetable Oil",
@@ -3477,6 +3454,51 @@
               "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085607"
             },
             {
+              "productId": "0001111085605",
+              "description": "Kroger® 100% Pure Vegetable Oil",
+              "brand": "Kroger",
+              "size": "48 fl oz",
+              "price": 5.29,
+              "promoPrice": 4.99,
+              "stockLevel": "HIGH",
+              "inStore": true,
+              "aisle": {
+                "label": "AISLE 7",
+                "number": "7",
+                "side": "R",
+                "shelf": "2",
+                "bay": "2",
+                "isNumbered": true
+              },
+              "image": "https://www.kroger.com/product/images/medium/front/0001111085605",
+              "categories": [
+                "Baking Goods"
+              ],
+              "url": "https://www.kroger.com/p/kroger-100-pure-vegetable-oil/0001111085605"
+            },
+            {
+              "productId": "0019600524395",
+              "description": "Crisco Pure Vegetable Oil, Gluten-Free, 16 fl oz",
+              "brand": "Crisco",
+              "size": "16 fl oz",
+              "price": 3.99,
+              "stockLevel": "HIGH",
+              "inStore": true,
+              "aisle": {
+                "label": "AISLE 7",
+                "number": "7",
+                "side": "R",
+                "shelf": "3",
+                "bay": "2",
+                "isNumbered": true
+              },
+              "image": "https://www.kroger.com/product/images/medium/front/0019600524395",
+              "categories": [
+                "Baking Goods"
+              ],
+              "url": "https://www.kroger.com/p/crisco-pure-vegetable-oil-gluten-free-16-fl-oz/0019600524395"
+            },
+            {
               "productId": "0001111085606",
               "description": "Kroger® 100% Pure Vegetable Oil",
               "brand": "Kroger",
@@ -3519,28 +3541,6 @@
                 "Baking Goods"
               ],
               "url": "https://www.kroger.com/p/crisco-pure-vegetable-oil/0019600570833"
-            },
-            {
-              "productId": "0019600524395",
-              "description": "Crisco Pure Vegetable Oil, Gluten-Free, 16 fl oz",
-              "brand": "Crisco",
-              "size": "16 fl oz",
-              "price": 3.99,
-              "stockLevel": "HIGH",
-              "inStore": true,
-              "aisle": {
-                "label": "AISLE 7",
-                "number": "7",
-                "side": "R",
-                "shelf": "3",
-                "bay": "2",
-                "isNumbered": true
-              },
-              "image": "https://www.kroger.com/product/images/medium/front/0019600524395",
-              "categories": [
-                "Baking Goods"
-              ],
-              "url": "https://www.kroger.com/p/crisco-pure-vegetable-oil-gluten-free-16-fl-oz/0019600524395"
             }
           ]
         },
@@ -3549,49 +3549,49 @@
           "status": "found",
           "termUsed": "butter",
           "best": {
-            "productId": "0001111010080",
-            "description": "Kroger® Salted Butter Sticks",
-            "brand": "Kroger",
-            "size": "4 sticks / 16 oz / 2 pk",
-            "price": 7.99,
+            "productId": "0076770700214",
+            "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
+            "brand": "Kerrygold",
+            "size": "8 oz",
+            "price": 5.99,
             "stockLevel": "HIGH",
             "inStore": true,
             "aisle": {
               "label": "AISLE 11",
               "number": "11",
               "side": "L",
-              "shelf": "1",
-              "bay": "6",
+              "shelf": "4",
+              "bay": "5",
               "isNumbered": true
             },
-            "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
+            "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
             "categories": [
               "Dairy"
             ],
-            "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
+            "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
           },
           "candidates": [
             {
-              "productId": "0001111010080",
-              "description": "Kroger® Salted Butter Sticks",
-              "brand": "Kroger",
-              "size": "4 sticks / 16 oz / 2 pk",
-              "price": 7.99,
+              "productId": "0076770700214",
+              "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
+              "brand": "Kerrygold",
+              "size": "8 oz",
+              "price": 5.99,
               "stockLevel": "HIGH",
               "inStore": true,
               "aisle": {
                 "label": "AISLE 11",
                 "number": "11",
                 "side": "L",
-                "shelf": "1",
-                "bay": "6",
+                "shelf": "4",
+                "bay": "5",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
+              "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
+              "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
             },
             {
               "productId": "0002640000010",
@@ -3617,8 +3617,8 @@
               "url": "https://www.kroger.com/p/darigold-natural-salted-butter-sticks/0002640000010"
             },
             {
-              "productId": "0001111010081",
-              "description": "Kroger® Unsalted Butter Sticks",
+              "productId": "0001111010080",
+              "description": "Kroger® Salted Butter Sticks",
               "brand": "Kroger",
               "size": "4 sticks / 16 oz / 2 pk",
               "price": 7.99,
@@ -3632,11 +3632,11 @@
                 "bay": "6",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0001111010081",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111010080",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kroger-unsalted-butter-sticks-big-deal-/0001111010081"
+              "url": "https://www.kroger.com/p/kroger-salted-butter-sticks-big-deal-/0001111010080"
             },
             {
               "productId": "0004720015260",
@@ -3662,26 +3662,26 @@
               "url": "https://www.kroger.com/p/challenge-salted-butter/0004720015260"
             },
             {
-              "productId": "0076770700214",
-              "description": "Kerrygold Irish Grass-Fed Salted Butter Sticks, 8oz",
-              "brand": "Kerrygold",
-              "size": "8 oz",
-              "price": 5.99,
+              "productId": "0001111010081",
+              "description": "Kroger® Unsalted Butter Sticks",
+              "brand": "Kroger",
+              "size": "4 sticks / 16 oz / 2 pk",
+              "price": 7.99,
               "stockLevel": "HIGH",
               "inStore": true,
               "aisle": {
                 "label": "AISLE 11",
                 "number": "11",
                 "side": "L",
-                "shelf": "4",
-                "bay": "5",
+                "shelf": "1",
+                "bay": "6",
                 "isNumbered": true
               },
-              "image": "https://www.kroger.com/product/images/medium/front/0076770700214",
+              "image": "https://www.kroger.com/product/images/medium/front/0001111010081",
               "categories": [
                 "Dairy"
               ],
-              "url": "https://www.kroger.com/p/kerrygold-irish-grass-fed-salted-butter-sticks-8oz/0076770700214"
+              "url": "https://www.kroger.com/p/kroger-unsalted-butter-sticks-big-deal-/0001111010081"
             },
             {
               "productId": "0003450015164",
@@ -3851,50 +3851,29 @@
           "status": "found",
           "termUsed": "tikka masala simmer sauce",
           "best": {
-            "productId": "0006927610247",
-            "description": "Patak's® Tikka Masala Spicy Curry Simmer Sauce",
-            "brand": "Patak's",
-            "size": "15 oz",
-            "price": 6.49,
+            "productId": "0089175600016",
+            "description": "Maya Kaimal® Mild Tikka Masala Indian Simmer Sauce",
+            "brand": "Maya Kaimal",
+            "size": "12.5 oz",
+            "price": 7.49,
+            "promoPrice": 6.89,
             "inStore": true,
             "aisle": {
               "label": "AISLE 5",
               "number": "5",
               "side": "L",
-              "shelf": "5",
+              "shelf": "8",
               "bay": "12",
               "isNumbered": true
             },
-            "image": "https://www.kroger.com/product/images/medium/front/0006927610247",
+            "image": "https://www.kroger.com/product/images/medium/front/0089175600016",
             "categories": [
               "International",
               "Condiment & Sauces"
             ],
-            "url": "https://www.kroger.com/p/patak-s-tikka-masala-spicy-curry-simmer-sauce/0006927610247"
+            "url": "https://www.kroger.com/p/maya-kaimal-mild-tikka-masala-indian-simmer-sauce/0089175600016"
           },
           "candidates": [
-            {
-              "productId": "0006927610247",
-              "description": "Patak's® Tikka Masala Spicy Curry Simmer Sauce",
-              "brand": "Patak's",
-              "size": "15 oz",
-              "price": 6.49,
-              "inStore": true,
-              "aisle": {
-                "label": "AISLE 5",
-                "number": "5",
-                "side": "L",
-                "shelf": "5",
-                "bay": "12",
-                "isNumbered": true
-              },
-              "image": "https://www.kroger.com/product/images/medium/front/0006927610247",
-              "categories": [
-                "International",
-                "Condiment & Sauces"
-              ],
-              "url": "https://www.kroger.com/p/patak-s-tikka-masala-spicy-curry-simmer-sauce/0006927610247"
-            },
             {
               "productId": "0089175600016",
               "description": "Maya Kaimal® Mild Tikka Masala Indian Simmer Sauce",
@@ -3917,6 +3896,28 @@
                 "Condiment & Sauces"
               ],
               "url": "https://www.kroger.com/p/maya-kaimal-mild-tikka-masala-indian-simmer-sauce/0089175600016"
+            },
+            {
+              "productId": "0006927610247",
+              "description": "Patak's® Tikka Masala Spicy Curry Simmer Sauce",
+              "brand": "Patak's",
+              "size": "15 oz",
+              "price": 6.49,
+              "inStore": true,
+              "aisle": {
+                "label": "AISLE 5",
+                "number": "5",
+                "side": "L",
+                "shelf": "5",
+                "bay": "12",
+                "isNumbered": true
+              },
+              "image": "https://www.kroger.com/product/images/medium/front/0006927610247",
+              "categories": [
+                "International",
+                "Condiment & Sauces"
+              ],
+              "url": "https://www.kroger.com/p/patak-s-tikka-masala-spicy-curry-simmer-sauce/0006927610247"
             },
             {
               "productId": "0006927607031",
@@ -5033,7 +5034,7 @@
           ]
         }
       ],
-      "ms": 1858
+      "ms": 2239
     }
   }
 }

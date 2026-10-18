@@ -4,23 +4,6 @@ export function qtyLabel(item: Pick<Item, 'quantity' | 'unit'>): string {
   return [item.quantity, item.unit].map((s) => s?.trim()).filter(Boolean).join(' ');
 }
 
-const PACK_UNIT = /\b(cans?|tins?|jars?|packs?|packages?|pkgs?|bottles?|boxes?|bags?|cartons?|heads?|bunch(es)?|lbs?|pounds?|kg|kilos?)\b/i;
-
-/**
- * "Recipe needs 8" when one of the matched product clearly may not be enough: a count ("8" chicken breasts, "4" onions)
- * or several packs/pounds ("2 x 400g cans", "2 lb"). Spoon and cup amounts fit in one product, so they get nothing.
- */
-export function recipeNeed(item: Pick<Item, 'quantity' | 'unit'>): string | null {
-  const q = item.quantity?.trim() ?? '';
-  const u = item.unit?.trim() ?? '';
-  if (!q) return null;
-  const n = parseFloat(q);
-  const many = (Number.isFinite(n) && n > 1) || /^\d+\s*[-–]\s*\d+$/.test(q);
-  if (!u) return many ? `Recipe needs ${q}` : null;
-  if (PACK_UNIT.test(u) && (many || /^x\b/i.test(u))) return `Recipe needs ${q} ${u}`;
-  return null;
-}
-
 export function money(n: number): string {
   return `$${n.toFixed(2)}`;
 }
@@ -32,8 +15,12 @@ export function effectivePrice(p?: Product): number | undefined {
   return p.price;
 }
 
-export function stockBadge(level?: string): { label: string; tone: 'ok' | 'low' | 'out' } | null {
-  switch (level) {
+export type StockTone = 'ok' | 'low' | 'out' | 'neutral';
+
+/** Stock badge from what the store's data supports. With no stock level but a shelf location (or in-store flag),
+ *  the store lists it here, so say "Carried here" rather than leaving a blank. */
+export function stockBadge(p: Pick<Product, 'stockLevel' | 'inStore' | 'aisle'>): { label: string; tone: StockTone } | null {
+  switch (p.stockLevel) {
     case 'HIGH':
       return { label: 'In stock', tone: 'ok' };
     case 'LOW':
@@ -41,7 +28,7 @@ export function stockBadge(level?: string): { label: string; tone: 'ok' | 'low' 
     case 'TEMPORARILY_OUT_OF_STOCK':
       return { label: 'Out of stock', tone: 'out' };
     default:
-      return null;
+      return p.inStore || p.aisle ? { label: 'Carried here', tone: 'neutral' } : null;
   }
 }
 

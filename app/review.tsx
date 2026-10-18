@@ -57,7 +57,7 @@ export default function Review() {
     >
       <View style={[styles.toolbar, isPhone && styles.toolbarPhone]}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.h2} accessibilityRole="header">
+          <Text style={styles.h2} role="heading" aria-level={2}>
             What do you need to buy?
           </Text>
           <Text style={styles.sub}>

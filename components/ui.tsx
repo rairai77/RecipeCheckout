@@ -53,7 +53,7 @@ export function Page({
 
 export function NavBar() {
   return (
-    <View style={styles.nav} accessibilityRole="header">
+    <View style={styles.nav}>
       <Logo />
     </View>
   );

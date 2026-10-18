@@ -1,25 +1,42 @@
 import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
-import { cap, effectivePrice, itemStyle, money, qtyLabel } from '../components/format';
+import { aisleDetail, cap, effectivePrice, itemStyle, money, qtyLabel } from '../components/format';
 import { RecipeBanner } from '../components/RecipeBanner';
-import { StoreCard, StoreSkeleton, type StoreRow } from '../components/StoreCard';
+import { lineTotal, SkeletonRows, StoreCard, StoreSkeleton, type StoreRow } from '../components/StoreCard';
 import { chainColor, colors, fonts, radius, transition, useBreakpoint, web } from '../components/theme';
 import { Button, Card, FadeIn, Notice, Page, pstate, Skeleton, Spinner } from '../components/ui';
 import { client } from '../lib/client/mock';
 import { useAppState } from '../lib/client/state';
-import { compareAisles, formatAisle } from '../lib/shared/aisleSort';
+import { aisleGroupName, compareAisles } from '../lib/shared/aisleSort';
+import { packPlan } from '../lib/shared/packs';
 import type { Item, ItemResult, SearchRequest, Store } from '../lib/shared/types';
 
 const MAX_STORES = 3;
 
 type RunState = 'waiting' | 'searching' | 'done' | 'error' | 'skipped';
-type Run = { store: Store; state: RunState; count: number; found: ItemResult[]; error?: string };
+type Run = {
+  store: Store;
+  state: RunState;
+  count: number;
+  found: ItemResult[];
+  error?: string;
+  /** Items this store couldn't supply, with the reason (shown on the row at the store that did). */
+  passedOn?: Record<string, string>;
+};
+
+/** Why an item moved on from a store, in the words the data supports. */
+function passReason(r: ItemResult | undefined, store: Store): string {
+  if (!r) return `Not returned by ${store.name}`;
+  if (r.best?.stockLevel === 'TEMPORARILY_OUT_OF_STOCK') return `Out of stock at ${store.name}`;
+  if (r.best?.inStore === false) return `Not sold in-store at ${store.name}`;
+  return `Not in stock at ${store.name}`;
+}
 type Miss = { item: Item; reason: 'no_match' | 'unavailable' };
 type Phase = 'stores' | 'searching' | 'done' | 'no_stores' | 'error';
 
 function toRequestItem(i: Item): SearchRequest['items'][number] {
-  return { id: i.id, name: i.name, searchTerm: i.searchTerm, altTerms: i.altTerms, department: i.department, avoidWords: i.avoidWords };
+  return { id: i.id, name: i.name, searchTerm: i.searchTerm, altTerms: i.altTerms, department: i.department, avoidWords: i.avoidWords, quantity: i.quantity, unit: i.unit };
 }
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
@@ -41,6 +58,7 @@ export default function Results() {
   const [attempt, setAttempt] = useState(0);
   const [copied, setCopied] = useState<'idle' | 'ok' | 'fail'>('idle');
   const [showRuns, setShowRuns] = useState(false);
+  const [skipped, setSkipped] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const wanted = itemsRef.current;
@@ -54,6 +72,7 @@ export default function Results() {
     setRuns([]);
     setMisses([]);
     setPicks({});
+    setSkipped({});
 
     (async () => {
       let stores: Store[];
@@ -87,17 +106,21 @@ export default function Results() {
           const byId = new Map(res.results.map((r) => [r.itemId, r]));
           const found: ItemResult[] = [];
           const next: Item[] = [];
+          const passedOn: Record<string, string> = {};
           for (const it of pending) {
             const r = byId.get(it.id);
             if (r?.status === 'found' && r.best) found.push(r);
             else if (r?.status === 'no_match') noMatch.push(it); // a bad term fails everywhere: don't retry
-            else next.push(it); // 'unavailable' (or missing from the response): try the next store
+            else {
+              next.push(it); // 'unavailable' (or missing from the response): try the next store
+              passedOn[it.id] = passReason(r, stores[idx]);
+            }
           }
           pending = next;
-          patchRun(idx, { state: 'done', found });
+          patchRun(idx, { state: 'done', found, passedOn });
         } catch (e) {
           if (cancelled) return;
-          patchRun(idx, { state: 'error', error: errMsg(e) });
+          patchRun(idx, { state: 'error', error: errMsg(e), passedOn: Object.fromEntries(pending.map((it) => [it.id, `${stores[idx].name} couldn't be searched`])) });
           // keep `pending` as is: the next store gets the same items
         }
       }
@@ -116,41 +139,64 @@ export default function Results() {
 
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
 
-  // Rows per store with the user's swaps applied, sorted by aisle.
-  const cards = useMemo(
-    () =>
-      runs
-        .filter((r) => r.found.length)
-        .map((r) => {
-          const rows: StoreRow[] = r.found
-            .map((res) => {
-              const item = itemById.get(res.itemId);
-              if (!item || !res.best) return null;
-              const pool = res.candidates.some((c) => c.productId === res.best!.productId) ? res.candidates : [res.best, ...res.candidates];
-              const product = pool.find((c) => c.productId === picks[res.itemId]) ?? res.best;
-              const row: StoreRow = { item, product, candidates: pool, substitute: res.substitute };
-              return row;
-            })
-            .filter((x): x is StoreRow => x !== null)
-            .sort((a, b) => compareAisles(a.product.aisle, b.product.aisle));
-          return { store: r.store, rows };
-        }),
-    [runs, picks, itemById],
-  );
+  // Rows per store with the user's swaps, pack math and skips applied, sorted by aisle.
+  const cards = useMemo(() => {
+    const nearest = runs[0]?.store.distanceMi ?? 0;
+    return runs
+      .map((r, idx) => ({ r, idx }))
+      .filter(({ r }) => r.found.length)
+      .map(({ r, idx }) => {
+        const firstReason = (itemId: string) => runs.slice(0, idx).map((p) => p.passedOn?.[itemId]).find(Boolean);
+        const rows: StoreRow[] = r.found
+          .map((res) => {
+            const item = itemById.get(res.itemId);
+            if (!item || !res.best) return null;
+            const pool = res.candidates.some((c) => c.productId === res.best!.productId) ? res.candidates : [res.best, ...res.candidates];
+            const product = pool.find((c) => c.productId === picks[res.itemId]) ?? res.best;
+            const row: StoreRow = {
+              item,
+              product,
+              candidates: pool,
+              substitute: res.substitute,
+              plan: packPlan(item, product),
+              fallbackNote: firstReason(res.itemId),
+              skipped: !!skipped[res.itemId],
+            };
+            return row;
+          })
+          .filter((x): x is StoreRow => x !== null)
+          .sort((a, b) => compareAisles(a.product.aisle, b.product.aisle));
+        // One line under a farther store's header: why it's on the list.
+        let reason: string | undefined;
+        const notes = [...new Set(rows.map((x) => x.fallbackNote).filter((x): x is string => !!x))];
+        if (idx > 0 && notes.length) {
+          const further = r.store.distanceMi - nearest;
+          const dist = further >= 0.05 ? ` · ${further.toFixed(1)} mi further` : '';
+          reason = notes.length === 1 ? `${notes[0]}${dist}` : `Not available at the nearer store${idx > 1 ? 's' : ''}${dist}`;
+        }
+        return { store: r.store, rows, reason };
+      });
+  }, [runs, picks, skipped, itemById]);
 
   if (!recipe) return <Redirect href="/" />;
   if (!items.length) return <Redirect href="/review" />;
 
-  const allRows = cards.flatMap((c) => c.rows);
-  const total = allRows.reduce((s, r) => s + (effectivePrice(r.product) ?? 0), 0);
+  const shownRows = cards.flatMap((c) => c.rows);
+  const allRows = shownRows.filter((r) => !r.skipped);
+  const skippedCount = shownRows.length - allRows.length;
+  const total = allRows.reduce((s, r) => s + (lineTotal(r) ?? 0), 0);
   const unpriced = allRows.filter((r) => effectivePrice(r.product) === undefined).length;
+  // "Estimated" either way (some produce is priced per lb); say so when some rows could only be counted once.
+  const unsure = allRows.filter((r) => !r.plan.confident).length;
+  const totalNote = unsure ? `${unsure} item${unsure === 1 ? '' : 's'} counted once: check “Recipe needs”` : 'Quantities from the recipe, rounded up to whole packs';
+  const firstStoreDone = runs.some((r) => r.state === 'done' || r.state === 'error');
   const active = runs.find((r) => r.state === 'searching');
   const searchedStores = runs.filter((r) => r.state === 'done' || r.state === 'error').length;
   const errored = runs.filter((r) => r.state === 'error');
   const done = phase === 'done';
 
   const copyList = async () => {
-    const text = buildPlainList(recipe.title, cards, misses, total);
+    const text = buildPlainList(recipe.title, cards, misses, total, skippedCount);
     let ok = false;
     try {
       if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
@@ -180,7 +226,7 @@ export default function Results() {
       : active
         ? `Searching ${active.count} item${active.count === 1 ? '' : 's'} at ${active.store.name}…`
         : done
-          ? `Found ${allRows.length} of ${items.length} item${items.length === 1 ? '' : 's'} at ${cards.length} store${cards.length === 1 ? '' : 's'}`
+          ? `Found ${shownRows.length} of ${items.length} item${items.length === 1 ? '' : 's'} at ${cards.length} store${cards.length === 1 ? '' : 's'}`
           : phase === 'no_stores'
             ? 'No stores nearby'
             : phase === 'error'
@@ -248,12 +294,15 @@ export default function Results() {
   const summary = (
     <Card style={[styles.panel, styles.summary]}>
       <Text style={styles.summaryLabel}>Estimated total</Text>
-      {done || allRows.length ? <Text style={styles.summaryTotal}>{money(total)}</Text> : <Skeleton width={150} height={44} radius={10} style={{ marginVertical: 7 }} />}
-      <Text style={styles.muted}>
-        {allRows.length} item{allRows.length === 1 ? '' : 's'} across {cards.length} store{cards.length === 1 ? '' : 's'}
-        {unpriced ? ` · ${unpriced} without price` : ''}
+      {firstStoreDone ? <Text style={styles.summaryTotal}>{money(total)}</Text> : <Skeleton width={150} height={44} radius={10} style={{ marginVertical: 5 }} />}
+      <Text style={styles.muted} numberOfLines={1}>
+        {firstStoreDone
+          ? `${allRows.length} item${allRows.length === 1 ? '' : 's'} across ${cards.length} store${cards.length === 1 ? '' : 's'}${skippedCount ? ` · ${skippedCount} skipped` : ''}${unpriced ? ` · ${unpriced} without price` : ''}`
+          : `Searching ${items.length} item${items.length === 1 ? '' : 's'}…`}
       </Text>
-      <Text style={styles.eachHint}>Counts 1 of each item; check “Recipe needs” for more.</Text>
+      <Text style={styles.eachHint} numberOfLines={2}>
+        {totalNote}
+      </Text>
       <Button
         label={copyLabel}
         icon={copied === 'idle' ? '📋' : undefined}
@@ -267,18 +316,20 @@ export default function Results() {
     </Card>
   );
 
-  // Phones and tablets: once the search is done, the store progress shrinks to one line under the list.
+  // Phones and tablets: the store progress is one line at the top from the start (expandable), so nothing jumps when
+  // the search finishes. Errors and "no stores" still get the full card.
   const progressLine = (
     <Card style={[styles.panel, { paddingVertical: 4, paddingHorizontal: 6 }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: showRuns }}
         accessibilityLabel={`${statusLine}. ${showRuns ? 'Hide' : 'Show'} stores searched`}
+        accessibilityLiveRegion="polite"
         onPress={() => setShowRuns((v) => !v)}
         style={(s) => [styles.lineRow, transition, pstate(s).hovered && { backgroundColor: colors.accentTint }]}
       >
-        <Text style={styles.statusCheck}>✓</Text>
-        <Text style={[styles.statusText, { fontSize: 14 }]} numberOfLines={2}>
+        {done ? <Text style={styles.statusCheck}>✓</Text> : <View style={{ width: 22, alignItems: 'center' }}><Spinner /></View>}
+        <Text style={[styles.statusText, { fontSize: 14 }]} numberOfLines={1}>
           {statusLine}
           {errored.length ? <Text style={{ color: colors.danger }}> · {errored.length} store{errored.length === 1 ? '' : 's'} couldn't be searched</Text> : null}
         </Text>
@@ -297,11 +348,19 @@ export default function Results() {
       {done && !allRows.length && !misses.length ? <Notice tone="warn">No results came back. Check your connection and try again.</Notice> : null}
       {cards.map((c) => (
         <FadeIn key={c.store.id}>
-          <StoreCard store={c.store} rows={c.rows} onPick={(itemId, pid) => setPicks((p) => ({ ...p, [itemId]: pid }))} />
+          <StoreCard
+            store={c.store}
+            rows={c.rows}
+            reason={c.reason}
+            onPick={(itemId, pid) => setPicks((p) => ({ ...p, [itemId]: pid }))}
+            onSkip={(itemId, skip) => setSkipped((s) => ({ ...s, [itemId]: skip }))}
+          />
         </FadeIn>
       ))}
-      {active ? <StoreSkeleton store={active.store} count={active.count} /> : null}
-      {phase === 'stores' ? <SkeletonPlaceholder /> : null}
+      {/* Keyed by store: a finished store's card takes its skeleton's place, and the next store's skeleton is a new node
+          below it (re-using the old node would count as a big layout shift). */}
+      {active ? <StoreSkeleton key={`skel-${active.store.id}`} store={active.store} count={active.count} /> : null}
+      {phase === 'stores' ? <SkeletonPlaceholder key="skel-stores" count={items.length} /> : null}
     </View>
   );
 
@@ -343,7 +402,7 @@ export default function Results() {
           <View style={styles.bar}>
             <View style={{ flex: 1 }}>
               <Text style={styles.barLabel}>
-                Estimated total <Text style={styles.barEach}>· 1 of each</Text>
+                Estimated total{unsure ? <Text style={styles.barEach}> · {unsure} counted once</Text> : null}
               </Text>
               <Text style={styles.barTotal}>
                 {money(total)}
@@ -365,34 +424,30 @@ export default function Results() {
         ) : undefined
       }
     >
-      {done ? null : progress}
+      {phase === 'error' || phase === 'no_stores' ? progress : progressLine}
       {main}
       {notFound}
-      {done ? progressLine : null}
       {again}
     </Page>
   );
 }
 
-function SkeletonPlaceholder() {
+/** Before the stores are known: a store-card-shaped placeholder with one row per item. */
+function SkeletonPlaceholder({ count }: { count: number }) {
   return (
     <View style={styles.skelCard}>
-      <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', marginBottom: 18 }}>
+      <View style={{ height: 5 }} />
+      <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center', padding: 18, paddingBottom: 12 }}>
         <Skeleton width={48} height={48} radius={12} />
         <View style={{ flex: 1, gap: 8 }}>
           <Skeleton width="50%" height={16} />
           <Skeleton width="70%" height={10} />
         </View>
       </View>
-      {[0, 1, 2].map((i) => (
-        <View key={i} style={{ flexDirection: 'row', gap: 14, alignItems: 'center', paddingVertical: 10 }}>
-          <Skeleton width={64} height={68} radius={10} />
-          <View style={{ flex: 1, gap: 8 }}>
-            <Skeleton width="30%" height={10} />
-            <Skeleton width="80%" height={14} />
-          </View>
-        </View>
-      ))}
+      <View style={styles.skelCount}>
+        <Skeleton width={160} height={10} />
+      </View>
+      <SkeletonRows count={count} />
     </View>
   );
 }
@@ -445,22 +500,35 @@ function RunRow({ run }: { run: Run }) {
   );
 }
 
-function buildPlainList(title: string, cards: { store: Store; rows: StoreRow[] }[], misses: Miss[], total: number): string {
+function buildPlainList(title: string, cards: { store: Store; rows: StoreRow[] }[], misses: Miss[], total: number, skippedCount: number): string {
   const out: string[] = [`${title}: shopping list`, ''];
+  const skipped: string[] = [];
   for (const { store, rows } of cards) {
+    const kept = rows.filter((r) => !r.skipped);
+    for (const r of rows) if (r.skipped) skipped.push(r.item.name);
+    if (!kept.length) continue;
     out.push(`${store.name} (${store.distanceMi.toFixed(1)} mi), ${store.address}`);
-    let lastAisle = '';
-    for (const { item, product } of rows) {
-      const aisle = formatAisle(product.aisle);
-      if (aisle !== lastAisle) {
-        out.push(`  ${aisle}`);
-        lastAisle = aisle;
+    // One header per aisle group, even if rows of a group aren't adjacent.
+    const groups = new Map<string, StoreRow[]>();
+    for (const r of kept) {
+      const g = aisleGroupName(r.product.aisle);
+      groups.set(g, [...(groups.get(g) ?? []), r]);
+    }
+    for (const [group, groupRows] of groups) {
+      out.push(`  ${group}`);
+      for (const r of groupRows) {
+        const { item, product, plan, substitute } = r;
+        const each = effectivePrice(product);
+        const line = lineTotal(r);
+        const packs = plan.packs > 1 ? `${plan.packs} × ` : '';
+        const price = line === undefined ? '' : plan.packs > 1 && each !== undefined ? `, ${money(line)} (${plan.packs} × ${money(each)})` : `, ${money(line)}`;
+        const where = aisleDetail(product.aisle);
+        const qty = qtyLabel(item);
+        const note = substitute ? `; closest match: ${substitute.reason}` : '';
+        out.push(
+          `    [ ] ${packs}${product.description}${product.size ? `, ${product.size}` : ''}${price}${where ? ` [${where}]` : ''}  (${item.name}${qty ? `, ${qty}` : ''}${note})`,
+        );
       }
-      const price = effectivePrice(product);
-      const qty = qtyLabel(item);
-      out.push(
-        `    [ ] ${product.description}${product.size ? `, ${product.size}` : ''}${price !== undefined ? `, ${money(price)}` : ''}  (${item.name}${qty ? `, ${qty}` : ''})`,
-      );
     }
     out.push('');
   }
@@ -469,7 +537,11 @@ function buildPlainList(title: string, cards: { store: Store; rows: StoreRow[] }
     for (const { item } of misses) out.push(`    [ ] ${item.name}${qtyLabel(item) ? `, ${qtyLabel(item)}` : ''}`);
     out.push('');
   }
-  out.push(`Estimated total (1 of each item): ${money(total)}`);
+  if (skippedCount && skipped.length) {
+    out.push(`Skipped: ${skipped.join(', ')}`);
+    out.push('');
+  }
+  out.push(`Estimated total: ${money(total)}`);
   return out.join('\n');
 }
 
@@ -536,7 +608,8 @@ const styles = StyleSheet.create({
   missName: { fontFamily: fonts.body, fontSize: 15, fontWeight: '700', color: colors.text },
   missQty: { fontWeight: '500', color: colors.muted },
   missReason: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 2 },
-  skelCard: { backgroundColor: '#fff', borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: 18, marginBottom: 20 },
+  skelCard: { backgroundColor: '#fff', borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, marginBottom: 20, overflow: 'hidden' },
+  skelCount: { paddingHorizontal: 18, paddingVertical: 13, backgroundColor: colors.bg, borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.border },
   bar: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   barLabel: { fontFamily: fonts.body, fontSize: 11, color: colors.muted, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 },
   barTotal: { fontFamily: fonts.display, fontSize: 26, fontWeight: '700', color: colors.ink },

@@ -1,3 +1,4 @@
+import { isSmallNeed, packMagnitude, parseNeed } from '../shared/packs';
 import type { Department, Item, ItemResult, Product } from '../shared/types';
 
 // Heuristic product matching: no LLM. Picks the most plausible in-store product for a search term.
@@ -175,10 +176,24 @@ export function substituteFor(
   return undefined;
 }
 
+/**
+ * Mild preference for small packs when the recipe needs only a little (4 tbsp of purée, 25 g of butter):
+ * up to +2 for the smallest pack, fading out for packs 4× its size. Never outweighs a better match tier.
+ */
+function smallPackBonus(products: Product[], item?: { quantity?: string; unit?: string }): Map<string, number> {
+  const bonus = new Map<string, number>();
+  if (!item || !isSmallNeed(parseNeed(item.quantity, item.unit))) return bonus;
+  const sizes = products.map((p) => [p.productId, packMagnitude(p.size)] as const).filter((x): x is readonly [string, number] => !!x[1]);
+  if (sizes.length < 2) return bonus;
+  const min = Math.min(...sizes.map(([, v]) => v));
+  for (const [id, v] of sizes) bonus.set(id, Math.max(0, 2 - Math.log2(v / min)));
+  return bonus;
+}
+
 export function pickBest(
   itemId: string,
   attempts: { term: string; scored: Scored[] }[],
-  item?: Pick<Item, 'searchTerm' | 'department' | 'avoidWords'>,
+  item?: Pick<Item, 'searchTerm' | 'department' | 'avoidWords'> & Partial<Pick<Item, 'quantity' | 'unit'>>,
 ): ItemResult {
   // Pool every attempt (searchTerm first, then altTerms). Exact matches beat head-noun-only matches,
   // then score; later attempts get a small penalty so the primary term wins ties.
@@ -191,6 +206,8 @@ export function pickBest(
       if (!prev || rankScore > prev.rankScore) pool.set(s.product.productId, { s, term, rankScore });
     }
   });
+  const small = smallPackBonus([...pool.values()].map((e) => e.s.product), item);
+  for (const e of pool.values()) e.rankScore += small.get(e.s.product.productId) ?? 0;
   const ranked = [...pool.values()].sort((a, b) => b.rankScore - a.rankScore);
   const avail = ranked.filter((r) => r.s.available);
   const ctx = item ?? { searchTerm: attempts[0]?.term ?? '', department: 'other' as const, avoidWords: [] };

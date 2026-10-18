@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from 'react';
 import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { formatAisle } from '../lib/shared/aisleSort';
+import type { PackPlan } from '../lib/shared/packs';
 import type { Item, Product, Store } from '../lib/shared/types';
 import { AisleSign } from './AisleSign';
-import { aisleDetail, cap, effectivePrice, money, qtyLabel, recipeNeed, stockBadge } from './format';
+import { aisleDetail, cap, effectivePrice, money, qtyLabel, stockBadge, type StockTone } from './format';
 import { chainColor, colors, fonts, radius, shadow, transition, useBreakpoint, web } from './theme';
 import { pstate, Skeleton } from './ui';
 
@@ -12,12 +14,27 @@ export type StoreRow = {
   candidates: Product[];
   /** The store had no exact match; this is the closest stand-in. */
   substitute?: { reason: string };
+  /** How many to buy (pack math from the recipe quantity and the product size). */
+  plan: PackPlan;
+  /** Why this item is at this store rather than a nearer one, e.g. "Not sold in-store at QFC Uptown". */
+  fallbackNote?: string;
+  /** The shopper skipped it: still shown in place, but not in the totals or the copied list. */
+  skipped: boolean;
 };
+
+/** Price the row adds to the total: one product's price times the packs needed. */
+export function lineTotal(row: Pick<StoreRow, 'product' | 'plan'>): number | undefined {
+  const eff = effectivePrice(row.product);
+  return eff === undefined ? undefined : eff * row.plan.packs;
+}
 
 type Props = {
   store: Store;
   rows: StoreRow[]; // already sorted by aisle
   onPick: (itemId: string, productId: string) => void;
+  onSkip: (itemId: string, skipped: boolean) => void;
+  /** One line under the header explaining why this (farther) store is on the list. */
+  reason?: string;
 };
 
 export function StoreHeader({ store, right }: { store: Store; right?: ReactNode }) {
@@ -31,7 +48,9 @@ export function StoreHeader({ store, right }: { store: Store; right?: ReactNode 
           <Text style={[styles.badgeText, c.initials.length > 2 && { fontSize: 12 }]}>{c.initials}</Text>
         </View>
         <View style={{ flex: 1, minWidth: 160 }}>
-          <Text style={styles.storeName}>{store.name}</Text>
+          <Text style={styles.storeName} role="heading" aria-level={2}>
+            {store.name}
+          </Text>
           <Text style={styles.address} numberOfLines={2}>
             <Text style={styles.dist}>{store.distanceMi.toFixed(1)} mi</Text> · {store.address}
           </Text>
@@ -42,9 +61,10 @@ export function StoreHeader({ store, right }: { store: Store; right?: ReactNode 
   );
 }
 
-export function StoreCard({ store, rows, onPick }: Props) {
+export function StoreCard({ store, rows, onPick, onSkip, reason }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
-  const subtotal = rows.reduce((sum, r) => sum + (effectivePrice(r.product) ?? 0), 0);
+  const kept = rows.filter((r) => !r.skipped);
+  const subtotal = kept.reduce((sum, r) => sum + (lineTotal(r) ?? 0), 0);
 
   return (
     <View style={styles.card}>
@@ -61,9 +81,14 @@ export function StoreCard({ store, rows, onPick }: Props) {
           </Pressable>
         }
       />
+      {reason ? (
+        <View style={styles.reason}>
+          <Text style={styles.reasonText}>↪ {reason}</Text>
+        </View>
+      ) : null}
       <View style={styles.countLine}>
         <Text style={styles.countText}>
-          {rows.length} item{rows.length === 1 ? '' : 's'} · in walking order
+          {kept.length} item{kept.length === 1 ? '' : 's'} · in walking order
         </Text>
         {subtotal > 0 ? <Text style={styles.subtotal}>{money(subtotal)}</Text> : null}
       </View>
@@ -79,6 +104,10 @@ export function StoreCard({ store, rows, onPick }: Props) {
             onPick(row.item.id, pid);
             setOpenId(null);
           }}
+          onSkip={(skip) => {
+            onSkip(row.item.id, skip);
+            if (skip) setOpenId(null);
+          }}
         />
       ))}
     </View>
@@ -91,75 +120,111 @@ function ProductRow({
   open,
   onToggle,
   onPick,
+  onSkip,
 }: {
   row: StoreRow;
   first: boolean;
   open: boolean;
   onToggle: () => void;
   onPick: (productId: string) => void;
+  onSkip: (skip: boolean) => void;
 }) {
   const { isPhone } = useBreakpoint();
-  const { item, product: p, candidates } = row;
-  const badge = stockBadge(p.stockLevel);
-  const need = recipeNeed(item);
-  const qty = need ? '' : qtyLabel(item);
+  const { item, product: p, candidates, plan, skipped } = row;
+  const badge = stockBadge(p);
+  const qty = plan.needLabel ? '' : qtyLabel(item);
   const others = candidates.filter((c) => c.productId !== p.productId);
   const detail = aisleDetail(p.aisle);
   const sub = row.substitute;
+  const total = lineTotal(row);
+  const needLine = [plan.needLabel, plan.packLabel].filter(Boolean).join(' · ');
+
+  const name = [
+    `${cap(item.name)}: ${p.description}`,
+    total !== undefined ? `${money(total)}${plan.packs > 1 ? ` for ${plan.packs}` : ''}` : 'no price',
+    formatAisle(p.aisle),
+    badge?.label.toLowerCase(),
+  ]
+    .filter(Boolean)
+    .join(', ');
+  const extra = [
+    skipped ? 'Skipped, not in the total' : '',
+    needLine,
+    sub ? `Closest match: ${sub.reason}` : '',
+    row.fallbackNote ?? '',
+    others.length ? (open ? 'Hide other options' : `Show ${others.length} other option${others.length === 1 ? '' : 's'}`) : '',
+  ].filter(Boolean);
 
   return (
     <View style={[!first && styles.rowBorder]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${sub ? 'Closest match: ' : ''}${p.description}. ${need ? `${need}. ` : ''}${others.length ? 'Tap to see other matches.' : ''}`}
-        accessibilityState={{ expanded: open }}
-        onPress={onToggle}
-        style={(s) => [styles.row, transition, (pstate(s).hovered || open) && { backgroundColor: colors.accentTint }]}
-      >
-        <AisleSign aisle={p.aisle} size={isPhone ? 'sm' : 'md'} />
-        {!isPhone ? <Thumb uri={p.image} /> : null}
-        <View style={styles.productText}>
-          <Text style={styles.forItem} numberOfLines={1}>
-            {cap(item.name)}
-            {qty ? <Text style={styles.forQty}> · {qty}</Text> : null}
-          </Text>
-          <Text style={styles.desc} numberOfLines={isPhone ? 3 : 2}>
-            {p.description}
-          </Text>
-          <Text style={styles.sub} numberOfLines={1}>
-            {[p.size, detail].filter(Boolean).join(' · ')}
-          </Text>
-          {need ? <Text style={styles.need}>{need}</Text> : null}
-          {sub ? (
-            <View style={styles.subRow}>
-              <View style={styles.subChip}>
-                <Text style={styles.subChipText}>Closest match</Text>
+      <View style={styles.row}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${name}. ${extra.join('. ')}`}
+          accessibilityState={{ expanded: open, disabled: skipped }}
+          disabled={skipped}
+          onPress={onToggle}
+          style={(s) => [styles.rowMain, transition, skipped && styles.rowSkipped, !skipped && (pstate(s).hovered || open) && { backgroundColor: colors.accentTint }]}
+        >
+          <AisleSign aisle={p.aisle} size={isPhone ? 'sm' : 'md'} />
+          {!isPhone ? <Thumb uri={p.image} /> : null}
+          <View style={styles.productText}>
+            <Text style={styles.forItem} numberOfLines={1}>
+              {cap(item.name)}
+              {qty ? <Text style={styles.forQty}> · {qty}</Text> : null}
+            </Text>
+            <Text style={[styles.desc, skipped && styles.struck]} numberOfLines={isPhone ? 3 : 2}>
+              {p.description}
+            </Text>
+            <Text style={styles.sub} numberOfLines={1}>
+              {[p.size, detail].filter(Boolean).join(' · ')}
+            </Text>
+            {needLine ? <Text style={styles.need}>{needLine}</Text> : null}
+            {sub ? (
+              <View style={styles.subRow}>
+                <View style={styles.subChip}>
+                  <Text style={styles.subChipText}>Closest match</Text>
+                </View>
+                <Text style={styles.subReason}>{sub.reason}</Text>
               </View>
-              <Text style={styles.subReason}>{sub.reason}</Text>
-            </View>
-          ) : null}
-          {others.length ? (
-            <Text style={styles.swapHint}>{open ? 'Hide options ▴' : `⇄ ${others.length} other option${others.length === 1 ? '' : 's'}`}</Text>
-          ) : null}
-        </View>
+            ) : null}
+            {row.fallbackNote ? <Text style={styles.fallback}>↪ {row.fallbackNote}</Text> : null}
+            {skipped ? (
+              <Text style={styles.skippedNote}>Skipped · not in the total</Text>
+            ) : others.length ? (
+              <Text style={styles.swapHint}>{open ? 'Hide options ▴' : `⇄ ${others.length} other option${others.length === 1 ? '' : 's'}`}</Text>
+            ) : null}
+          </View>
+        </Pressable>
         <View style={styles.right}>
-          <Price p={p} />
-          {badge ? <Badge {...badge} /> : null}
+          <View style={skipped && styles.rowSkipped}>
+            <Price p={p} packs={plan.packs} struck={skipped} />
+          </View>
+          {badge && !skipped ? <Badge {...badge} /> : null}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={skipped ? `Undo skip: add ${item.name} back` : `Skip ${item.name}, I'll substitute`}
+            onPress={() => onSkip(!skipped)}
+            hitSlop={8}
+            style={(s) => [styles.skipBtn, skipped && styles.undoBtn, transition, pstate(s).hovered && { backgroundColor: colors.bgDeep }]}
+          >
+            <Text style={[styles.skipText, skipped && styles.undoText]}>{skipped ? 'Undo' : 'Skip'}</Text>
+          </Pressable>
         </View>
-      </Pressable>
+      </View>
 
-      {open ? (
+      {open && !skipped ? (
         <View style={styles.picker}>
           <Text style={styles.pickerTitle}>Swap to another match at this store</Text>
           {[p, ...others].map((c) => {
             const current = c.productId === p.productId;
-            const cb = stockBadge(c.stockLevel);
+            const cb = stockBadge(c);
             return (
               <Pressable
                 key={c.productId}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: current }}
-                accessibilityLabel={c.description}
+                accessibilityLabel={[c.description, c.size, money(effectivePrice(c) ?? 0), formatAisle(c.aisle), cb?.label].filter(Boolean).join(', ')}
                 onPress={() => onPick(c.productId)}
                 style={(s) => [styles.candidate, transition, current && styles.candidateOn, pstate(s).hovered && !current && { backgroundColor: '#fff', borderColor: colors.borderStrong }]}
               >
@@ -199,26 +264,41 @@ export function Thumb({ uri, small }: { uri?: string; small?: boolean }) {
   );
 }
 
-export function Price({ p, small }: { p: Product; small?: boolean }) {
+export function Price({ p, small, packs = 1, struck }: { p: Product; small?: boolean; packs?: number; struck?: boolean }) {
   const eff = effectivePrice(p);
   if (eff === undefined) return <Text style={styles.noPrice}>no price</Text>;
   const onSale = p.price !== undefined && eff < p.price;
   return (
     <View style={styles.priceBox}>
-      {onSale ? (
-        <View style={styles.saleTag}>
-          <Text style={styles.saleTagText}>Sale</Text>
+      {onSale || packs > 1 ? (
+        <View style={styles.tags}>
+          {onSale ? (
+            <View style={styles.saleTag}>
+              <Text style={styles.saleTagText}>Sale</Text>
+            </View>
+          ) : null}
+          {packs > 1 ? (
+            <View style={styles.packTag}>
+              <Text style={styles.packTagText}>×{packs}</Text>
+            </View>
+          ) : null}
         </View>
       ) : null}
-      <Text style={[styles.price, small && { fontSize: 15 }, onSale && { color: colors.accent }]}>{money(eff)}</Text>
-      {onSale ? <Text style={styles.was}>{money(p.price!)}</Text> : null}
+      <Text style={[styles.price, small && { fontSize: 15 }, onSale && { color: colors.accent }, struck && styles.struck]}>{money(eff * packs)}</Text>
+      {packs > 1 ? (
+        <Text style={styles.each}>
+          {packs} × {money(eff)}
+        </Text>
+      ) : onSale ? (
+        <Text style={styles.was}>{money(p.price!)}</Text>
+      ) : null}
     </View>
   );
 }
 
-function Badge({ label, tone }: { label: string; tone: 'ok' | 'low' | 'out' }) {
-  const bg = tone === 'ok' ? colors.accentSoft : tone === 'low' ? colors.saffronSoft : colors.dangerSoft;
-  const fg = tone === 'ok' ? colors.accentDark : tone === 'low' ? colors.warn : colors.danger;
+function Badge({ label, tone }: { label: string; tone: StockTone }) {
+  const bg = tone === 'ok' ? colors.accentSoft : tone === 'low' ? colors.saffronSoft : tone === 'neutral' ? colors.bgDeep : colors.dangerSoft;
+  const fg = tone === 'ok' ? colors.accentDark : tone === 'low' ? colors.warn : tone === 'neutral' ? colors.muted : colors.danger;
   return (
     <View style={[styles.badgePill, { backgroundColor: bg }]}>
       <View style={[styles.badgeDot, { backgroundColor: fg }]} />
@@ -237,18 +317,33 @@ export function StoreSkeleton({ store, count }: { store: Store; count: number })
           Searching {count} item{count === 1 ? '' : 's'}…
         </Text>
       </View>
-      {Array.from({ length: Math.min(count, 3) }).map((_, i) => (
-        <View key={i} style={[styles.row, i > 0 && styles.rowBorder]}>
-          <Skeleton width={64} height={68} radius={10} />
+      <SkeletonRows count={count} />
+    </View>
+  );
+}
+
+/** Typical rendered row heights, so placeholders take the space the real rows will (keeps layout shift low). */
+export const ROW_HEIGHT = { phone: 150, wide: 118 };
+
+/** One placeholder row per item being searched, at about the real row height. */
+export function SkeletonRows({ count }: { count: number }) {
+  const { isPhone } = useBreakpoint();
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <View key={i} style={[styles.row, styles.skelRow, { minHeight: isPhone ? ROW_HEIGHT.phone : ROW_HEIGHT.wide }, i > 0 && styles.rowBorder]}>
+          <Skeleton width={isPhone ? 52 : 64} height={isPhone ? 56 : 68} radius={10} />
+          {!isPhone ? <Skeleton width={56} height={56} radius={12} /> : null}
           <View style={{ flex: 1, gap: 8 }}>
             <Skeleton width="30%" height={10} />
             <Skeleton width="75%" height={14} />
             <Skeleton width="45%" height={10} />
+            <Skeleton width="25%" height={10} />
           </View>
           <Skeleton width={48} height={18} />
         </View>
       ))}
-    </View>
+    </>
   );
 }
 
@@ -294,6 +389,22 @@ const styles = StyleSheet.create({
   subtotal: { fontFamily: fonts.body, fontSize: 14, color: colors.text, fontWeight: '800' },
   rowBorder: { borderTopWidth: 1, borderTopColor: colors.border },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, paddingVertical: 14 },
+  rowMain: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: radius.md, margin: -6, padding: 6 },
+  rowSkipped: { opacity: 0.55 },
+  skelRow: { paddingVertical: 14 },
+  struck: { textDecorationLine: 'line-through' },
+  reason: { paddingHorizontal: 18, paddingBottom: 12, marginTop: -4 },
+  reasonText: { fontFamily: fonts.body, fontSize: 13, fontWeight: '600', color: colors.warn },
+  fallback: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 4 },
+  skippedNote: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, fontWeight: '700', marginTop: 6 },
+  skipBtn: { minHeight: 32, paddingHorizontal: 10, borderRadius: radius.pill, justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
+  skipText: { fontFamily: fonts.body, fontSize: 12, fontWeight: '700', color: colors.muted },
+  undoBtn: { borderColor: colors.accent, backgroundColor: colors.accentTint },
+  undoText: { color: colors.accentDark },
+  tags: { flexDirection: 'row', gap: 4, marginBottom: 2 },
+  packTag: { backgroundColor: colors.ink, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 },
+  packTagText: { fontFamily: fonts.body, fontSize: 10, fontWeight: '800', color: '#fff', letterSpacing: 0.3 },
+  each: { fontFamily: fonts.body, fontSize: 12, color: colors.muted },
   productText: { flex: 1, minWidth: 0 },
   forItem: { fontFamily: fonts.body, fontSize: 11, fontWeight: '800', color: colors.accent, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 },
   forQty: { color: colors.faint, fontWeight: '700' },
@@ -305,7 +416,7 @@ const styles = StyleSheet.create({
   subChip: { backgroundColor: colors.saffronSoft, borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: '#F0D59E' },
   subChipText: { fontFamily: fonts.body, fontSize: 11, fontWeight: '800', color: colors.warn },
   subReason: { fontFamily: fonts.body, fontSize: 12, color: colors.warn, flexShrink: 1 },
-  saleTag: { backgroundColor: colors.saffronSoft, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1, marginBottom: 2 },
+  saleTag: { backgroundColor: colors.saffronSoft, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 },
   saleTagText: { fontFamily: fonts.body, fontSize: 10, fontWeight: '800', color: colors.warn, letterSpacing: 0.4, textTransform: 'uppercase' },
   swapHint: { fontFamily: fonts.body, fontSize: 12, color: colors.accentDark, fontWeight: '700', marginTop: 6 },
   right: { alignItems: 'flex-end', gap: 6, minWidth: 64 },
