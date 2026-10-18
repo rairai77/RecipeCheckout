@@ -9,3 +9,4 @@ expo-env.d.ts
 .vercel
 .env*
 dist-*/
+.claude/worktrees/
