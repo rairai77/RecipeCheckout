@@ -1,3 +1,145 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RecipeCheckout · demo</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#14261c;color:#f7f3ea;font:600 20px system-ui,sans-serif}</style></head>
-<body><p>RecipeCheckout demo is being built. Check back soon.</p></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RecipeCheckout: demo</title>
+<meta name="description" content="Watch RecipeCheckout turn a recipe link into a grocery list sorted by aisle at your nearest store. 80-second demo.">
+<meta name="theme-color" content="#10201a">
+<meta property="og:title" content="RecipeCheckout: demo">
+<meta property="og:description" content="Any recipe, sorted by aisle. Paste a recipe link, get a shopping list mapped to your store's shelves.">
+<meta property="og:type" content="video.other">
+<meta property="og:image" content="https://recipecheckout.vercel.app/demo/poster.jpg">
+<meta property="og:video" content="https://recipecheckout.vercel.app/demo/recipecheckout-demo.mp4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600..800;1,9..144,600..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #10201a; --bg-2: #1b3427; --ink: #ffffff; --muted: rgba(255,255,255,.72); --faint: rgba(255,255,255,.5);
+    --line: rgba(255,255,255,.12); --green: #1F7A4D; --green-bright: #2E9E62; --mint: #9FE0B8; --saffron: #F7C978;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--ink); background: var(--bg);
+    background-image: radial-gradient(ellipse 80% 60% at 50% 0%, var(--bg-2) 0%, var(--bg) 70%);
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 56px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+  .mark { width: 34px; height: 34px; border-radius: 10px; background: var(--green); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 4px 12px rgba(0,0,0,.25); }
+  .mark i { display: flex; align-items: center; gap: 3px; }
+  .mark b { width: 4px; height: 4px; border-radius: 2px; background: #fff; display: block; }
+  .mark i:first-child b { background: #E9A23B; }
+  .mark s { display: block; height: 3px; border-radius: 2px; background: rgba(255,255,255,.92); width: 14px; }
+  .mark i:nth-child(2) s { width: 11px; }
+  .wordmark { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 22px; letter-spacing: -.4px; }
+  .wordmark em { font-style: normal; color: var(--mint); }
+  .nav { display: flex; gap: 8px; }
+  .nav a { text-decoration: none; font-size: 14px; font-weight: 700; color: var(--muted); padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); }
+  .nav a:hover { color: #fff; border-color: rgba(255,255,255,.3); }
+  .hero { text-align: center; margin: 44px auto 28px; }
+  .eyebrow { font-size: 13px; font-weight: 800; letter-spacing: 2.4px; text-transform: uppercase; color: var(--mint); }
+  h1 { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: clamp(36px, 6vw, 64px); line-height: 1.04; letter-spacing: -1.4px; margin: 12px 0 0; }
+  h1 em { color: var(--saffron); font-style: italic; }
+  .lede { color: var(--muted); font-size: clamp(16px, 2vw, 19px); line-height: 1.55; max-width: 640px; margin: 16px auto 0; }
+  .player { position: relative; border-radius: 20px; overflow: hidden; background: #000; aspect-ratio: 16 / 9;
+    box-shadow: 0 0 0 1px var(--line), 0 30px 80px -24px rgba(0,0,0,.7), 0 0 120px rgba(46,158,98,.10); }
+  .player video { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+  .actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 28px; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 12px 22px; border-radius: 999px; font-weight: 800; font-size: 16px; text-decoration: none; transition: transform .15s ease, background-color .15s ease, border-color .15s ease; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.primary { background: var(--green); color: #fff; box-shadow: 0 8px 24px -8px rgba(46,158,98,.6); }
+  .btn.primary:hover { background: var(--green-bright); }
+  .btn.ghost { border: 1px solid rgba(255,255,255,.22); color: #fff; }
+  .btn.ghost:hover { border-color: rgba(255,255,255,.45); }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .meta { text-align: center; color: var(--faint); font-size: 13px; margin-top: 14px; }
+  .chapters { margin: 44px auto 0; max-width: 860px; }
+  .chapters h2 { font-family: Fraunces, Georgia, serif; font-size: 24px; letter-spacing: -.4px; margin: 0 0 12px; }
+  .chapters ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .chapters button { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: baseline; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.03); font-size: 15px; font-weight: 600; color: rgba(255,255,255,.9); }
+  .chapters button:hover, .chapters button:focus-visible { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.25); }
+  .chapters time { flex: none; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 13px; color: var(--saffron); min-width: 34px; }
+  footer { text-align: center; color: var(--faint); font-size: 13px; margin-top: 48px; }
+  footer b { color: var(--mint); font-weight: 800; }
+  @media (max-width: 640px) {
+    .wrap { padding-top: 16px; }
+    .nav a.hide-sm { display: none; }
+    .hero { margin-top: 28px; }
+    .player { border-radius: 14px; }
+    .chapters ol { grid-template-columns: 1fr; }
+    .btn { flex: 1 1 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="https://recipecheckout.vercel.app" aria-label="RecipeCheckout home">
+      <span class="mark" aria-hidden="true"><i><b></b><s></s></i><i><b></b><s></s></i><i><b></b><s></s></i></span>
+      <span class="wordmark">Recipe<em>Checkout</em></span>
+    </a>
+    <nav class="nav">
+      <a href="/pitch" class="hide-sm">Pitch deck</a>
+      <a href="https://recipecheckout.vercel.app">Open the app</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">Demo · 1 min 22 s</div>
+    <h1>Any recipe, <em>sorted by aisle.</em></h1>
+    <p class="lede">Paste a recipe link and get a shopping list mapped to the shelves of your nearest QFC or Fred Meyer: aisle, side, shelf, price and stock for every ingredient.</p>
+  </section>
+
+  <div class="player">
+    <video id="v" controls playsinline preload="metadata" poster="/demo/poster.jpg" width="1920" height="1080">
+      <source src="/demo/recipecheckout-demo.mp4" type="video/mp4">
+      Your browser can't play this video. <a href="/demo/recipecheckout-demo.mp4">Download it instead.</a>
+    </video>
+  </div>
+
+  <div class="actions">
+    <a class="btn primary" href="https://recipecheckout.vercel.app">Try it live
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4.5-4.5L15 10l-4.5 4.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a class="btn ghost" href="/pitch">See the pitch deck</a>
+    <a class="btn ghost" href="/demo/recipecheckout-demo.mp4" download="recipecheckout-demo.mp4">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v10m-4-4 4 4 4-4M4 16h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Download MP4</a>
+  </div>
+  <p class="meta">1920×1080 · H.264 · 19 MB · no sound, captions on screen</p>
+
+  <section class="chapters" aria-label="Chapters">
+    <h2>Chapters</h2>
+    <ol>
+      <li><button data-t="0"><time>0:00</time>Any recipe, sorted by aisle</button></li>
+      <li><button data-t="4"><time>0:04</time>The problem</button></li>
+      <li><button data-t="9"><time>0:09</time>Paste a recipe link</button></li>
+      <li><button data-t="20"><time>0:20</time>One AI call builds the shopping list</button></li>
+      <li><button data-t="35"><time>0:35</time>Live Kroger catalog: aisle, shelf, price, stock</button></li>
+      <li><button data-t="40"><time>0:40</time>Sorted in walking order</button></li>
+      <li><button data-t="50"><time>0:50</time>Wrong match? One tap to swap</button></li>
+      <li><button data-t="59"><time>0:59</time>Next nearest store, then copy the list</button></li>
+      <li><button data-t="66"><time>1:06</time>On your phone, in the aisle</button></li>
+      <li><button data-t="76"><time>1:16</time>Try it: recipecheckout.vercel.app</button></li>
+    </ol>
+  </section>
+
+  <footer>Built at <b>DubHacks '26</b> · <a href="https://recipecheckout.vercel.app">recipecheckout.vercel.app</a></footer>
+</div>
+<script>
+  (function () {
+    var v = document.getElementById('v');
+    document.querySelectorAll('.chapters button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        try { v.currentTime = Number(b.getAttribute('data-t')) || 0; v.play(); } catch (e) {}
+        v.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+  })();
+</script>
+</body>
+</html>

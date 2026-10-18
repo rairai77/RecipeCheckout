@@ -1,3 +1,1137 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RecipeCheckout · pitch</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#14261c;color:#f7f3ea;font:600 20px system-ui,sans-serif}</style></head>
-<body><p>RecipeCheckout pitch is being built. Check back soon.</p></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RecipeCheckout Pitch</title>
+<meta name="description" content="RecipeCheckout pitch deck for DubHacks '26: any recipe, sorted by aisle.">
+<meta name="theme-color" content="#0D1B14">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..800;1,9..144,500..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap">
+<link rel="preload" as="image" href="/pitch/assets/aisle-art.webp">
+<style>
+:root{
+  --night:#070A08;
+  --forest:#0D1B14;
+  --forest-2:#143524;
+  --green:#1F7A4D;
+  --green-2:#2E9E62;
+  --green-dk:#155C39;
+  --sign:#1E6B47;
+  --mint:#A6DCB4;
+  --cream:#FBF7F0;
+  --cream-2:#F4EEE3;
+  --paper:#FFFFFF;
+  --line:#E7DFD1;
+  --line-2:#DCD3C3;
+  --ink:#14201A;
+  --text:#1D2A21;
+  --muted:#5E6A60;
+  --saffron:#F7C978;
+  --saffron-dk:#E9A23B;
+  --tomato:#D9472B;
+  --tomato-soft:#FCEBE5;
+  --on-dark:#F6F0E4;
+  --on-dark-2:rgba(246,240,228,.74);
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"Plus Jakarta Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--night);overflow:hidden}
+body{font-family:var(--sans);color:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+img{display:block;max-width:100%}
+em{font-style:italic}
+
+/* ---------- viewport / stage ---------- */
+#viewport{position:fixed;inset:0;transition:bottom .35s var(--ease)}
+body.notes-open #viewport{bottom:var(--notes-h,300px)}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden;background:var(--cream);box-shadow:0 30px 80px rgba(0,0,0,.45)}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;padding:92px 120px 120px;opacity:0;visibility:hidden;transform:translateX(70px);
+  transition:opacity .6s ease,transform .85s var(--ease),visibility 0s linear .85s;overflow:hidden}
+.slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .6s ease,transform .85s var(--ease),visibility 0s}
+.slide.past{transform:translateX(-70px)}
+.slide:not(.active){pointer-events:none}
+.slide.light{background:radial-gradient(1100px 620px at 92% -8%,#F3EBDB 0%,rgba(243,235,219,0) 70%),var(--cream);color:var(--text)}
+.slide.dark{background:radial-gradient(1100px 760px at 78% 8%,#1B4A33 0%,rgba(27,74,51,0) 62%),radial-gradient(900px 640px at 6% 100%,#163A28 0%,rgba(22,58,40,0) 60%),var(--forest);color:var(--on-dark)}
+.slide.dark::after,.slide.art::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.07;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* entrance animations */
+[data-in]{opacity:0;transform:translateY(34px);transition:opacity .7s var(--ease),transform .9s var(--ease);transition-delay:0s}
+[data-in=left]{transform:translateX(-60px)}
+[data-in=right]{transform:translateX(60px)}
+[data-in=pop]{transform:scale(.86)}
+[data-in=fade]{transform:none}
+[data-in=rise]{transform:translateY(90px)}
+.slide.active [data-in]{opacity:1;transform:none;transition-delay:calc(var(--d,0s) + .18s)}
+.slide.active [data-in=pop]{transition:opacity .5s var(--ease),transform .7s var(--spring);transition-delay:calc(var(--d,0s) + .18s)}
+
+/* ---------- type ---------- */
+.kicker{font:800 22px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--green);display:flex;align-items:center;gap:14px}
+.kicker::before{content:"";width:34px;height:4px;border-radius:4px;background:currentColor}
+.dark .kicker{color:var(--saffron)}
+.kicker.tomato{color:var(--tomato)}
+h1,h2,h3{font-family:var(--serif);font-weight:750;letter-spacing:-.02em;font-variation-settings:"opsz" 144}
+h2{font-size:84px;line-height:1.02;margin-top:22px;color:var(--ink)}
+.dark h2{color:#FFFDF6}
+h2 em,h1 em{font-weight:700;color:var(--green)}
+.dark h2 em,.art h1 em{color:var(--saffron)}
+.lede{font-size:32px;line-height:1.42;color:var(--muted);font-weight:500}
+.dark .lede{color:var(--on-dark-2)}
+
+/* ---------- shared bits ---------- */
+.logo{width:56px;height:56px;flex:none}
+.brand{display:flex;align-items:center;gap:16px;font:750 40px/1 var(--serif);letter-spacing:-.01em;color:#fff}
+.brand b{font-weight:750;color:var(--mint)}
+.pill{display:inline-flex;align-items:center;gap:10px;border-radius:999px;padding:12px 22px;font:700 22px/1 var(--sans)}
+.chip{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:9px 16px;font:700 20px/1 var(--sans);background:var(--cream-2);color:var(--text);white-space:nowrap}
+.dark .chip{background:rgba(255,255,255,.1);color:var(--on-dark)}
+
+/* Aisle signs (match the app's highway-sign look) */
+.sign{--w:96px;--h:104px;width:var(--w);height:var(--h);background:var(--sign);border-radius:calc(var(--w)*.15);padding:calc(var(--w)*.05);flex:none;box-shadow:0 10px 22px -10px rgba(16,60,38,.55)}
+.sign>span{height:100%;border:2px solid rgba(255,255,255,.88);border-radius:calc(var(--w)*.11);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:var(--sans)}
+.sign small{font-weight:800;font-size:calc(var(--w)*.125);letter-spacing:.14em;opacity:.92}
+.sign b{font-weight:800;font-size:calc(var(--w)*.4);line-height:1.02}
+.sign i{font-style:normal;font-weight:800;font-size:calc(var(--w)*.11);letter-spacing:.1em;opacity:.92}
+.sec{--w:96px;--h:104px;width:var(--w);height:var(--h);border-radius:calc(var(--w)*.15);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:none;font-family:var(--sans)}
+.sec .em{font-size:calc(var(--w)*.34);line-height:1}
+.sec b{font-weight:800;font-size:calc(var(--w)*.15);letter-spacing:.02em}
+.sec.veg{background:#E3F1E4;color:#1E6B3A}
+.sec.meat{background:#FBE4E1;color:#9F2A1C}
+.sec.wall{background:#EFEAE2;color:#5E5446}
+
+/* ---------- chrome (progress, counter, footer brand) ---------- */
+#prog{position:absolute;left:0;top:0;height:7px;width:100%;background:rgba(20,32,26,.08);z-index:50}
+#prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--saffron-dk),var(--saffron));transition:width .6s var(--ease)}
+#foot{position:absolute;left:120px;right:120px;bottom:40px;display:flex;align-items:center;justify-content:space-between;z-index:50;pointer-events:none;transition:opacity .4s}
+#foot .fb{display:flex;align-items:center;gap:12px;font:750 24px/1 var(--serif);color:var(--ink)}
+#foot .fb b{color:var(--green);font-weight:750}
+#foot .fb svg{width:32px;height:32px}
+#foot .fb span{font:600 20px/1 var(--sans);color:var(--muted);margin-left:14px}
+#counter{font:700 21px/1 var(--sans);color:var(--muted);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+#counter b{color:var(--ink)}
+#stage.on-dark #prog{background:rgba(255,255,255,.1)}
+#stage.on-dark #foot .fb{color:#fff}
+#stage.on-dark #foot .fb b{color:var(--mint)}
+#stage.on-dark #foot .fb span,#stage.on-dark #counter{color:var(--on-dark-2)}
+#stage.on-dark #counter b{color:#fff}
+#stage.hide-brand #foot .fb{opacity:0}
+#hint{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;background:rgba(10,16,12,.78);color:#fff;font:600 22px/1 var(--sans);padding:16px 26px;border-radius:999px;backdrop-filter:blur(8px);transition:opacity .8s;white-space:nowrap;pointer-events:none}
+#hint kbd{font:800 18px/1 var(--sans);background:rgba(255,255,255,.16);border-radius:7px;padding:5px 9px;margin:0 3px}
+#hint.gone{opacity:0}
+
+/* ---------- 1 · title ---------- */
+.artbg{position:absolute;inset:0;overflow:hidden;background:#0C0D0B}
+.artbg .img{position:absolute;top:0;bottom:-90px;left:-50px;right:-50px;background:url(/pitch/assets/aisle-art.webp) center top/cover no-repeat;transform-origin:50% 0;animation:drift 40s ease-in-out infinite alternate}
+@keyframes drift{from{transform:scale(1.02) translate3d(-18px,0,0)}to{transform:scale(1.06) translate3d(18px,0,0)}}
+.artbg .shade{position:absolute;inset:0;background:radial-gradient(ellipse 60% 58% at 50% 54%,rgba(8,12,9,.86) 0%,rgba(8,12,9,.72) 48%,rgba(8,12,9,.4) 100%),linear-gradient(180deg,rgba(8,12,9,.72) 0%,rgba(8,12,9,.25) 28%,rgba(8,12,9,.3) 70%,rgba(8,12,9,.85) 100%)}
+.slide.art{color:#fff;background:#0C0D0B}
+.s-title .top{position:relative;display:flex;justify-content:space-between;align-items:center}
+.s-title .tracks{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;backdrop-filter:blur(6px)}
+.s-title .tracks i{width:10px;height:10px;border-radius:50%;background:var(--saffron);display:inline-block}
+.s-title .center{position:relative;text-align:center;margin-top:118px}
+.s-title .eyebrow{font:800 24px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--mint)}
+.s-title h1{font-size:176px;line-height:.98;color:#fff;margin-top:28px;letter-spacing:-.03em;text-shadow:0 6px 40px rgba(0,0,0,.45)}
+.s-title h1 em{color:var(--saffron)}
+.s-title .lede{color:rgba(255,255,255,.86);max-width:1180px;margin:36px auto 0;font-size:34px}
+.searchbar{display:flex;align-items:center;gap:0;width:1340px;margin:54px auto 0;background:#fff;border-radius:999px;padding:12px 12px 12px 40px;box-shadow:0 0 0 7px rgba(255,255,255,.14),0 30px 60px -10px rgba(0,0,0,.6);color:var(--text);text-align:left}
+.searchbar .f{flex:1;display:flex;align-items:center;gap:18px;min-width:0}
+.searchbar .f small{display:block;font:700 18px/1 var(--sans);color:var(--text);margin-bottom:8px}
+.searchbar .f .v{font:500 26px/1.1 var(--sans);color:var(--muted);white-space:nowrap;overflow:hidden}
+.searchbar .typed{color:var(--text)}
+.searchbar .caret{display:inline-block;width:2px;height:28px;background:var(--green);vertical-align:-5px;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.searchbar .loc{flex:none;width:320px;margin-left:24px;border-left:2px solid var(--line);padding-left:30px}
+.searchbar .loc .v{color:var(--text);font-weight:600}
+.searchbar .go{flex:none;background:var(--green);color:#fff;font:800 30px/1 var(--sans);border-radius:999px;padding:30px 44px;display:flex;align-items:center;gap:14px;margin-left:20px;transition:transform .2s,box-shadow .2s}
+.searchbar .go.press{animation:press 1.6s var(--ease) infinite}
+@keyframes press{0%,100%{box-shadow:0 0 0 0 rgba(46,158,98,.55)}50%{box-shadow:0 0 0 16px rgba(46,158,98,0)}}
+.ico{width:32px;height:32px;flex:none}
+
+/* ---------- 2/5 · map ---------- */
+.cols{display:flex;gap:60px;margin-top:40px}
+.pains{flex:1;display:flex;flex-direction:column;gap:34px;padding-top:6px}
+.pain{display:flex;gap:26px}
+.pain .n{flex:none;width:66px;height:66px;border-radius:20px;background:var(--tomato-soft);color:var(--tomato);display:grid;place-items:center;font:800 30px/1 var(--sans)}
+.pain h3{font-size:40px;line-height:1.08;color:var(--ink)}
+.pain p{font-size:26px;line-height:1.42;color:var(--muted);margin-top:10px;font-weight:500}
+.pain p q{color:var(--text);font-weight:700;quotes:"\201C" "\201D"}
+.mapcard{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:32px;padding:22px 26px 18px;box-shadow:0 2px 4px rgba(29,42,33,.04),0 30px 60px -24px rgba(29,42,33,.25)}
+.mapcard .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.mapcard .mh b{font:750 30px/1.1 var(--serif);color:var(--ink)}
+.mapcard .mh .chip{font-size:18px}
+.mapcard .cap{font:600 18px/1.3 var(--sans);color:var(--muted);margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.map{display:block;width:100%;height:auto}
+.m-floor{fill:#FCFAF5;stroke:var(--line);stroke-width:2}
+.m-back{fill:#EFE7D9}
+.m-meat{fill:#FBE4E1}
+.m-veg{fill:#E3F1E4}
+.m-shelf{fill:#DED5C5}
+.m-al rect{fill:#E9E1D2}
+.m-al text{font:800 13px var(--sans);fill:#6D7468;text-anchor:middle}
+.m-al.hit rect{fill:var(--sign)}
+.m-al.hit text{fill:#fff}
+.m-al.miss rect{fill:var(--tomato)}
+.m-al.miss text{fill:#fff}
+.m-lbl{font:800 17px var(--sans);letter-spacing:.18em}
+.m-door{fill:#fff;stroke:var(--line-2);stroke-width:2;stroke-dasharray:6 6}
+.m-reg{fill:#E2D9C9}
+.route-clean{fill:none;stroke:var(--green-2);stroke-width:8;stroke-linecap:round;stroke-linejoin:round}
+.route-clean-glow{fill:none;stroke:rgba(46,158,98,.18);stroke-width:22;stroke-linecap:round;stroke-linejoin:round}
+.route-messy{fill:none;stroke:var(--tomato);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 11}
+.pin{transform-box:fill-box;transform-origin:center;transform:scale(0);transition:transform .45s var(--spring)}
+.pin.on{transform:scale(1)}
+.pin circle{stroke:#fff;stroke-width:3}
+.pin text{font:800 15px var(--sans);fill:#fff;text-anchor:middle;dominant-baseline:central}
+.head{transition:opacity .3s}
+
+/* ---------- 3 · solution / morph ---------- */
+.s-fix{text-align:center}
+.s-fix .kicker{justify-content:center}
+.s-fix h2{font-size:116px;line-height:1;margin-top:30px}
+.s-fix .lede{max-width:1300px;margin:34px auto 0;font-size:32px}
+.morph{position:relative;display:grid;grid-template-columns:480px 76px 480px 76px 568px;align-items:stretch;justify-content:center;margin-top:84px;text-align:left}
+.mc{position:relative;border-radius:30px;padding:32px 34px;min-height:330px;overflow:hidden}
+.mc .lab{font:800 17px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.mc.recipe{padding-bottom:66px;background:#FFFDF6;color:var(--text);box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}
+.mc.recipe .lab{color:#9A7B3F}
+.mc.recipe .raw{font:500 italic 40px/1.25 var(--serif);margin-top:26px;color:#3A3A30}
+.mc.recipe .src{position:absolute;left:34px;bottom:26px;font:600 18px/1 var(--sans);color:#9A8F78}
+.mc.recipe .raw mark{background:linear-gradient(transparent 58%,rgba(247,201,120,.9) 58%);color:inherit;background-size:0% 100%;background-repeat:no-repeat;transition:background-size .6s var(--ease) .35s}
+.mc.ai{background:rgba(255,255,255,.07);border:1.5px solid rgba(247,201,120,.45);color:#fff}
+.mc.ai .lab{color:var(--saffron)}
+.mc.ai .term{font:800 54px/1.05 var(--sans);margin-top:28px;letter-spacing:-.015em}
+.mc.ai .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.mc.ai .meta span{font:700 21px/1 var(--sans);padding:10px 15px;border-radius:999px;background:rgba(255,255,255,.1);color:var(--on-dark)}
+.mc.ai .meta span.av{background:rgba(217,71,43,.2);color:#FFC7B8}
+.mc.prod{background:#fff;color:var(--text);display:flex;gap:24px;align-items:center;box-shadow:0 30px 60px -20px rgba(0,0,0,.6)}
+.mc.prod .pinfo{min-width:0}
+.mc.prod .lab{color:var(--green)}
+.mc.prod .pn{font:750 31px/1.15 var(--sans);color:var(--ink);margin-top:14px;letter-spacing:-.01em}
+.mc.prod .pd{font:500 22px/1.3 var(--sans);color:var(--muted);margin-top:8px}
+.mc.prod .pr{display:flex;align-items:center;gap:14px;margin-top:16px}
+.mc.prod .price{font:800 38px/1 var(--sans);color:var(--ink)}
+.stock{display:inline-flex;align-items:center;gap:8px;font:800 18px/1 var(--sans);color:var(--green-dk);background:#E6F2EA;border-radius:999px;padding:8px 13px}
+.stock::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--green-2)}
+.arrow{display:grid;place-items:center}
+.arrow svg{width:60px;height:30px;overflow:visible}
+.arrow path{fill:none;stroke:var(--saffron);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:70;stroke-dashoffset:70;transition:stroke-dashoffset .5s var(--ease)}
+.morph .x{transition:opacity .45s var(--ease),transform .55s var(--ease),filter .45s;opacity:0;transform:translateY(14px);filter:blur(6px)}
+.morph.s1 .recipe .x,.morph.s2 .ai .x,.morph.s3 .prod .x{opacity:1;transform:none;filter:none}
+.morph.s1 .raw mark{background-size:100% 100%}
+.morph.s2 .a1 path,.morph.s3 .a2 path{stroke-dashoffset:0}
+.morph .prod .sign,.morph .prod .sec{transform:rotateX(90deg);transform-origin:50% 0;transition:transform .7s var(--spring) .15s}
+.morph.s3 .prod .sign,.morph.s3 .prod .sec{transform:none}
+.morph.out .x{opacity:0;transform:translateY(-12px);filter:blur(4px)}
+.dots{display:flex;gap:12px;justify-content:center;margin-top:40px}
+.fixcap{margin-top:22px;font:600 21px/1.3 var(--sans);color:rgba(246,240,228,.55)}
+.dots i{width:12px;height:12px;border-radius:999px;background:rgba(255,255,255,.22);transition:width .4s var(--ease),background .4s}
+.dots i.on{width:40px;background:var(--saffron)}
+
+/* ---------- 4 · how ---------- */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:34px;margin-top:56px;position:relative}
+.step{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:30px;padding:32px 30px 28px;display:flex;flex-direction:column;box-shadow:0 2px 4px rgba(29,42,33,.04),0 24px 48px -24px rgba(29,42,33,.22);min-height:600px}
+.step .num{width:62px;height:62px;border-radius:18px;background:var(--green);color:#fff;display:grid;place-items:center;font:800 28px/1 var(--sans)}
+.step .num.gold{background:var(--saffron);color:var(--ink)}
+.step h3{font-size:39px;line-height:1.06;color:var(--ink);margin-top:24px}
+.step p{font-size:22px;line-height:1.45;color:var(--muted);margin-top:12px;font-weight:500}
+.step .foot{margin-top:auto;padding-top:20px}
+.step .foot .chip{background:#E6F2EA;color:var(--green-dk)}
+.step .foot .chip.gold{background:#FBF0DC;color:#7A5200}
+.code{margin-top:18px;background:var(--ink);color:#E9F1EA;border-radius:18px;padding:18px 20px;font:600 18px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap}
+.rcard{margin-top:18px;background:#FFFDF6;border:1px dashed var(--line-2);border-radius:18px;padding:16px 20px;display:flex;flex-direction:column;gap:4px;font:500 italic 21px/1.35 var(--serif);color:#3A3A30}
+.rcard small{font:800 14px/1 var(--sans);letter-spacing:.14em;color:#9A7B3F;font-style:normal;margin-bottom:6px}
+.rcard .fade{opacity:.45}
+.runs{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.run{display:flex;align-items:center;gap:12px;font:600 17px/1.2 var(--sans);color:var(--muted)}
+.run .q{flex:none;width:38px;height:38px;border-radius:10px;background:#C8202F;color:#fff;display:grid;place-items:center;font:800 12px/1 var(--sans)}
+.run div{flex:1;min-width:0}
+.run b{display:block;color:var(--ink);font-weight:700;font-size:18px;white-space:nowrap}
+.run em{font-style:normal;font-size:15px}
+.run .ok{color:var(--green-dk);font-weight:800}
+.run.dim{opacity:.55}.run.dim .q{background:#E58A93}
+.code .s{color:var(--saffron)}
+.code .k{color:#8FD0A5}
+.code .r{color:#FF9F8A}
+.minis{display:flex;gap:12px;margin-top:20px}
+.mprod{margin-top:16px;display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--cream)}
+.mprod>div:first-child{flex:1;min-width:0}
+.mprod b{display:block;font:750 17px/1.25 var(--sans);color:var(--ink)}
+.mprod span{font:500 15px/1.3 var(--sans);color:var(--muted)}
+.mprod .r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.mprod .r b{font-size:20px}
+.mprod .stock{font-size:13px;padding:5px 9px;color:var(--green-dk)}
+.minis .sign,.minis .sec{--w:70px;--h:76px}
+.link{position:absolute;top:58px;height:4px;width:34px;background:var(--line-2);overflow:hidden;border-radius:4px}
+.link i{display:block;height:100%;width:100%;background:var(--green-2);transform:scaleX(0);transform-origin:left;transition:transform .5s var(--ease)}
+.slide.active .link i{transform:scaleX(1)}
+.under{display:flex;gap:18px;justify-content:center;margin-top:30px}
+.under .chip{font-size:21px;padding:12px 20px;background:#fff;border:1px solid var(--line)}
+
+/* ---------- 5 · route ---------- */
+.s-route .wrap{display:grid;grid-template-columns:880px 1fr;gap:56px;height:100%}
+.s-route h2{font-size:76px}
+.s-route .mapcard{margin-top:34px}
+.listp{background:var(--paper);border:1px solid var(--line);border-radius:30px;overflow:hidden;box-shadow:0 2px 4px rgba(29,42,33,.04),0 30px 60px -24px rgba(29,42,33,.25);display:flex;flex-direction:column;align-self:start}
+.listp .store{display:flex;align-items:center;gap:16px;padding:22px 26px;border-top:7px solid #C8202F}
+.listp .qfc{width:52px;height:52px;border-radius:14px;background:#C8202F;color:#fff;display:grid;place-items:center;font:800 16px/1 var(--sans)}
+.listp .store b{font:750 27px/1.1 var(--serif);color:var(--ink);display:block}
+.listp .store span{font:600 18px/1.2 var(--sans);color:var(--muted)}
+.listp .bar{display:flex;justify-content:space-between;background:var(--cream);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 26px;font:800 16px/1 var(--sans);letter-spacing:.08em;color:var(--muted)}
+.row{display:flex;align-items:center;gap:18px;padding:11px 26px;border-bottom:1px solid #F1EBE0;opacity:.18;transform:translateX(16px);transition:opacity .45s var(--ease),transform .5s var(--ease),background .6s}
+.row.on{opacity:1;transform:none}
+.row .sign,.row .sec{--w:58px;--h:62px}
+.row .it{flex:1;min-width:0}
+.row .it b{display:block;font:750 22px/1.2 var(--sans);color:var(--ink)}
+.row .it span{display:block;font:500 17px/1.25 var(--sans);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .pr{font:800 22px/1 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
+.total{display:flex;align-items:flex-end;justify-content:space-between;padding:20px 26px 24px}
+.total small{display:block;font:800 15px/1 var(--sans);letter-spacing:.12em;color:var(--muted)}
+.total .big{font:800 62px/1 var(--serif);color:var(--ink);margin-top:8px;font-variant-numeric:tabular-nums}
+.total .found{display:flex;align-items:center;gap:10px;font:700 21px/1.2 var(--sans);color:var(--green-dk);text-align:right}
+.total .found i{width:28px;height:28px;border-radius:50%;background:var(--green-2);color:#fff;display:grid;place-items:center;font:900 16px/1 var(--sans);font-style:normal}
+
+/* ---------- 6 · product ---------- */
+.s-product .head{display:flex;justify-content:space-between;align-items:flex-end}
+.tabs{display:flex;gap:12px}
+.tabs span{font:700 21px/1 var(--sans);padding:13px 20px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--on-dark-2);transition:background .4s,color .4s}
+.tabs span b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.14);margin-right:8px;font-size:16px}
+.tabs span.on{background:var(--saffron);color:var(--ink)}
+.tabs span.on b{background:rgba(20,32,26,.14)}
+.devices{position:relative;height:720px;margin-top:40px}
+.laptop{position:absolute;left:0;top:14px;width:960px}
+.laptop .lid{background:#121512;border-radius:26px 26px 12px 12px;padding:20px 20px 22px;box-shadow:0 0 0 2px #2A2F2B inset,0 40px 80px -20px rgba(0,0,0,.7)}
+.laptop .scr{position:relative;aspect-ratio:1440/900;border-radius:8px;overflow:hidden;background:#000}
+.laptop .scr img,.phone .scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;opacity:0;transform:scale(1.03);transition:opacity .8s ease,transform 1.2s var(--ease)}
+.laptop .scr img.on,.phone .scr img.on{opacity:1;transform:none}
+.laptop .base{height:26px;margin:0 -50px;background:linear-gradient(#D5D2CB,#9E9B94);border-radius:0 0 30px 30px;position:relative;box-shadow:0 26px 40px -16px rgba(0,0,0,.8)}
+.laptop .base::before{content:"";position:absolute;left:50%;top:0;width:150px;height:10px;transform:translateX(-50%);background:#8C8982;border-radius:0 0 12px 12px}
+.phone{position:absolute;left:880px;top:0;width:312px;background:#121512;border-radius:54px;padding:12px;box-shadow:0 0 0 2px #2A2F2B inset,0 0 0 1px #000,0 40px 80px -20px rgba(0,0,0,.8)}
+.phone .scr{position:relative;aspect-ratio:288/663;border-radius:43px;overflow:hidden;background:var(--bar,#FBF7F0);transition:background .8s}
+.phone .scr img{top:40px!important;height:calc(100% - 40px)!important}
+.phone .sbar{position:absolute;left:0;right:0;top:0;height:40px;display:flex;align-items:center;justify-content:space-between;padding:4px 30px 0;font:700 15px/1 var(--sans);color:var(--barfg,#14201A);z-index:1;transition:color .8s}
+.phone .sbar i{font-style:normal;letter-spacing:1px;font-size:12px}
+.phone .island{position:absolute;left:50%;top:22px;width:92px;height:27px;transform:translateX(-50%);background:#000;border-radius:20px;z-index:2}
+.qrcard{position:absolute;right:0;top:36px;width:400px;background:#fff;border-radius:32px;padding:34px;color:var(--ink);text-align:center;box-shadow:0 40px 80px -24px rgba(0,0,0,.7)}
+.qrcard .qr{width:300px;height:300px;margin:0 auto}
+.qrcard h3{font-size:42px;line-height:1;margin-top:22px}
+.qrcard p{font:700 22px/1.3 var(--sans);color:var(--green-dk);margin-top:12px;word-break:break-all}
+.qrcard .sub{font:500 20px/1.4 var(--sans);color:var(--muted);margin-top:16px;word-break:normal}
+.qr svg{width:100%;height:100%;display:block}
+
+/* ---------- 7 · tech ---------- */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:44px}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:28px;padding:28px 30px 26px;box-shadow:0 20px 40px -26px rgba(29,42,33,.25)}
+.stat .v{font:800 84px/1 var(--serif);color:var(--green);letter-spacing:-.03em;font-variant-numeric:tabular-nums;font-variation-settings:"opsz" 144}
+.stat .v small{font-size:.8em;margin-right:4px;color:var(--green-2);opacity:.55;font-weight:600}
+.stat p{font:600 22px/1.35 var(--sans);color:var(--muted);margin-top:12px}
+.stat p b{color:var(--ink)}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:28px;padding:30px 34px;box-shadow:0 20px 40px -26px rgba(29,42,33,.25)}
+.panel h3{font-size:36px;line-height:1.08;color:var(--ink)}
+.panel .sub{font:500 21px/1.4 var(--sans);color:var(--muted);margin-top:10px}
+.chain{display:flex;align-items:center;gap:10px;margin-top:26px;min-height:120px}
+.node{flex:1;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:18px;padding:16px 12px;text-align:center;background:var(--cream);border:1.5px solid var(--line);transition:background .4s,border-color .4s,transform .4s var(--spring)}
+.node .em{font-size:30px;line-height:1}
+.node b{display:block;font:800 18px/1.2 var(--sans);color:var(--ink);margin-top:8px}
+.node.lit{background:#E6F2EA;border-color:var(--green-2);transform:translateY(-4px)}
+.chain .ar{color:var(--line-2);font:800 26px/1 var(--sans);flex:none}
+.checks{list-style:none;margin-top:18px;display:flex;flex-direction:column;gap:12px}
+.checks li{display:flex;gap:12px;font:600 21px/1.35 var(--sans);color:var(--text)}
+.checks li::before{content:"✓";flex:none;width:28px;height:28px;border-radius:50%;background:#E6F2EA;color:var(--green-dk);display:grid;place-items:center;font:900 15px/1 var(--sans);margin-top:1px}
+.checks li.x::before{content:"✕";background:var(--tomato-soft);color:var(--tomato)}
+.mgrid{display:grid;grid-template-columns:1fr 370px;gap:26px;align-items:start;margin-top:4px}
+.picker{background:#F2F8F3;border:1px solid #CFE5D6;border-radius:18px;padding:14px 14px 10px;margin-top:4px}
+.picker .ph{font:800 15px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--green-dk);margin:2px 4px 12px}
+.opt{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid transparent;border-radius:12px;padding:10px 12px;margin-bottom:6px;font:600 16px/1.2 var(--sans);color:var(--text);transition:border-color .4s}
+.opt i{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid #C9C2B4;transition:border .3s}
+.opt span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opt b{font-weight:800}
+.opt.on{border-color:var(--green-2)}
+.opt.on i{border:5px solid var(--green)}
+.stack{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;justify-content:center}
+.stack .chip{background:#fff;border:1px solid var(--line);font-size:18px;color:var(--muted)}
+
+/* ---------- 8 · visa journey ---------- */
+.journey{position:relative;margin-top:64px}
+.track{position:absolute;left:210px;right:210px;top:46px;height:6px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}
+.track i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--saffron-dk),var(--saffron));transform:scaleX(0);transform-origin:left;transition:transform 2.6s cubic-bezier(.45,0,.2,1) .5s}
+.slide.active .track i{transform:scaleX(1)}
+.stops{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;position:relative}
+.stop{display:flex;flex-direction:column;align-items:center;text-align:center}
+.stop .dot{width:98px;height:98px;border-radius:50%;background:#183D2B;border:3px solid rgba(255,255,255,.18);display:grid;place-items:center;font-size:42px;transition:background .5s,border-color .5s,transform .6s var(--spring);transition-delay:var(--t,0s)}
+.slide.active .stop .dot{background:var(--saffron);border-color:#FFE7B8;transform:scale(1.06)}
+.stop .card{margin-top:30px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:26px;padding:28px 28px 30px;text-align:left;height:100%}
+.stop .card small{font:800 17px/1 var(--sans);letter-spacing:.16em;color:var(--saffron);text-transform:uppercase}
+.stop .card h3{font-size:40px;line-height:1.05;color:#fff;margin-top:12px}
+.stop .card p{font:500 23px/1.45 var(--sans);color:var(--on-dark-2);margin-top:14px}
+.stop .card p b{color:#fff;font-weight:700}
+.quote{margin-top:56px;text-align:center;font:500 italic 34px/1.3 var(--serif);color:var(--on-dark)}
+.quote b{color:var(--saffron);font-weight:700}
+
+/* ---------- 9 · business ---------- */
+.biz{display:grid;grid-template-columns:500px 1fr 500px;gap:28px;margin-top:46px}
+.bcol{background:var(--paper);border:1px solid var(--line);border-radius:30px;padding:32px 34px;box-shadow:0 20px 40px -26px rgba(29,42,33,.25)}
+.bcol.mid{background:var(--ink);border-color:var(--ink);color:var(--on-dark)}
+.bcol h3{font-size:38px;line-height:1.05;color:var(--ink);display:flex;align-items:center;gap:14px}
+.bcol.mid h3{color:#fff}
+.bcol .tag{font:800 15px/1 var(--sans);letter-spacing:.14em;padding:8px 12px;border-radius:999px;background:var(--saffron);color:var(--ink);text-transform:uppercase}
+.persona{margin-top:22px;font:500 24px/1.45 var(--sans);color:var(--text)}
+.persona b{font-weight:800;color:var(--ink)}
+.wins{margin-top:22px;display:flex;flex-direction:column;gap:14px}
+.win{display:flex;gap:16px;align-items:flex-start;background:var(--cream);border-radius:18px;padding:16px 18px}
+.win .em{font-size:30px;line-height:1;flex:none}
+.win div{font:500 20px/1.4 var(--sans);color:var(--muted)}
+.win div b{display:block;color:var(--ink);font-weight:800;font-size:21px}
+.revs{display:flex;flex-direction:column;gap:16px;margin-top:24px}
+.rev{display:flex;gap:18px;align-items:flex-start;border-radius:20px;padding:18px 20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.rev .k{flex:none;width:50px;height:50px;border-radius:15px;background:var(--saffron);color:var(--ink);display:grid;place-items:center;font:800 22px/1 var(--sans)}
+.rev b{display:block;font:800 25px/1.2 var(--sans);color:#fff}
+.rev span{display:block;font:500 20px/1.4 var(--sans);color:var(--on-dark-2);margin-top:5px}
+.spread{list-style:none;margin-top:22px;display:flex;flex-direction:column;gap:16px}
+.spread li{display:flex;gap:14px;font:500 21px/1.4 var(--sans);color:var(--muted)}
+.spread li b{color:var(--ink);font-weight:800}
+.spread li .em{font-size:26px;line-height:1.1;flex:none;width:34px;text-align:center}
+.disclaim{margin-top:26px;text-align:center;font:600 20px/1.3 var(--sans);color:var(--muted)}
+.disclaim b{color:var(--tomato)}
+
+/* ---------- 10 · next ---------- */
+.signs{display:grid;grid-template-columns:repeat(5,1fr);gap:26px;margin-top:84px;position:relative}
+.rail{position:absolute;left:-120px;right:-120px;top:0;height:10px;background:linear-gradient(#3C443D,#262B27);box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.hang{position:relative;padding-top:64px;transform-origin:50% 0}
+.hang::before,.hang::after{content:"";position:absolute;top:8px;width:3px;height:58px;background:#59625A}
+.hang::before{left:28%}.hang::after{right:28%}
+.slide.active .hang{animation:swing 1.6s var(--ease) both;animation-delay:calc(var(--d,0s) + .2s)}
+@keyframes swing{0%{transform:rotate(-9deg) translateY(-30px);opacity:0}25%{opacity:1}45%{transform:rotate(5deg)}65%{transform:rotate(-2.5deg)}82%{transform:rotate(1deg)}100%{transform:none;opacity:1}}
+.slide:not(.active) .hang{opacity:0}
+.bigsign{background:var(--sign);border-radius:22px;padding:8px;box-shadow:0 26px 40px -18px rgba(0,0,0,.7)}
+.bigsign>div{border:2.5px solid rgba(255,255,255,.88);border-radius:16px;padding:18px 16px 20px;text-align:center;color:#fff;min-height:190px;display:flex;flex-direction:column;justify-content:center}
+.bigsign small{font:800 16px/1 var(--sans);letter-spacing:.2em;color:rgba(255,255,255,.85)}
+.bigsign b{display:block;font:800 34px/1.1 var(--sans);margin-top:14px}
+.bigsign.gold{background:var(--saffron-dk)}
+.hang p{font:500 24px/1.45 var(--sans);color:var(--on-dark-2);margin-top:26px;padding:0 6px}
+.hang p b{color:#fff;font-weight:700}
+
+.shipped{position:absolute;left:120px;right:120px;bottom:118px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+.shipped span{font:700 21px/1 var(--sans);padding:12px 18px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--on-dark)}
+.shipped .lbl{background:none;border:none;color:var(--saffron);font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:17px}
+/* ---------- 11 · close ---------- */
+.s-close .inner{position:relative;display:grid;grid-template-columns:1fr 470px;gap:80px;align-items:center;height:100%}
+.s-close h1{font-size:150px;line-height:.98;color:#fff;letter-spacing:-.03em;text-shadow:0 6px 40px rgba(0,0,0,.5)}
+.s-close .url{display:inline-flex;align-items:center;gap:14px;margin-top:44px;font:800 44px/1 var(--sans);color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);padding:22px 32px;border-radius:999px;backdrop-filter:blur(8px)}
+.s-close .url i{width:16px;height:16px;border-radius:50%;background:var(--green-2);box-shadow:0 0 0 6px rgba(46,158,98,.3);animation:live 1.8s ease-in-out infinite}
+@keyframes live{50%{box-shadow:0 0 0 12px rgba(46,158,98,0)}}
+.s-close .thanks{font:600 30px/1.4 var(--sans);color:rgba(255,255,255,.82);margin-top:40px}
+.s-close .tracks{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.s-close .tracks span{font:700 19px/1 var(--sans);padding:11px 16px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff}
+.s-close .tracks span.main{background:var(--saffron);color:var(--ink);border-color:var(--saffron)}
+.s-close .qrcard{position:relative;right:auto;top:auto;width:470px;padding:40px}
+.s-close .qrcard .qr{width:360px;height:360px}
+
+/* ---------- notes ---------- */
+#notes{position:fixed;left:0;right:0;bottom:0;height:var(--notes-h,300px);background:#111813;color:#EDE7DA;border-top:1px solid #2A352D;transform:translateY(100%);transition:transform .35s var(--ease);display:grid;grid-template-columns:1fr 280px;gap:28px;padding:20px 28px;z-index:100;font-family:var(--sans);user-select:text;-webkit-user-select:text}
+body.notes-open #notes{transform:none}
+#notes h4{font:800 13px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--saffron);margin-bottom:10px}
+#notes .txt{font:500 clamp(15px,1.5vw,20px)/1.5 var(--sans);overflow:auto;max-height:calc(var(--notes-h,300px) - 70px);padding-right:8px}
+#notes .side{border-left:1px solid #2A352D;padding-left:24px;font:600 14px/1.5 var(--sans);color:#A9B3A9;display:flex;flex-direction:column;gap:12px}
+#notes .side b{color:#fff;font-size:26px;font-variant-numeric:tabular-nums;display:block}
+#notes .side .nx{color:#EDE7DA}
+#rotate{display:none}
+@media (orientation:portrait) and (max-width:700px){
+  #rotate{display:block;position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 22px);text-align:center;font:600 14px/1.4 var(--sans);color:rgba(255,255,255,.6);pointer-events:none}
+  #notes{grid-template-columns:1fr}#notes .side{display:none}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  [data-in]{opacity:1!important;transform:none!important}
+  .slide{transform:none!important}
+  .hang{opacity:1!important}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="logo" viewBox="0 0 48 48"><rect width="48" height="48" rx="12" fill="#1F7A4D"/><circle cx="14" cy="15" r="3.3" fill="#F5A13A"/><rect x="20.5" y="12.7" width="16" height="4.6" rx="2.3" fill="#fff"/><circle cx="14" cy="24" r="3.3" fill="#E9F4EC"/><rect x="20.5" y="21.7" width="16" height="4.6" rx="2.3" fill="#fff"/><circle cx="14" cy="33" r="3.3" fill="#E9F4EC"/><rect x="20.5" y="30.7" width="16" height="4.6" rx="2.3" fill="#fff"/></symbol>
+  </defs>
+</svg>
+
+<div id="viewport">
+<div id="stage" role="region" aria-roledescription="carousel" aria-label="RecipeCheckout pitch deck">
+<div id="prog"><i></i></div>
+
+<!-- 1 · TITLE -->
+<section class="slide art s-title" data-title="Any recipe, sorted by aisle" data-time="10" aria-label="Title">
+  <div class="artbg"><div class="img"></div><div class="shade"></div></div>
+  <div class="top">
+    <div class="brand" data-in="fade"><svg class="logo"><use href="#logo"/></svg><span>Recipe<b>Checkout</b></span></div>
+    <div class="pill tracks" data-in="fade" style="--d:.15s"><i></i>DubHacks '26 · Visa: Reimagine Shopping</div>
+  </div>
+  <div class="center">
+    <div class="eyebrow" data-in style="--d:.1s">Your recipe → your store's shelves</div>
+    <h1 data-in style="--d:.2s">Any recipe,<br><em>sorted by aisle.</em></h1>
+    <p class="lede" data-in style="--d:.4s">Paste a recipe link. Get every ingredient mapped to the aisle, side and shelf of your nearest grocery store, with live price and stock.</p>
+    <div class="searchbar" data-in style="--d:.6s">
+      <div class="f">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="#5E8F74" stroke-width="2.2" stroke-linecap="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>
+        <div style="min-width:0"><small>Recipe link</small><div class="v"><span class="typed" id="typed"></span><span class="caret"></span></div></div>
+      </div>
+      <div class="f loc">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="#D9472B"/><circle cx="12" cy="10" r="2.6" fill="#fff"/></svg>
+        <div><small>Shopping near</small><div class="v">Seattle · Capitol Hill</div></div>
+      </div>
+      <div class="go" id="go">Go <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · PROBLEM -->
+<section class="slide light s-problem" data-title="Recipes aren't shopping lists" data-time="20" aria-label="Problem">
+  <div class="kicker tomato" data-in>The problem</div>
+  <h2 data-in style="--d:.08s">Recipes aren't <em style="color:var(--tomato)">shopping lists.</em></h2>
+  <div class="cols">
+    <div class="pains">
+      <div class="pain" data-in="left" style="--d:.3s"><div class="n">1</div><div><h3>Cook-speak isn't store-speak</h3><p><q>150 ml double cream</q>, <q>coriander leaves</q>, <q>tikka masala paste</q>: which product is that, at <i>this</i> store?</p></div></div>
+      <div class="pain" data-in="left" style="--d:.45s"><div class="n">2</div><div><h3>Recipe order isn't aisle order</h3><p>Aisle 11, produce, aisle 5, produce again, meat, aisle 7, back to aisle 5…</p></div></div>
+      <div class="pain" data-in="left" style="--d:.6s"><div class="n">3</div><div><h3>Price and stock are a surprise</h3><p>You find out it's out of stock, or the wrong jar, standing at the shelf.</p></div></div>
+    </div>
+    <div class="mapcard" style="width:860px;--d:.2s" data-in="pop">
+      <div class="mh"><b>Chicken tikka masala, shopped in recipe order</b><span class="chip" style="background:var(--tomato-soft);color:var(--tomato)">11 items</span></div>
+      <div id="map-messy"></div>
+      <div class="cap">Illustrative floor plan · item locations from a real QFC run</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · SOLUTION -->
+<section class="slide dark s-fix" data-title="Paste a recipe. Walk the store once." data-time="20" aria-label="Solution">
+  <div class="kicker" data-in>The fix</div>
+  <h2 data-in style="--d:.1s">Paste a recipe. <em>Walk the store once.</em></h2>
+  <p class="lede" data-in style="--d:.25s">RecipeCheckout reads any recipe, finds every ingredient in your nearest store's live catalog, and hands back one list in aisle order, with price and stock.</p>
+  <div class="morph" id="morph" data-in style="--d:.4s">
+    <div class="mc recipe"><div class="lab">📖 From the recipe</div><div class="raw x" id="m-raw"></div><div class="src">bbcgoodfood.com · Chicken tikka masala</div></div>
+    <div class="arrow a1"><svg viewBox="0 0 60 30"><path d="M2 15h52M42 4l13 11-13 11"/></svg></div>
+    <div class="mc ai"><div class="lab">✦ AI · shoppable intent</div><div class="x"><div class="term" id="m-term"></div><div class="meta" id="m-meta"></div></div></div>
+    <div class="arrow a2"><svg viewBox="0 0 60 30"><path d="M2 15h52M42 4l13 11-13 11"/></svg></div>
+    <div class="mc prod"><div id="m-sign"></div><div class="pinfo x"><div class="lab">QFC Broadway Market</div><div class="pn" id="m-pn"></div><div class="pd" id="m-pd"></div><div class="pr"><span class="price" id="m-price"></span><span id="m-stock"></span></div></div></div>
+  </div>
+  <div class="dots" id="m-dots" data-in="fade" style="--d:.6s"></div>
+  <div class="fixcap" data-in="fade" style="--d:.7s">Real matches from a recorded run at QFC Broadway Market, Seattle</div>
+</section>
+
+<!-- 4 · HOW IT WORKS -->
+<section class="slide light s-how" data-title="How it works" data-time="20" aria-label="How it works">
+  <div class="kicker" data-in>How it works</div>
+  <h2 data-in style="--d:.08s">From recipe text to <em>a shelf location.</em></h2>
+  <div class="steps">
+    <div class="step" data-in style="--d:.25s">
+      <div class="num">1</div>
+      <h3>Paste any recipe link</h3>
+      <p>We read the recipe's structured data. Blocked sites fall back to an archived copy, a reader proxy, or pasted text.</p>
+      <div class="rcard"><small>INGREDIENTS · 12</small><span>4 tbsp vegetable oil</span><span>25g butter</span><span>4 onions, roughly chopped</span><span class="fade">6 tbsp tikka masala paste…</span></div>
+      <div class="foot"><span class="chip">🔗 Link or pasted text</span></div>
+    </div>
+    <div class="step" data-in style="--d:.45s">
+      <div class="num gold">2</div>
+      <h3>One AI call</h3>
+      <p>Claude Haiku turns every line into a shoppable intent.</p>
+      <div class="code"><span class="s">"4 onions roughly chopped"</span><br><span class="k">term&nbsp;&nbsp;</span> yellow onions<br><span class="k">dept&nbsp;&nbsp;</span> produce<br><span class="r">avoid&nbsp;</span> rings · soup · powder<br><span class="k">staple</span> no</div>
+      <div class="foot"><span class="chip gold">⏱ ~6–9 s to read a recipe</span></div>
+    </div>
+    <div class="step" data-in style="--d:.65s">
+      <div class="num">3</div>
+      <h3>Live store catalog</h3>
+      <p>Kroger's official API at your nearest store: aisle, side, shelf, live price and stock.</p>
+      <div class="minis"><div class="sign"><span><small>AISLE</small><b>7</b><i>RIGHT</i></span></div><div class="sec veg"><span class="em">🥬</span><b>Produce</b></div><div class="sign"><span><small>AISLE</small><b>12</b><i>LEFT</i></span></div></div>
+      <div class="mprod"><div><b>Horizon Organic Heavy Whipping Cream</b><span>Aisle 12 · Left side · shelf 6</span></div><div class="r"><b>$7.99</b><span class="stock">In stock</span></div></div>
+      <div class="foot"><span class="chip">⏱ ~1–2 s per store</span></div>
+    </div>
+    <div class="step" data-in style="--d:.85s">
+      <div class="num">4</div>
+      <h3>Sorted &amp; rerouted</h3>
+      <p>Your list comes back in aisle order. Anything missing or out of stock is searched at the next-nearest store.</p>
+      <div class="runs">
+        <div class="run"><span class="q">QFC</span><div><b>QFC Broadway Market</b><em>0.1 mi</em></div><span class="ok">11 of 11</span></div>
+        <div class="run dim"><span class="q">QFC</span><div><b>QFC Harvard Market</b><em>0.5 mi</em></div><span>not needed</span></div>
+        <div class="run dim"><span class="q">QFC</span><div><b>QFC Uptown</b><em>1.2 mi</em></div><span>not needed</span></div>
+      </div>
+      <div class="foot"><span class="chip">🏪 Nearest store + up to 2 more</span></div>
+    </div>
+  </div>
+  <div class="under" data-in="fade" style="--d:1.1s"><span class="chip">🧂 Pantry staples start unchecked</span><span class="chip">⇄ Wrong item? One-tap swap</span><span class="chip">🛒 QFC · Fred Meyer · Kroger · Ralphs · King Soopers · and more</span></div>
+</section>
+
+<!-- 5 · ROUTE -->
+<section class="slide light s-route" data-title="Same trip, one clean loop" data-time="15" aria-label="Result">
+  <div class="wrap">
+    <div>
+      <div class="kicker" data-in>The result</div>
+      <h2 data-in style="--d:.08s">Same trip, <em>one clean loop.</em></h2>
+      <div class="mapcard" data-in="pop" style="--d:.2s">
+        <div id="map-clean"></div>
+        <div class="cap">Real recorded run: BBC Good Food tikka masala at QFC Broadway · floor plan illustrative</div>
+      </div>
+    </div>
+    <div class="listp" data-in="right" style="--d:.3s">
+      <div class="store"><div class="qfc">QFC</div><div><b>QFC Broadway Market</b><span>0.1 mi · 417 Broadway E, Seattle</span></div></div>
+      <div class="bar"><span>IN WALKING ORDER</span><span>11 ITEMS</span></div>
+      <div id="rows"></div>
+      <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="54.79" data-prefix="$" data-dec="2">$54.79</div></div><div class="found"><i>✓</i>11 of 11 found<br>at the first store</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · PRODUCT -->
+<section class="slide dark s-product" data-title="It's live. Try it now." data-time="20" aria-label="Product">
+  <div class="head">
+    <div>
+      <div class="kicker" data-in>The product</div>
+      <h2 data-in style="--d:.08s">It's live. <em>Try it now.</em></h2>
+    </div>
+    <div class="tabs" id="tabs" data-in="fade" style="--d:.3s"><span class="on"><b>1</b>Paste a link</span><span><b>2</b>Check ingredients</span><span><b>3</b>Shop by aisle</span></div>
+  </div>
+  <div class="devices">
+    <div class="laptop" data-in="rise" style="--d:.2s">
+      <div class="lid"><div class="scr" id="lapscr">
+        <img class="on" src="/pitch/assets/desk-home.webp" alt="RecipeCheckout home: Any recipe, sorted by aisle, with a recipe link field and location">
+        <img src="/pitch/assets/desk-review.webp" alt="Review screen: ingredient cards with pantry staples unchecked">
+        <img src="/pitch/assets/desk-results.webp" alt="Results: QFC Broadway Market list sorted by aisle with prices">
+      </div></div>
+      <div class="base"></div>
+    </div>
+    <div class="phone" data-in="rise" style="--d:.4s">
+      <div class="island"></div>
+      <div class="scr" id="phonescr">
+        <div class="sbar"><span>9:41</span><i>●●● ▮</i></div>
+        <img class="on" src="/pitch/assets/phone-home.webp" data-bar="#131613" data-fg="#fff" alt="Phone: home screen">
+        <img src="/pitch/assets/phone-review.webp" data-bar="#FBF8F0" data-fg="#14201A" alt="Phone: review ingredients">
+        <img src="/pitch/assets/phone-list.webp" data-bar="#FBF7F0" data-fg="#14201A" alt="Phone: list with aisle signs">
+      </div>
+    </div>
+    <div class="qrcard" data-in="pop" style="--d:.6s">
+      <div class="qr" data-qr></div>
+      <h3>Scan to try it</h3>
+      <p>recipecheckout.vercel.app</p>
+      <div class="sub">No sign-up. Any recipe link, on your phone or laptop.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · UNDER THE HOOD -->
+<section class="slide light s-tech" data-title="Under the hood" data-time="20" aria-label="Under the hood">
+  <div class="kicker" data-in>Under the hood</div>
+  <h2 data-in style="--d:.08s">Robust by design, <em>cheap by default.</em></h2>
+  <div class="stats">
+    <div class="stat" data-in style="--d:.2s"><div class="v" data-count="1" data-dec="0">1</div><p><b>LLM call per recipe</b> (Claude Haiku 5.5 via OpenRouter)</p></div>
+    <div class="stat" data-in style="--d:.3s"><div class="v"><span data-count="0.001" data-prefix="$" data-dec="3">$0.001</span></div><p><b>Approx. AI cost per recipe</b>, so a free tier is cheap to run</p></div>
+    <div class="stat" data-in style="--d:.4s"><div class="v"><span data-count="97" data-suffix="%" data-dec="0">97%</span></div><p><b>of products had aisle, side &amp; shelf</b> (approx.) in our test at QFC Capitol Hill</p></div>
+    <div class="stat" data-in style="--d:.5s"><div class="v" data-count="0" data-dec="0" data-from="9">0</div><p><b>LLM calls to pick products.</b> A fast heuristic does it.</p></div>
+  </div>
+  <div class="panels">
+    <div class="panel" data-in style="--d:.6s">
+      <h3>Gets the recipe, even when sites say no</h3>
+      <div class="sub">AllRecipes and other bot-walled sites block cloud servers. Instead of failing, we fall through:</div>
+      <div class="chain" id="chain">
+        <div class="node"><div class="em">🌐</div><b>Direct fetch</b></div><span class="ar">→</span>
+        <div class="node"><div class="em">🏛️</div><b>Wayback Machine copy</b></div><span class="ar">→</span>
+        <div class="node"><div class="em">📄</div><b>Reader proxy</b></div><span class="ar">→</span>
+        <div class="node"><div class="em">✍️</div><b>Paste ingredients</b></div>
+      </div>
+    </div>
+    <div class="panel" data-in style="--d:.7s">
+      <h3>Picks the right product, no extra AI</h3>
+      <div class="mgrid">
+        <ul class="checks">
+          <li>The search term's words must appear</li>
+          <li class="x">Avoid-words &amp; non-food rejected: no dish soap for “lemongrass”</li>
+          <li>Prefers the right department, a known aisle, in stock</li>
+        </ul>
+        <div class="picker" aria-label="Swap picker example">
+          <div class="ph">⇄ Wrong item? Swap</div>
+          <div class="opt on"><i></i><span>Kroger Petite Diced, 14.5 oz</span><b>$1.29</b></div>
+          <div class="opt"><i></i><span>Hunt's Petite Diced, 14.5 oz</span><b>$1.99</b></div>
+          <div class="opt"><i></i><span>Kroger Diced in Juice, 28 oz</span><b>$2.29</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="stack" data-in="fade" style="--d:.9s"><span class="chip">Expo Router + React Native Web</span><span class="chip">Vercel functions</span><span class="chip">Kroger Locations &amp; Products APIs</span><span class="chip">Claude Haiku 5.5 via OpenRouter</span><span class="chip">Offline demo replay</span></div>
+</section>
+
+<!-- 8 · VISA -->
+<section class="slide dark s-visa" data-title="Why Visa: Reimagine Shopping" data-time="15" aria-label="Visa Reimagine Shopping">
+  <div class="kicker" data-in>Visa · Reimagine Shopping</div>
+  <h2 data-in style="--d:.08s">GenAI that makes grocery shopping<br><em>intuitive and personal.</em></h2>
+  <div class="journey">
+    <div class="track"><i></i></div>
+    <div class="stops">
+      <div class="stop" style="--t:.6s"><div class="dot">💡</div><div class="card" data-in style="--d:.3s"><small>01 · Discovery</small><h3>Start from a recipe</h3><p>Inspiration is a recipe, not a search box. <b>GenAI turns messy recipe text</b> into a shoppable list.</p></div></div>
+      <div class="stop" style="--t:1.3s"><div class="dot">⚖️</div><div class="card" data-in style="--d:.42s"><small>02 · Decision-making</small><h3>The right product</h3><p>Out of dozens of results, the right one, with <b>live price, stock and aisle</b>. Alternatives one tap away.</p></div></div>
+      <div class="stop" style="--t:2s"><div class="dot">📍</div><div class="card" data-in style="--d:.54s"><small>03 · Personalization</small><h3>Fits your kitchen</h3><p>Your nearest store, <b>staples you already have unchecked</b>, your swaps. No account needed.</p></div></div>
+      <div class="stop" style="--t:2.7s"><div class="dot">🧾</div><div class="card" data-in style="--d:.66s"><small>04 · Checkout</small><h3>In, out, done</h3><p><b>Estimated total before you leave</b> and a list in walking order. Next: hand off to a pickup cart.</p></div></div>
+    </div>
+  </div>
+  <div class="quote" data-in="fade" style="--d:1s">Shopping starts with intent, <b>“I want to cook this”</b>, not a search box.</div>
+</section>
+
+<!-- 9 · BUSINESS -->
+<section class="slide light s-biz" data-title="Business model & go-to-market" data-time="20" aria-label="Business model">
+  <div class="kicker" data-in>SideShift · DubHacks NEXT</div>
+  <h2 data-in style="--d:.08s">Every recipe online, <em>a storefront.</em></h2>
+  <div class="biz">
+    <div class="bcol" data-in style="--d:.25s">
+      <h3>👩‍🍳 Who it's for</h3>
+      <div class="persona"><b>Home cooks</b> who find recipes on blogs and social video and shop in person: students, busy families, anyone cooking something new.</div>
+      <div class="wins">
+        <div class="win"><span class="em">🎥</span><div><b>Food creators</b>A “shop this recipe” link that turns views into baskets.</div></div>
+        <div class="win"><span class="em">🏪</span><div><b>Grocers</b>Baskets that start from intent, matched to their own shelves.</div></div>
+      </div>
+    </div>
+    <div class="bcol mid" data-in style="--d:.4s">
+      <h3>💸 How it makes money <span class="tag">Plan</span></h3>
+      <div class="revs">
+        <div class="rev"><div class="k">1</div><div><b>“Shop this recipe” for creators &amp; blogs</b><span>An embed or link on every recipe; creators share the revenue.</span></div></div>
+        <div class="rev"><div class="k">2</div><div><b>Sponsored swaps for grocers &amp; brands</b><span>Retail-media placements in the swap picker, clearly labelled.</span></div></div>
+        <div class="rev"><div class="k">3</div><div><b>Affiliate on pickup &amp; delivery</b><span>A referral fee when a list becomes a pickup or delivery order.</span></div></div>
+      </div>
+    </div>
+    <div class="bcol" data-in style="--d:.55s">
+      <h3>📣 How it spreads</h3>
+      <ul class="spread">
+        <li><span class="em">🔁</span><div><b>Creators distribute it.</b> Links go where their audience already is.</div></li>
+        <li><span class="em">👀</span><div><b>Every shared list is a demo</b> for the next cook.</div></li>
+        <li><span class="em">📱</span><div><b>One Expo codebase:</b> web today, iOS and Android next.</div></li>
+        <li><span class="em">🪙</span><div><b>~$0.001 of AI per recipe</b> keeps a free tier sustainable.</div></li>
+      </ul>
+    </div>
+  </div>
+  <div class="disclaim" data-in="fade" style="--d:.8s"><b>Plans, not traction:</b> what we'd test next is whether creators add the link and grocers pay for placement.</div>
+</section>
+
+<!-- 10 · NEXT -->
+<section class="slide dark s-next" data-title="What's next" data-time="10" aria-label="What's next">
+  <div class="kicker" data-in>What's next</div>
+  <h2 data-in style="--d:.08s">Next aisle: <em>from list to checkout.</em></h2>
+  <div class="signs">
+    <div class="rail"></div>
+    <div class="hang" style="--d:.2s"><div class="bigsign"><div><small>NEXT · 1</small><b>More chains</b></div></div><p>Wegmans' public product data already has shelf locations. <b>More grocers through partnerships.</b></p></div>
+    <div class="hang" style="--d:.35s"><div class="bigsign gold"><div><small>NEXT · 2</small><b>Pickup cart handoff</b></div></div><p>Send the matched list <b>straight into a store pickup cart</b> and check out.</p></div>
+    <div class="hang" style="--d:.5s"><div class="bigsign"><div><small>NEXT · 3</small><b>In-store map</b></div></div><p>Draw the route on the <b>real floor plan</b>, not just aisle order.</p></div>
+    <div class="hang" style="--d:.65s"><div class="bigsign"><div><small>NEXT · 4</small><b>Pantry memory</b></div></div><p>Remember what's already at home, so it <b>never lands on the list</b>.</p></div>
+    <div class="hang" style="--d:.8s"><div class="bigsign"><div><small>NEXT · 5</small><b>Native apps</b></div></div><p>The same Expo codebase, shipped to <b>iOS and Android</b>.</p></div>
+  </div>
+  <div class="shipped" data-in style="--d:1.2s"><span class="lbl">Shipped this weekend</span><span>✓ Live on the web</span><span>✓ Kroger-family stores</span><span>✓ 3-store fallback</span><span>✓ One-tap swaps</span><span>✓ Offline demo replay</span></div>
+</section>
+
+<!-- 11 · CLOSE -->
+<section class="slide art s-close" data-title="Thank you" data-time="10" aria-label="Closing">
+  <div class="artbg"><div class="img"></div><div class="shade"></div></div>
+  <div class="inner">
+    <div>
+      <div class="brand" data-in="fade"><svg class="logo"><use href="#logo"/></svg><span>Recipe<b>Checkout</b></span></div>
+      <h1 data-in style="--d:.1s;margin-top:48px">Any recipe,<br><em>sorted by aisle.</em></h1>
+      <div class="url" data-in style="--d:.3s"><i></i>recipecheckout.vercel.app</div>
+      <div class="thanks" data-in style="--d:.45s">Thank you! Built at DubHacks '26. Questions?</div>
+      <div class="tracks" data-in style="--d:.6s"><span class="main">Visa: Reimagine Shopping</span><span>SideShift: Best Startup Idea</span><span>DubHacks NEXT</span><span>MLH Commit Fellowship</span></div>
+    </div>
+    <div class="qrcard" data-in="pop" style="--d:.35s">
+      <div class="qr" data-qr></div>
+      <h3>Scan to try it</h3>
+      <p>recipecheckout.vercel.app</p>
+    </div>
+  </div>
+</section>
+
+<div id="foot"><div class="fb"><svg><use href="#logo"/></svg><em style="font-style:normal">Recipe<b>Checkout</b></em><span>recipecheckout.vercel.app</span></div><div id="counter"><b>01</b> / 11</div></div>
+<div id="hint">Use <kbd>←</kbd><kbd>→</kbd> or click · <kbd>N</kbd> notes · <kbd>F</kbd> fullscreen</div>
+</div>
+</div>
+
+<aside id="notes" aria-label="Speaker notes">
+  <div><h4 id="n-title">Speaker notes</h4><div class="txt" id="n-text"></div></div>
+  <div class="side"><div>Elapsed<b id="n-clock">0:00</b></div><div>This slide<b id="n-time" style="font-size:20px">~0:10</b></div><div class="nx">Next: <span id="n-next"></span></div></div>
+</aside>
+<div id="rotate">Rotate your phone for a bigger view · swipe to navigate</div>
+
+<script>
+(() => {
+'use strict';
+const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stage = document.getElementById('stage');
+const slides = [...document.querySelectorAll('.slide')];
+const N = slides.length;
+let cur = -1;
+
+/* ---------- speaker notes ---------- */
+const NOTES = [
+  "Hi, we're RecipeCheckout: <b>any recipe, sorted by aisle.</b> You paste a recipe link and get a shopping list mapped to the aisle, side and shelf of your nearest grocery store, with live price and stock.",
+  "The problem: recipes are written for cooks, not stores. \"Double cream\", \"coriander leaves\", \"tikka masala paste\": which product is that, here? And the list is in recipe order, so this is your trip (point at the red route): aisle 11, produce, aisle 5, produce again, meat, aisle 7, back to aisle 5. And you find out it's out of stock at the shelf.",
+  "RecipeCheckout fixes that: <b>paste a recipe, walk the store once.</b> Watch one line: \"150 ml double cream\". The AI turns it into a shoppable intent, heavy cream in dairy, never whipped or coffee creamer, and we find the real product at your store: aisle 12, left side, shelf 6, $7.99, in stock.",
+  "How it works. (1) We read the recipe's structured data; if a site blocks servers we fall back to the Wayback Machine copy, a reader proxy, or pasted text. (2) <b>One</b> Claude Haiku call turns every line into a search term, alternates, department, words to avoid and a pantry flag. (3) Kroger's official API gives aisle, shelf, live price and stock at your nearest store. (4) We sort by aisle, and anything missing goes to the next store, up to three.",
+  "Same tikka masala, now in aisle order: one loop through the store. This is a <b>real recorded run</b> at QFC Broadway in Seattle: 11 of 11 items found at the first store, estimated total $54.79. (The floor plan is illustrative; the aisles are real.)",
+  "It's <b>live right now</b> at recipecheckout.vercel.app. Scan the code and try any recipe; no sign-up. Paste a link, check the ingredients (pantry staples are already unchecked), and shop by aisle. [If time allows, switch to the live demo here.]",
+  "Under the hood it's robust and cheap: <b>one LLM call per recipe, about a tenth of a cent.</b> In our test at QFC about 97% of products came back with an exact aisle, side and shelf. Sites like AllRecipes block servers, so we fall through to the Wayback Machine, a reader proxy, then paste. Product matching uses no LLM: term words, avoid words, department, aisle and stock. If it's wrong, one tap swaps it.",
+  "Why Visa's <b>Reimagine Shopping</b> track: GenAI makes the grocery journey intuitive and personal. Discovery starts from a recipe. Decision-making picks the right product with live price and stock. It's personalized to your store and your pantry. And the in-store journey and checkout get faster.",
+  "As a startup: our user is the <b>home cook</b> who finds recipes online and shops in person. Revenue plan: \"shop this recipe\" links for creators and blogs, clearly labelled sponsored swaps for grocers and brands, and affiliate fees on pickup and delivery orders. Creators are our distribution, and at a tenth of a cent per recipe a free tier is cheap. These are plans we'd validate next.",
+  "Next: more chains, handing the list to a pickup cart, the route on the real floor plan, pantry memory, and native apps from the same Expo codebase.",
+  "RecipeCheckout: <b>any recipe, sorted by aisle.</b> Scan the code and try it now. Thank you!"
+];
+
+/* ---------- logo-centered QR (static, generated offline; error level H) ---------- */
+const QR_N = 33;
+const QR_D = "M0 0h7v1h-7zM9 0h2v1h-2zM12 0h3v1h-3zM17 0h3v1h-3zM21 0h1v1h-1zM23 0h2v1h-2zM26 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM12 1h1v1h-1zM16 1h2v1h-2zM19 1h3v1h-3zM23 1h1v1h-1zM26 1h1v1h-1zM32 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM9 2h2v1h-2zM14 2h7v1h-7zM23 2h1v1h-1zM26 2h1v1h-1zM28 2h3v1h-3zM32 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM9 3h2v1h-2zM13 3h2v1h-2zM19 3h2v1h-2zM22 3h2v1h-2zM26 3h1v1h-1zM28 3h3v1h-3zM32 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM12 4h1v1h-1zM14 4h3v1h-3zM24 4h1v1h-1zM26 4h1v1h-1zM28 4h3v1h-3zM32 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM13 5h1v1h-1zM15 5h1v1h-1zM17 5h2v1h-2zM21 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h7v1h-7zM8 7h1v1h-1zM12 7h3v1h-3zM18 7h1v1h-1zM23 7h1v1h-1zM2 8h2v1h-2zM6 8h4v1h-4zM11 8h2v1h-2zM15 8h1v1h-1zM20 8h2v1h-2zM24 8h3v1h-3zM28 8h1v1h-1zM1 9h1v1h-1zM3 9h2v1h-2zM7 9h2v1h-2zM10 9h1v1h-1zM14 9h2v1h-2zM17 9h1v1h-1zM21 9h1v1h-1zM23 9h1v1h-1zM25 9h2v1h-2zM30 9h1v1h-1zM32 9h1v1h-1zM0 10h2v1h-2zM6 10h1v1h-1zM8 10h1v1h-1zM11 10h1v1h-1zM13 10h1v1h-1zM16 10h2v1h-2zM19 10h1v1h-1zM23 10h1v1h-1zM30 10h3v1h-3zM3 11h3v1h-3zM9 11h4v1h-4zM20 11h1v1h-1zM22 11h3v1h-3zM27 11h3v1h-3zM31 11h2v1h-2zM0 12h1v1h-1zM2 12h1v1h-1zM5 12h2v1h-2zM10 12h1v1h-1zM14 12h3v1h-3zM20 12h2v1h-2zM23 12h3v1h-3zM27 12h2v1h-2zM0 13h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM10 13h2v1h-2zM16 13h2v1h-2zM20 13h2v1h-2zM24 13h2v1h-2zM29 13h1v1h-1zM0 14h1v1h-1zM4 14h5v1h-5zM10 14h1v1h-1zM12 14h1v1h-1zM14 14h2v1h-2zM21 14h1v1h-1zM24 14h1v1h-1zM28 14h3v1h-3zM0 15h3v1h-3zM4 15h2v1h-2zM7 15h1v1h-1zM9 15h2v1h-2zM14 15h1v1h-1zM17 15h6v1h-6zM25 15h1v1h-1zM28 15h4v1h-4zM1 16h10v1h-10zM12 16h2v1h-2zM16 16h2v1h-2zM19 16h3v1h-3zM23 16h8v1h-8zM32 16h1v1h-1zM0 17h1v1h-1zM2 17h1v1h-1zM4 17h2v1h-2zM7 17h2v1h-2zM10 17h1v1h-1zM12 17h4v1h-4zM17 17h1v1h-1zM21 17h3v1h-3zM26 17h3v1h-3zM30 17h3v1h-3zM2 18h2v1h-2zM5 18h4v1h-4zM12 18h1v1h-1zM15 18h1v1h-1zM18 18h1v1h-1zM20 18h2v1h-2zM25 18h2v1h-2zM28 18h1v1h-1zM30 18h2v1h-2zM1 19h1v1h-1zM5 19h1v1h-1zM7 19h1v1h-1zM11 19h1v1h-1zM15 19h1v1h-1zM17 19h1v1h-1zM19 19h1v1h-1zM27 19h2v1h-2zM1 20h1v1h-1zM5 20h4v1h-4zM10 20h4v1h-4zM16 20h2v1h-2zM20 20h2v1h-2zM24 20h1v1h-1zM29 20h3v1h-3zM0 21h2v1h-2zM3 21h1v1h-1zM8 21h5v1h-5zM18 21h1v1h-1zM20 21h2v1h-2zM23 21h1v1h-1zM26 21h1v1h-1zM29 21h2v1h-2zM32 21h1v1h-1zM3 22h1v1h-1zM6 22h2v1h-2zM9 22h1v1h-1zM11 22h3v1h-3zM15 22h1v1h-1zM17 22h1v1h-1zM22 22h3v1h-3zM26 22h3v1h-3zM31 22h2v1h-2zM1 23h3v1h-3zM7 23h1v1h-1zM9 23h2v1h-2zM13 23h2v1h-2zM18 23h3v1h-3zM25 23h1v1h-1zM28 23h2v1h-2zM0 24h1v1h-1zM2 24h2v1h-2zM6 24h1v1h-1zM8 24h1v1h-1zM10 24h4v1h-4zM15 24h1v1h-1zM17 24h2v1h-2zM22 24h1v1h-1zM24 24h5v1h-5zM31 24h1v1h-1zM8 25h1v1h-1zM10 25h1v1h-1zM13 25h1v1h-1zM15 25h1v1h-1zM18 25h1v1h-1zM22 25h3v1h-3zM28 25h4v1h-4zM0 26h7v1h-7zM8 26h2v1h-2zM11 26h2v1h-2zM14 26h2v1h-2zM22 26h3v1h-3zM26 26h1v1h-1zM28 26h3v1h-3zM0 27h1v1h-1zM6 27h1v1h-1zM9 27h3v1h-3zM14 27h2v1h-2zM17 27h2v1h-2zM20 27h2v1h-2zM24 27h1v1h-1zM28 27h5v1h-5zM0 28h1v1h-1zM2 28h3v1h-3zM6 28h1v1h-1zM10 28h2v1h-2zM13 28h1v1h-1zM18 28h2v1h-2zM23 28h9v1h-9zM0 29h1v1h-1zM2 29h3v1h-3zM6 29h1v1h-1zM8 29h1v1h-1zM10 29h2v1h-2zM13 29h1v1h-1zM15 29h2v1h-2zM20 29h1v1h-1zM22 29h1v1h-1zM27 29h1v1h-1zM29 29h1v1h-1zM31 29h2v1h-2zM0 30h1v1h-1zM2 30h3v1h-3zM6 30h1v1h-1zM8 30h3v1h-3zM14 30h3v1h-3zM18 30h9v1h-9zM29 30h2v1h-2zM0 31h1v1h-1zM6 31h1v1h-1zM10 31h1v1h-1zM13 31h1v1h-1zM16 31h1v1h-1zM20 31h2v1h-2zM23 31h2v1h-2zM26 31h1v1h-1zM32 31h1v1h-1zM0 32h7v1h-7zM10 32h1v1h-1zM12 32h3v1h-3zM16 32h3v1h-3zM20 32h4v1h-4zM25 32h1v1h-1zM27 32h2v1h-2zM30 32h1v1h-1z";
+function qrSVG(){
+  const c = QR_N/2, L = 8.6;
+  return `<svg viewBox="-3 -3 ${QR_N+6} ${QR_N+6}" role="img" aria-label="QR code for recipecheckout.vercel.app"><rect x="-3" y="-3" width="${QR_N+6}" height="${QR_N+6}" rx="2" fill="#fff"/><path d="${QR_D}" fill="#14201A" shape-rendering="crispEdges"/><rect x="${c-L/2-.6}" y="${c-L/2-.6}" width="${L+1.2}" height="${L+1.2}" rx="2" fill="#fff"/><use href="#logo" x="${c-L/2}" y="${c-L/2}" width="${L}" height="${L}"/></svg>`;
+}
+document.querySelectorAll('[data-qr]').forEach(el => el.innerHTML = qrSVG());
+
+/* ---------- store map (shared by slides 2 and 5) ---------- */
+const AX = k => 90 + (k - 1) * 56;
+const ITEMS = { // positions on the illustrative floor plan (aisles and sections from the recorded run)
+  butter:[650,325], onions:[850,612], paste:[314,250], pepper:[780,612], chicken:[885,290], tomatoes:[426,205],
+  puree:[426,255], chutney:[314,200], cream:[706,140], yogurt:[800,90], cilantro:[710,612]
+};
+function roundedPath(pts, r){
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 1; i < pts.length - 1; i++){
+    const [x0,y0] = pts[i-1], [x1,y1] = pts[i], [x2,y2] = pts[i+1];
+    const l1 = Math.hypot(x1-x0,y1-y0), l2 = Math.hypot(x2-x1,y2-y1);
+    const rr = Math.min(r, l1/2, l2/2);
+    const ax = x1 - (x1-x0)/l1*rr, ay = y1 - (y1-y0)/l1*rr;
+    const bx = x1 + (x2-x1)/l2*rr, by = y1 + (y2-y1)/l2*rr;
+    d += ` L${ax.toFixed(1)} ${ay.toFixed(1)} Q${x1} ${y1} ${bx.toFixed(1)} ${by.toFixed(1)}`;
+  }
+  const last = pts[pts.length-1];
+  return d + ` L${last[0]} ${last[1]}`;
+}
+function mapSVG(kind){
+  const clean = kind === 'clean';
+  const hit = [5,7,11,12];
+  let s = `<svg class="map" viewBox="0 0 1000 720" aria-hidden="true">`;
+  s += `<rect class="m-floor" x="2" y="2" width="996" height="716" rx="26"/>`;
+  s += `<rect class="m-back" x="20" y="18" width="960" height="50" rx="12"/><text class="m-lbl" x="40" y="50" fill="#6E6150">BACK WALL</text>`;
+  s += `<rect class="m-meat" x="922" y="84" width="58" height="400" rx="12"/><text class="m-lbl" fill="#9F2A1C" transform="translate(958 284) rotate(90)" text-anchor="middle">MEAT</text>`;
+  s += `<rect class="m-veg" x="680" y="556" width="300" height="146" rx="16"/><text class="m-lbl" fill="#1E6B3A" x="830" y="686" text-anchor="middle">PRODUCE</text>`;
+  for (const [cx,c] of [[740,'#9BCB8F'],[812,'#E9A0A0'],[884,'#F2D27A'],[950,'#9BCB8F']]) s += `<ellipse cx="${cx}" cy="648" rx="26" ry="9" fill="${c}" opacity=".55"/>`;
+  for (let g = 0; g <= 14; g++) s += `<rect class="m-shelf" x="${62+56*g-8}" y="112" width="16" height="352" rx="5"/>`;
+  let labels = '';
+  for (let k = 1; k <= 14; k++){
+    const cls = hit.includes(k) ? (clean ? 'hit' : 'miss') : '';
+    labels += `<g class="m-al ${cls}"><rect x="${AX(k)-15}" y="476" width="30" height="24" rx="6"/><text x="${AX(k)}" y="493">${k}</text></g>`;
+  }
+  s += `<rect class="m-door" x="22" y="626" width="112" height="74" rx="14"/><text class="m-lbl" x="78" y="670" fill="#8A8F84" text-anchor="middle" style="font-size:15px">ENTER</text>`;
+  for (let i = 0; i < 4; i++) s += `<rect class="m-reg" x="${300+78*i}" y="592" width="48" height="58" rx="9"/>`;
+  s += `<text class="m-lbl" x="453" y="686" fill="#8A8F84" text-anchor="middle" style="font-size:15px">CHECKOUT</text>`;
+
+  let pts, order;
+  if (clean){
+    pts = [[78,626],[78,525],[314,525],[314,90],[426,90],[426,525],[644,525],[644,320],[656,320],[656,525],[706,525],[706,90],[885,90],[885,612],[600,612]];
+    order = ['paste','chutney','tomatoes','puree','butter','cream','yogurt','chicken','onions','pepper','cilantro'];
+  } else {
+    pts = [[78,626],[78,532],[644,532],[644,325],[656,325],[656,520],[850,520],[850,612],[838,612],[838,544],[320,544],[320,250],[308,250],[308,556],[780,556],[780,612],[885,612],[885,290],[873,290],[873,512],[432,512],[432,205],[420,205],[420,255],[420,98],[314,98],[314,200],[326,200],[326,82],[706,82],[706,140],[718,140],[718,82],[897,82],[897,600],[600,600]];
+    order = ['butter','onions','paste','pepper','chicken','tomatoes','puree','chutney','cream','yogurt','cilantro'];
+  }
+  const d = roundedPath(pts, clean ? 18 : 14);
+  if (clean){
+    s += `<path class="route-clean-glow r-draw" d="${d}"/><path class="route-clean r-draw" d="${d}"/>`;
+  } else {
+    s += `<defs><mask id="mm" maskUnits="userSpaceOnUse" x="0" y="0" width="1000" height="720"><path class="r-draw" d="${d}" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></mask></defs><path class="route-messy" d="${d}" mask="url(#mm)"/>`;
+  }
+  s += `<path class="r-measure" d="${d}" fill="none" stroke="none"/>` + labels;
+  order.forEach((k,i) => {
+    const [x,y] = ITEMS[k];
+    s += `<g class="pin" data-k="${k}" data-i="${i}" transform="translate(${x} ${y})"><circle r="17" fill="${clean ? '#1F7A4D' : '#D9472B'}"/><text y="1">${i+1}</text></g>`;
+  });
+  s += `<circle class="head" r="11" fill="${clean ? '#F7C978' : '#fff'}" stroke="${clean ? '#155C39' : '#D9472B'}" stroke-width="4" cx="${pts[0][0]}" cy="${pts[0][1]}" opacity="0"/>`;
+  return s + `</svg>`;
+}
+document.getElementById('map-messy').innerHTML = mapSVG('messy');
+document.getElementById('map-clean').innerHTML = mapSVG('clean');
+// pins: transform attribute positions them; the scale animation lives on an inner wrapper
+document.querySelectorAll('.pin').forEach(g => {
+  const t = g.getAttribute('transform'); g.removeAttribute('transform');
+  const outer = document.createElementNS('http://www.w3.org/2000/svg','g');
+  outer.setAttribute('transform', t); g.parentNode.insertBefore(outer, g); outer.appendChild(g);
+});
+
+/* walking-order list rows (slide 5) */
+const ROWS = [
+  ['sign','5','LEFT','Tikka masala paste · Mango chutney',"Patak's simmer sauce · Indianlife chutney",'$16.48',['paste','chutney']],
+  ['sign','7','RIGHT','Diced tomatoes · Tomato purée','Kroger petite diced · Hunt’s purée','$3.78',['tomatoes','puree']],
+  ['sign','11','LEFT','Butter','Kroger salted butter sticks','$7.99',['butter']],
+  ['sign','12','LEFT','Heavy cream','Horizon Organic heavy whipping cream','$7.99',['cream']],
+  ['wall','🧱','Back wall','Plain yogurt','Mountain High plain yogurt tub','$5.49',['yogurt']],
+  ['meat','🥩','Meat','Chicken breasts','Simple Truth natural chicken breasts','$7.49',['chicken']],
+  ['veg','🥬','Produce','Onions · Red pepper · Cilantro','Jumbo yellow onions · organic bell pepper','$5.57',['onions','pepper','cilantro']],
+];
+function signHTML(kind, a, b){
+  return kind === 'sign' ? `<div class="sign"><span><small>AISLE</small><b>${a}</b><i>${b}</i></span></div>`
+                         : `<div class="sec ${kind}"><span class="em">${a}</span><b>${b}</b></div>`;
+}
+document.getElementById('rows').innerHTML = ROWS.map(r =>
+  `<div class="row" data-keys="${r[6].join(' ')}">${signHTML(r[0],r[1],r[2])}<div class="it"><b>${r[3]}</b><span>${r[4]}</span></div><div class="pr">${r[5]}</div></div>`).join('');
+
+/* route animation */
+const routeAnims = new Map();
+function playRoute(slide, dur){
+  const svg = slide.querySelector('svg.map'); if (!svg) return;
+  const meas = svg.querySelector('.r-measure');
+  const L = meas.getTotalLength();
+  const draws = [...svg.querySelectorAll('.r-draw')];
+  const head = svg.querySelector('.head');
+  const pins = [...svg.querySelectorAll('.pin')];
+  const rows = [...slide.querySelectorAll('.row')];
+  // where along the path each pin is first reached (search in order so revisits don't confuse it)
+  const S = 600, samples = [];
+  for (let i = 0; i <= S; i++){ const p = meas.getPointAtLength(L*i/S); samples.push([p.x,p.y]); }
+  let from = 0;
+  const at = pins.map(pin => {
+    const [x,y] = ITEMS[pin.dataset.k];
+    let best = -1;
+    for (let i = from; i <= S; i++){ if (Math.hypot(samples[i][0]-x, samples[i][1]-y) < 22){ best = i; break; } }
+    if (best < 0){ let bd = 1e9; for (let i = from; i <= S; i++){ const dd = Math.hypot(samples[i][0]-x, samples[i][1]-y); if (dd < bd){ bd = dd; best = i; } } }
+    from = best; return best / S;
+  });
+  draws.forEach(p => { p.style.strokeDasharray = `${L} ${L}`; p.style.strokeDashoffset = L; });
+  pins.forEach(p => p.classList.remove('on'));
+  rows.forEach(r => r.classList.remove('on'));
+  const set = (t) => {
+    draws.forEach(p => p.style.strokeDashoffset = L * (1 - t));
+    const pt = meas.getPointAtLength(L * t);
+    head.setAttribute('cx', pt.x); head.setAttribute('cy', pt.y);
+    head.style.opacity = t > 0 && t < 1 ? 1 : 0;
+    pins.forEach((p,i) => p.classList.toggle('on', t >= at[i] - 0.004));
+    rows.forEach(r => { const ks = r.dataset.keys.split(' '); const firstPin = pins.find(p => p.dataset.k === ks[0]); r.classList.toggle('on', firstPin && t >= at[pins.indexOf(firstPin)] - 0.004); });
+  };
+  if (RM){ set(1); return; }
+  const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
+  const start = performance.now() + 900;
+  const tick = (now) => {
+    if (!slide.classList.contains('active')) return;
+    const t = Math.max(0, Math.min(1, (now - start) / dur));
+    set(ease(t));
+    if (t < 1) routeAnims.set(slide, requestAnimationFrame(tick));
+  };
+  set(0);
+  routeAnims.set(slide, requestAnimationFrame(tick));
+}
+
+/* ---------- count-ups ---------- */
+function countUps(slide){
+  slide.querySelectorAll('[data-count]').forEach(el => {
+    const to = parseFloat(el.dataset.count), dec = +el.dataset.dec || 0;
+    const fromV = el.dataset.from ? parseFloat(el.dataset.from) : 0;
+    const pre = el.dataset.prefix || '', suf = el.dataset.suffix || '';
+    const fmt = v => pre + v.toFixed(dec) + suf;
+    if (RM){ el.textContent = fmt(to); return; }
+    el.textContent = fmt(fromV);
+    const delay = el.id === 'total' ? 4700 : 700, dur = 1500;
+    const t0 = performance.now() + delay;
+    const tick = now => {
+      if (!slide.classList.contains('active')) { el.textContent = fmt(to); return; }
+      const t = Math.max(0, Math.min(1, (now - t0) / dur));
+      const e = 1 - Math.pow(1 - t, 3);
+      el.textContent = fmt(fromV + (to - fromV) * e);
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
+/* ---------- slide 1: typing ---------- */
+let typeTimer = null;
+function typeUrl(){
+  const el = document.getElementById('typed'), go = document.getElementById('go');
+  const url = 'bbcgoodfood.com/recipes/chicken-tikka-masala';
+  clearTimeout(typeTimer); go.classList.remove('press');
+  if (RM){ el.textContent = url; go.classList.add('press'); return; }
+  el.textContent = ''; let i = 0;
+  const step = () => { el.textContent = url.slice(0, ++i); if (i < url.length) typeTimer = setTimeout(step, 38 + Math.random()*30); else go.classList.add('press'); };
+  typeTimer = setTimeout(step, 1300);
+}
+
+/* ---------- slide 3: recipe line → intent → product ---------- */
+const MORPH = [
+  {raw:'150ml <mark>double cream</mark>', term:'heavy cream', meta:['🧈 dairy'], avoid:['whipped','coffee','sour'], pn:'Horizon Organic Heavy Whipping Cream', pd:'1 pt · Left side · shelf 6', price:'$7.99', stock:true, sign:['sign','12','LEFT']},
+  {raw:'chopped <mark>coriander leaves</mark>, to serve', term:'cilantro', meta:['🥬 produce'], avoid:['seeds','dried','soap'], pn:'Cilantro', pd:'1 ct · Produce section', price:'$1.29', stock:true, sign:['veg','🥬','Produce']},
+  {raw:'2 x 400g cans <mark>chopped tomatoes</mark>', term:'diced tomatoes', meta:['🥫 pantry'], avoid:['sauce','paste','soup'], pn:'Kroger® Petite Diced Tomatoes in Tomato Juice', pd:'14.5 oz · Right side · shelf 7', price:'$1.29', stock:true, sign:['sign','7','RIGHT']},
+  {raw:'6 tbsp <mark>chicken tikka masala paste</mark> (use shop-bought or make your own)', term:'tikka masala paste', meta:['🌏 international'], avoid:['rice','seasoning packet'], pn:"Patak's® Tikka Masala Spicy Curry Simmer Sauce", pd:'15 oz · Left side · shelf 5', price:'$6.49', stock:false, sign:['sign','5','LEFT']},
+  {raw:'8 boneless, skinless <mark>chicken breasts</mark> cut into 2.5cm cubes', term:'chicken breasts', meta:['🥩 meat'], avoid:['broth','seasoning','nuggets'], pn:'Simple Truth Natural Chicken Breasts', pd:'1 lb · Meat department', price:'$7.49', stock:true, sign:['meat','🥩','Meat']},
+];
+const morph = document.getElementById('morph');
+const mdots = document.getElementById('m-dots');
+mdots.innerHTML = MORPH.map(() => '<i></i>').join('');
+let mTimers = [], mIdx = 0;
+function fillMorph(m){
+  const raw = document.getElementById('m-raw');
+  raw.innerHTML = '“' + m.raw + '”';
+  raw.style.fontSize = m.raw.replace(/<[^>]+>/g, '').length > 44 ? '33px' : '';
+  document.getElementById('m-term').textContent = m.term;
+  document.getElementById('m-meta').innerHTML = m.meta.map(x => `<span>${x}</span>`).join('') + `<span class="av">avoid: ${m.avoid.join(' · ')}</span>`;
+  document.getElementById('m-sign').innerHTML = signHTML(m.sign[0], m.sign[1], m.sign[2]).replace(/class="(sign|sec)/, 'style="--w:128px;--h:140px" class="$1');
+  document.getElementById('m-pn').textContent = m.pn;
+  document.getElementById('m-pd').textContent = m.pd;
+  document.getElementById('m-price').textContent = m.price;
+  document.getElementById('m-stock').innerHTML = m.stock ? '<span class="stock">In stock</span>' : '';
+  [...mdots.children].forEach((d,i) => d.classList.toggle('on', i === MORPH.indexOf(m)));
+}
+function stopMorph(){ mTimers.forEach(clearTimeout); mTimers = []; }
+function runMorph(first){
+  stopMorph();
+  const later = (fn, ms) => mTimers.push(setTimeout(fn, ms));
+  const m = MORPH[mIdx];
+  morph.className = 'morph';
+  fillMorph(m);
+  if (RM){ morph.className = 'morph s1 s2 s3'; return; }
+  void morph.offsetWidth;
+  const base = first ? 1000 : 120;
+  later(() => morph.classList.add('s1'), base);
+  later(() => morph.classList.add('s2'), base + 800);
+  later(() => morph.classList.add('s3'), base + 1500);
+  later(() => morph.classList.add('out'), base + 6000);
+  later(() => { mIdx = (mIdx + 1) % MORPH.length; runMorph(false); }, base + 6450);
+}
+
+/* ---------- slide 6: device carousels ---------- */
+let carTimer = null;
+function runCarousel(){
+  clearInterval(carTimer);
+  const lap = [...document.querySelectorAll('#lapscr img')], ph = [...document.querySelectorAll('#phonescr img')], tabs = [...document.querySelectorAll('#tabs span')];
+  let i = 0;
+  const scr = document.getElementById('phonescr');
+  const show = () => { [lap, ph, tabs].forEach(set => set.forEach((el,j) => el.classList.toggle('on', j === i))); scr.style.setProperty('--bar', ph[i].dataset.bar); scr.style.setProperty('--barfg', ph[i].dataset.fg); };
+  show();
+  if (RM) return;
+  carTimer = setInterval(() => { i = (i + 1) % 3; show(); }, 3200);
+}
+
+/* ---------- slide 7: fallback chain ---------- */
+let chainTimer = null;
+function runChain(){
+  clearInterval(chainTimer);
+  const nodes = [...document.querySelectorAll('#chain .node')];
+  if (RM){ nodes.forEach(n => n.classList.add('lit')); return; }
+  let i = -1;
+  nodes.forEach(n => n.classList.remove('lit'));
+  const opts = [...document.querySelectorAll('.picker .opt')];
+  let tick = 0;
+  chainTimer = setInterval(() => {
+    i = (i + 1) % (nodes.length + 2); nodes.forEach((n,j) => n.classList.toggle('lit', j === i));
+    if (++tick % 3 === 0){ const k = (opts.findIndex(o => o.classList.contains('on')) + 1) % opts.length; opts.forEach((o,j) => o.classList.toggle('on', j === k)); }
+  }, 900);
+}
+
+/* ---------- navigation ---------- */
+const HOOKS = {
+  0: { enter: typeUrl },
+  1: { enter: s => playRoute(s, 5600) },
+  2: { enter: () => runMorph(true), leave: stopMorph },
+  4: { enter: s => { playRoute(s, 4200); countUps(s); } },
+  5: { enter: runCarousel, leave: () => clearInterval(carTimer) },
+  6: { enter: s => { countUps(s); runChain(); }, leave: () => clearInterval(chainTimer) },
+};
+const counter = document.getElementById('counter'), bar = document.querySelector('#prog i');
+let t0 = null;
+function go(i, fromHash){
+  i = Math.max(0, Math.min(N - 1, i));
+  if (i === cur) return;
+  const prev = cur; cur = i;
+  slides.forEach((s, j) => {
+    s.classList.toggle('active', j === i);
+    s.classList.toggle('past', j < i);
+    s.setAttribute('aria-hidden', j === i ? 'false' : 'true');
+  });
+  if (prev >= 0 && HOOKS[prev] && HOOKS[prev].leave) HOOKS[prev].leave(slides[prev]);
+  if (HOOKS[i] && HOOKS[i].enter) HOOKS[i].enter(slides[i]);
+  const s = slides[i];
+  stage.classList.toggle('on-dark', !s.classList.contains('light'));
+  stage.classList.toggle('hide-brand', s.classList.contains('art'));
+  counter.innerHTML = `<b>${String(i+1).padStart(2,'0')}</b> / ${String(N).padStart(2,'0')}`;
+  bar.style.width = ((i + 1) / N * 100) + '%';
+  if (!fromHash) history.replaceState(null, '', '#' + (i + 1));
+  if (prev >= 0 && t0 === null) t0 = Date.now();
+  renderNotes();
+}
+function renderNotes(){
+  const s = slides[cur];
+  document.getElementById('n-title').textContent = `Slide ${cur+1} · ${s.dataset.title}`;
+  document.getElementById('n-text').innerHTML = NOTES[cur] || '';
+  const sec = +s.dataset.time || 15;
+  document.getElementById('n-time').textContent = `~0:${String(sec).padStart(2,'0')}`;
+  document.getElementById('n-next').textContent = cur < N - 1 ? slides[cur+1].dataset.title : 'End';
+}
+setInterval(() => {
+  if (t0 === null) return;
+  const e = Math.floor((Date.now() - t0) / 1000);
+  document.getElementById('n-clock').textContent = `${Math.floor(e/60)}:${String(e%60).padStart(2,'0')}`;
+}, 500);
+const next = () => go(cur + 1), prev = () => go(cur - 1);
+
+function fit(){
+  const vp = document.getElementById('viewport');
+  const W = vp.clientWidth, H = vp.clientHeight;
+  const sc = Math.min(W / 1920, H / 1080);
+  stage.style.transform = `translate(${(W - 1920*sc)/2}px, ${(H - 1080*sc)/2}px) scale(${sc})`;
+}
+window.addEventListener('resize', fit);
+document.getElementById('viewport').addEventListener('transitionend', fit);
+
+function toggleNotes(){
+  const h = Math.round(Math.min(320, Math.max(180, innerHeight * .3)));
+  document.body.style.setProperty('--notes-h', h + 'px');
+  document.body.classList.toggle('notes-open');
+  fit(); setTimeout(fit, 380);
+}
+function toggleFS(){
+  const d = document;
+  if (!d.fullscreenElement && !d.webkitFullscreenElement){ const el = d.documentElement; (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el); }
+  else (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+}
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key;
+  if (['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(k)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(k)) { e.preventDefault(); prev(); }
+  else if (k === 'Home') { e.preventDefault(); go(0); }
+  else if (k === 'End') { e.preventDefault(); go(N - 1); }
+  else if (k === 'f' || k === 'F') toggleFS();
+  else if (k === 'n' || k === 'N') toggleNotes();
+  else if (/^[1-9]$/.test(k)) go(+k - 1);
+  hideHint();
+});
+// click / tap halves (ignore links, the notes panel and text selection)
+document.getElementById('viewport').addEventListener('click', e => {
+  if (e.target.closest('a,button,[data-qr]')) return;
+  if (swiped) { swiped = false; return; }
+  (e.clientX < innerWidth / 2 ? prev : next)(); hideHint();
+});
+let sx = null, sy = null, swiped = false;
+document.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiped = false; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if (sx === null) return;
+  const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.2){ swiped = true; (dx < 0 ? next : prev)(); hideHint(); }
+  sx = null;
+}, {passive:true});
+window.addEventListener('hashchange', () => { const n = parseInt(location.hash.slice(1), 10); if (n) go(n - 1, true); });
+
+const hint = document.getElementById('hint');
+let hintT = setTimeout(hideHint, 4200);
+function hideHint(){ clearTimeout(hintT); hint.classList.add('gone'); }
+
+fit();
+const startAt = parseInt(location.hash.slice(1), 10);
+go(startAt ? startAt - 1 : 0, true);
+if (!startAt) history.replaceState(null, '', '#1');
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+})();
+</script>
+</body>
+</html>
