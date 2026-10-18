@@ -18,7 +18,7 @@ import { pstate } from '../ui';
 import { useHomeForm, type HomeForm } from './useHomeForm';
 
 /**
- * Home variant C, "Food hero": a full-viewport food photo with one Airbnb-style search bar
+ * Home page layout ("food hero"): a full-viewport background with one Airbnb-style search bar
  * [recipe link | location ▾ | Go] centered on it. All behaviour comes from useHomeForm().
  */
 

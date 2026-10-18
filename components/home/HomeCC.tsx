@@ -4,7 +4,7 @@ import HomeC from './HomeC';
 import { ProduceDefs, layoutAisle } from './HomeCCArt';
 
 /**
- * Variant CC: variant C's layout over a hand-drawn vector take on CA's produce-aisle photo. Tiers of
+ * Home page: HomeC's layout over a hand-drawn vector produce aisle (modelled on a supermarket produce-aisle photo). Tiers of
  * dark bins edge to edge, each packed with procedurally placed (seeded, jittered) peppers, greens,
  * squash, garlic and more, under a fluorescent strip, then a dark pool so the headline and bar read.
  * Web renders one raw inline SVG (each drawing defined once, repeated with <use>); native gets a plain colour.
