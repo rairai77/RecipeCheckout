@@ -299,6 +299,10 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 .row .it span{display:block;font:500 20px/1.25 var(--sans);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .pr{font:800 24px/1 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
 .total{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 26px 18px}
+.onestop{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding:10px 26px 14px;border-top:1px dashed var(--line);font:600 20px/1.2 var(--sans);color:var(--muted)}
+.onestop b{color:var(--ink);font-weight:800}
+.onestop span{background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:6px 12px;white-space:nowrap}
+.onestop span em{font-style:normal;font-weight:800;color:var(--green-dk);margin-left:6px}
 .total>div:first-child{flex:none}
 .total small{display:block;white-space:nowrap;font:800 19px/1 var(--sans);letter-spacing:.12em;color:var(--muted)}
 .total .big{font:800 60px/1 var(--serif);color:var(--ink);margin-top:6px;font-variant-numeric:tabular-nums}
@@ -612,6 +616,7 @@ body.notes-open #notes{transform:none}
       <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="83.35" data-prefix="$" data-dec="2">$83.35</div></div>
         <div class="cartnext" aria-label="Coming next, not built yet: send the list to your QFC cart"><span class="nexttag">Next build · not live yet</span><div class="cartbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><small>Fills your QFC cart · checkout in Kroger's app</small></div>
       </div>
+      <div class="onestop" id="onestop"><!-- filled from RUN.oneStop --></div>
     </div>
   </div>
 </section>
@@ -798,10 +803,11 @@ const RUN = {               // source: lib/client/demo-run.json + live /?demo=1&
   items: 11,                // items shopped after pantry staples are unchecked (vegetable oil)
   total: 83.35,             // estimated total, whole packs ($66.47 Uptown + $16.88 Broadway Market)
   coverage: { store: 0, products: 55, withAisle: 53, withShelf: 46 }, // slide 7: distinct best+candidate products at stores[store] in demo-run.json
+  oneStop: [{ store: 1, total: 81.23 }, { store: 2, total: 74.33 }], // site's "Or get all 11 in one stop" offer
   missReason: 'sold in-store', // why stores[0] missed items, as the site words it: "Not sold in-store at QFC Uptown" (inStore:false)
   stores: [                 // nearest first; found = items bought at that store
     { name: 'QFC Uptown',          logo: 'QFC', dist: '0.5 mi', addr: '500 Mercer St, Seattle', found: 9 },
-    { name: 'QFC Broadway Market', logo: 'QFC', dist: '0.7 mi', found: 2 },
+    { name: 'QFC Broadway Market', logo: 'QFC', dist: '0.7 mi', found: 2, hop: '1.2 mi' }, // hop = distance from stores[0], as the site shows it
     { name: 'QFC Harvard Market',  logo: 'QFC', dist: '1.1 mi', found: 0 },
   ],
 };
@@ -834,8 +840,9 @@ const NOTES = [
   "So: <b>paste a recipe, walk the store once.</b> \"150 ml double cream\": the AI makes it heavy cream, never whipped topping or creamer. Then the real product at your store: aisle 1, left side, shelf 5, $7.99, in stock.",
   "Four steps. We read the recipe. <b>One</b> Claude Haiku call turns each line into a search term. Kroger's API searches the nearest store. Plain math rounds up to whole packs, we sort by aisle, and misses fall through to the next store.",
   `A <b>real recorded run</b>: ` + (fellThrough.length
-    ? `one loop for ${S0.found} items at ${S0.name}. ${foundAll - S0.found} aren't ${RUN.missReason} there, so we found them at the next ${fellThrough[0].logo}; you can skip them. One is a flagged "closest match". ${money(RUN.total)} in whole packs.`
-    : `all ${foundAll} items at ${S0.name}, one clean loop, about ${money(RUN.total)}.`),
+    ? `one loop for ${S0.found} items at ${S0.name}. ${foundAll - S0.found} aren't ${RUN.missReason} there, so they come from ${fellThrough[0].name.replace(/^QFC /, '')}${fellThrough[0].hop ? `, ${fellThrough[0].hop.replace('mi', 'miles')} on` : ''}. You choose: skip them, or shop all ${RUN.items} in one stop. ${money(RUN.total)} in whole packs.`
+    : `all ${foundAll} items at ${S0.name}, one clean loop, about ${money(RUN.total)}.`) +
+    (RUN.oneStop ? `<span class="qa">If asked "why not the cheapest store?": we start from the nearest store and fill gaps nearby; the list then offers every one-stop option with its price (${RUN.oneStop.map(x => `${RUN.stores[x.store].name} ${money(x.total)}`).join(', ')}), and the shopper picks.</span>` : ''),
   `<span class="cue">[Click the laptop or press D to open the <a href="${DEMO_URL}" target="_blank" rel="noopener">demo replay</a>. Backup: press V for the <a href="/demo" target="_blank" rel="noopener">/demo video</a>. About 30 s.]</span> ` +
     "<b>The app is live:</b> scan and try any recipe. On stage I'm using a recorded real run, so wifi can't bite. Start a list… staples start unchecked… find in stores… the list, by aisle, with price and stock.",
   `<b>One AI call per recipe, about a tenth of a cent.</b> Blocked sites fall through to an archive, then paste.` +
@@ -869,14 +876,21 @@ document.getElementById('found').querySelector('span').innerHTML = fellThrough.l
   const sec = document.getElementById('why').closest('section'), h = sec.querySelector('h2'), w = document.getElementById('why');
   if (fellThrough.length) {
     const n = foundAll - S0.found;
+    const f = fellThrough[0];
     w.innerHTML = `${n} item${n > 1 ? 's' : ''} ${n > 1 ? "aren't" : "isn't"} ${RUN.missReason} at <b>${S0.name}</b>, so ${n > 1 ? 'they come' : 'it comes'} from ` +
-      `<b>${fellThrough.map(st => st.name).join('</b> and <b>')}</b>. Every row has a Skip.`;
+      `<b>${f.name}</b>${f.hop ? ` (${f.hop} on)` : ''}. Or skip ${n > 1 ? 'them' : 'it'}, or shop one store.`;
   } else {
     h.innerHTML = 'Same trip, <em>one clean loop.</em>'; sec.dataset.title = 'Same trip, one clean loop';
     w.innerHTML = `Every item at <b>${S0.name}</b>.`;
   }
 }
 { const t = document.getElementById('total'); t.dataset.count = RUN.total; t.textContent = money(RUN.total); }
+{ // slide 5: the site's one-stop offer
+  const o = document.getElementById('onestop');
+  if (RUN.oneStop && RUN.oneStop.length && fellThrough.length)
+    o.innerHTML = `<b>All ${RUN.items}, one stop:</b>` + RUN.oneStop.map(x => `<span>${RUN.stores[x.store].name.replace(/^QFC /, '')}<em>${money(x.total)}</em></span>`).join('');
+  else o.remove();
+}
 { // slide 7 coverage stat
   const c = RUN.coverage, pct = n => Math.round(100 * n / c.products), e = document.getElementById('cov-pct');
   e.dataset.count = pct(c.withAisle); e.textContent = pct(c.withAisle) + '%';
