@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts } from '../components/theme';
-import { isDemoMode, isMockMode } from '../lib/client/mock';
+import { isCleanMode, isDemoMode, isMockMode } from '../lib/client/mock';
 import { AppStateProvider } from '../lib/client/state';
 
 // Web: load the Google Fonts at runtime (web.output is "single", so there is no +html.tsx to put a <link> in).
@@ -29,7 +29,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getEle
 }
 
 export default function RootLayout() {
-  const badge = isDemoMode() ? 'DEMO REPLAY' : isMockMode() ? 'MOCK DATA' : null;
+  const badge = isCleanMode() ? null : isDemoMode() ? 'DEMO REPLAY' : isMockMode() ? 'MOCK DATA' : null;
   return (
     <AppStateProvider>
       <StatusBar style="dark" />

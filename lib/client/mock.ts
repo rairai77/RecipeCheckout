@@ -61,6 +61,11 @@ export function isDemoMode(): boolean {
   return urlFlag('demo');
 }
 
+/** `?clean=1`: hide the DEMO/MOCK badge, for screenshots and the demo video. */
+export function isCleanMode(): boolean {
+  return urlFlag('clean');
+}
+
 /** Real or mock API, picked per call. */
 export const client = {
   fetchRecipe: (input: { url: string } | { text: string }): Promise<RecipeResponse> =>
