@@ -560,7 +560,31 @@ body.notes-open #notes{transform:none}
   <div class="fixcap" data-in="fade" style="--d:.7s">Real matches from a recorded run at <span data-run="store0">QFC Uptown</span>, Seattle</div>
 </section>
 
-<!-- 4 · HOW IT WORKS -->
+<!-- 4 · ROUTE -->
+<section class="slide light s-route" data-title="One loop, plus one stop" data-time="18" aria-label="Result">
+  <div class="wrap">
+    <div>
+      <div class="kicker" data-in>The result</div>
+      <h2 data-in style="--d:.08s">One loop, <em>plus one stop.</em></h2>
+      <p class="why" id="why" data-in style="--d:.14s">2 items weren't in stock at <b>QFC Uptown</b>, so they come from <b>QFC Broadway Market</b>, the next-nearest QFC.</p>
+      <div class="mapcard" data-in="pop" style="--d:.2s">
+        <div id="map-clean"></div>
+        <div class="cap">Illustrative floor plan · real aisles at <span data-run="store0">QFC Uptown</span></div>
+      </div>
+    </div>
+    <div class="listp" data-in="right" style="--d:.3s">
+      <div class="store"><div class="qfc">QFC</div><div><b data-run="store0">QFC Uptown</b><span id="store0-meta">0.5 mi · 500 Mercer St, Seattle</span></div><div class="found" id="found"><i>✓</i><span>11 of 11 found<br>9 here · +2 next store</span></div></div>
+      <div class="bar"><span>IN WALKING ORDER · WHOLE PACKS</span><span><span data-run="items">11</span> ITEMS</span></div>
+      <div id="rows"></div>
+      <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="83.35" data-prefix="$" data-dec="2">$83.35</div></div>
+        <div class="cartnext" aria-label="Coming next, not built yet: send the list to your QFC cart"><span class="nexttag">Next build · not live yet</span><div class="cartbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><small>Fills your QFC cart · checkout in Kroger's app</small></div>
+      </div>
+      <div class="onestop" id="onestop"><!-- filled from RUN.oneStop --></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · HOW IT WORKS -->
 <section class="slide light s-how" data-title="How it works" data-time="18" aria-label="How it works">
   <div class="kicker" data-in>How it works</div>
   <h2 data-in style="--d:.08s">From recipe text to <em>a shelf location.</em></h2>
@@ -595,30 +619,6 @@ body.notes-open #notes{transform:none}
     </div>
   </div>
   <div class="under" data-in="fade" style="--d:1.1s"><span class="chip">🛒 Works at Kroger-family stores: QFC · Fred Meyer · Kroger · Ralphs · and more</span></div>
-</section>
-
-<!-- 5 · ROUTE -->
-<section class="slide light s-route" data-title="One loop, plus one stop" data-time="18" aria-label="Result">
-  <div class="wrap">
-    <div>
-      <div class="kicker" data-in>The result</div>
-      <h2 data-in style="--d:.08s">One loop, <em>plus one stop.</em></h2>
-      <p class="why" id="why" data-in style="--d:.14s">2 items weren't in stock at <b>QFC Uptown</b>, so they come from <b>QFC Broadway Market</b>, the next-nearest QFC.</p>
-      <div class="mapcard" data-in="pop" style="--d:.2s">
-        <div id="map-clean"></div>
-        <div class="cap">Illustrative floor plan · real aisles at <span data-run="store0">QFC Uptown</span></div>
-      </div>
-    </div>
-    <div class="listp" data-in="right" style="--d:.3s">
-      <div class="store"><div class="qfc">QFC</div><div><b data-run="store0">QFC Uptown</b><span id="store0-meta">0.5 mi · 500 Mercer St, Seattle</span></div><div class="found" id="found"><i>✓</i><span>11 of 11 found<br>9 here · +2 next store</span></div></div>
-      <div class="bar"><span>IN WALKING ORDER · WHOLE PACKS</span><span><span data-run="items">11</span> ITEMS</span></div>
-      <div id="rows"></div>
-      <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="83.35" data-prefix="$" data-dec="2">$83.35</div></div>
-        <div class="cartnext" aria-label="Coming next, not built yet: send the list to your QFC cart"><span class="nexttag">Next build · not live yet</span><div class="cartbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><small>Fills your QFC cart · checkout in Kroger's app</small></div>
-      </div>
-      <div class="onestop" id="onestop"><!-- filled from RUN.oneStop --></div>
-    </div>
-  </div>
 </section>
 
 <!-- 6 · PRODUCT -->
@@ -837,11 +837,11 @@ const NOTES = [
   "Recipes are written for cooks, not stores. Which product is \"double cream\" here? And recipe order isn't aisle order: this red line is that trip, <b>about twice the walking</b>." +
     "<span class=\"qa\">If asked: ≈2× = the two routes measured on this illustrative plan ({LM} vs {LC} units); the aisles are real.</span>",
   "So: <b>paste a recipe, walk the store once.</b> \"150 ml double cream\": the AI makes it heavy cream, never whipped topping or creamer. Then the real product at your store: aisle 1, left side, shelf 5, $7.99, in stock.",
-  "Four steps. We read the recipe. <b>One</b> Claude Haiku call turns each line into a search term. Kroger's API searches the nearest store. Plain math rounds up to whole packs, we sort by aisle, and misses fall through to the next store.",
   `A <b>real recorded run</b>: ` + (fellThrough.length
     ? `one loop for ${S0.found} items at ${S0.name}. ${foundAll - S0.found} aren't ${RUN.missReason} there, so they come from ${fellThrough[0].name.replace(/^QFC /, '')}${fellThrough[0].hop ? `, ${fellThrough[0].hop.replace('mi', 'miles')} on` : ''}. You choose: skip them, or shop all ${RUN.items} in one stop. ${money(RUN.total)} in whole packs.`
     : `all ${foundAll} items at ${S0.name}, one clean loop, about ${money(RUN.total)}.`) +
     (RUN.oneStop ? `<span class="qa">If asked "why not the cheapest store?": we start from the nearest store and fill gaps nearby; the list then offers every one-stop option with its price (${RUN.oneStop.map(x => `${RUN.stores[x.store].name} ${money(x.total)}`).join(', ')}), and the shopper picks.</span>` : ''),
+  "Four steps. We read the recipe. <b>One</b> Claude Haiku call turns each line into a search term. Kroger's API searches the nearest store. Plain math rounds up to whole packs, we sort by aisle, and misses fall through to the next store.",
   `<span class="cue">[Click the laptop or press D to open the <a href="${DEMO_URL}" target="_blank" rel="noopener">demo replay</a>. Backup: press V for the <a href="/demo" target="_blank" rel="noopener">/demo video</a>. About 30 s.]</span> ` +
     "<b>The app is live:</b> scan and try any recipe. On stage I'm using a recorded real run, so wifi can't bite. Start a list… staples start unchecked… find in stores… the list, by aisle, with price and stock.",
   `<b>One AI call per recipe, about a tenth of a cent.</b> Blocked sites fall through to an archive, then paste.` +
@@ -1146,7 +1146,7 @@ const HOOKS = {
   0: { enter: typeUrl },
   1: { enter: s => playRoute(s, 5600) },
   2: { enter: () => runMorph(true), leave: stopMorph },
-  4: { enter: s => { playRoute(s, 4200); countUps(s); } },
+  3: { enter: s => { playRoute(s, 4200); countUps(s); } },
   5: { enter: runCarousel, leave: () => clearInterval(carTimer) },
   6: { enter: s => { countUps(s); runChain(); }, leave: () => clearInterval(chainTimer) },
 };
