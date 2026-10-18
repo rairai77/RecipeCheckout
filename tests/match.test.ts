@@ -43,3 +43,11 @@ test('falls through to alternate term attempts', () => {
   const none = scoreCandidates('xanthan gum', { department: 'baking', avoidWords: [] }, [p('Bubble Gum')]);
   assert.equal(pickBest('i1', [{ term: 'xanthan gum', scored: none }]).status, 'no_match');
 });
+
+test('multi-word avoid phrases', () => {
+  const products = [p('Patak’s Tikka Masala Simmer Sauce'), p('Patak’s Tikka Masala Curry Paste')];
+  const scored = scoreCandidates('tikka masala paste', { department: 'international', avoidWords: ['simmer sauce'] }, products);
+  const r = pickBest('i1', [{ term: 'tikka masala paste', scored }]);
+  assert.equal(r.best?.description, 'Patak’s Tikka Masala Curry Paste');
+  assert.equal(r.candidates.length, 1);
+});

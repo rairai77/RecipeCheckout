@@ -74,7 +74,9 @@ export interface Scored {
 export function scoreCandidates(term: string, item: Pick<Item, 'department' | 'avoidWords'>, products: Product[]): Scored[] {
   const termTokens = tokens(term).filter((w) => !FILLER.has(w));
   const termSet = new Set(termTokens.map(singular));
-  const avoid = item.avoidWords.map((w) => singular(w.toLowerCase())).filter((w) => w && !termSet.has(w));
+  const avoid = item.avoidWords
+    .map((w) => tokens(w).map(singular).join(' '))
+    .filter((w) => w && !w.split(' ').every((t) => termSet.has(t)));
   const phrase = termTokens.map(singular).join(' ');
 
   return products.map((product, rank) => {
@@ -86,7 +88,8 @@ export function scoreCandidates(term: string, item: Pick<Item, 'department' | 'a
     const hasAll =
       termTokens.every((w) => wordMatches(w, descTokens)) ||
       descTokens.join('').includes(termTokens.map(singular).join('')); // "cornstarch" vs "Corn Starch"
-    const hasAvoid = avoid.some((a) => descSingular.some((d) => d === a || d.startsWith(a)));
+    const descPhrase = ` ${descSingular.join(' ')} `;
+    const hasAvoid = avoid.some((a) => (a.includes(' ') ? descPhrase.includes(` ${a} `) : descSingular.some((d) => d === a || d.startsWith(a))));
     const nonFood = product.categories.some((c) => NON_FOOD_CATEGORIES.test(c));
     const relevant = termTokens.length > 0 && hasAll && !hasAvoid && !nonFood;
     const available = isAvailable(product);
