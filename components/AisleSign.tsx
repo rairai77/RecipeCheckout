@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { formatAisle } from '../lib/shared/aisleSort';
 import type { Aisle } from '../lib/shared/types';
-import { sectionLook, sideWord } from './format';
+import { aisleSpoken, sectionLook, sideWord } from './format';
 import { colors, fonts } from './theme';
 
 /** Aisle as a road-sign: numbered aisles are a green highway sign, sections get an icon + color. */
@@ -11,7 +11,7 @@ export function AisleSign({ aisle, size = 'md' }: { aisle?: Aisle; size?: 'sm' |
   if (aisle?.isNumbered && aisle.number) {
     const side = sideWord(aisle.side);
     return (
-      <View style={[styles.sign, { width: w, height: h }]} accessibilityLabel={formatAisle(aisle)}>
+      <View style={[styles.sign, { width: w, height: h }]} accessibilityLabel={aisleSpoken(aisle)}>
         <View style={styles.signInner}>
           <Text style={styles.signTop}>AISLE</Text>
           <Text style={[styles.signNum, size === 'sm' && { fontSize: 20, lineHeight: 22 }]}>{aisle.number}</Text>
@@ -24,7 +24,7 @@ export function AisleSign({ aisle, size = 'md' }: { aisle?: Aisle; size?: 'sm' |
     const look = sectionLook(aisle.label);
     const name = formatAisle(aisle);
     return (
-      <View style={[styles.section, { width: w, height: h, backgroundColor: look.bg }]} accessibilityLabel={name}>
+      <View style={[styles.section, { width: w, height: h, backgroundColor: look.bg }]} accessibilityLabel={aisleSpoken(aisle)}>
         <Text style={[styles.sectionEmoji, size === 'sm' && { fontSize: 18 }]}>{look.emoji}</Text>
         <Text style={[styles.sectionName, { color: look.fg }, size === 'sm' && { fontSize: 9 }]} numberOfLines={2}>
           {look.short ?? (name.length > 9 ? name.split(/[\s/]/)[0].slice(0, 9) : name)}

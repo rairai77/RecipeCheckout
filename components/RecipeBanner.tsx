@@ -10,6 +10,8 @@ type Props = {
   chips: string[];
   back: { label: string; onPress: () => void };
   compact?: boolean;
+  /** Phones only: a short strip (back link, one-line title, plain chips, small photo) so the list starts higher. */
+  slimOnPhone?: boolean;
   children?: ReactNode;
 };
 
@@ -19,10 +21,32 @@ function bannerUri(uri: string): string {
 }
 
 /** Recipe image as a full-bleed banner with the title over a soft gradient. */
-export function RecipeBanner({ title, image, eyebrow, chips, back, compact, children }: Props) {
+export function RecipeBanner({ title, image, eyebrow, chips, back, compact, slimOnPhone, children }: Props) {
   const { isPhone } = useBreakpoint();
   const [failed, setFailed] = useState(false);
   const showImage = !!image && !failed;
+
+  if (isPhone && slimOnPhone) {
+    return (
+      <FadeIn>
+        <View style={styles.slim}>
+          <View style={{ flex: 1, minWidth: 0, gap: 6 }}>
+            <BackLink label={back.label} onPress={back.onPress} light />
+            <Text style={styles.slimTitle} numberOfLines={1} accessibilityRole="header">
+              {title}
+            </Text>
+            <Text style={styles.slimChips} numberOfLines={1}>
+              {chips.join(' · ')}
+            </Text>
+            {children}
+          </View>
+          {showImage ? (
+            <Image source={{ uri: image }} onError={() => setFailed(true)} style={styles.slimPhoto} resizeMode="cover" accessibilityIgnoresInvertColors />
+          ) : null}
+        </View>
+      </FadeIn>
+    );
+  }
   const height = compact ? (isPhone ? 230 : 220) : isPhone ? 280 : 320;
 
   return (
@@ -79,6 +103,19 @@ export function RecipeBanner({ title, image, eyebrow, chips, back, compact, chil
 
 const styles = StyleSheet.create({
   banner: { overflow: 'hidden', backgroundColor: colors.accentDark, marginBottom: 24 },
+  slim: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: colors.accentDark,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 14,
+    ...web({ backgroundImage: 'linear-gradient(120deg, #155C39 0%, #1F3A2A 100%)' }),
+  },
+  slimTitle: { fontFamily: fonts.display, color: '#fff', fontSize: 24, lineHeight: 28, fontWeight: '700', letterSpacing: -0.4 },
+  slimChips: { fontFamily: fonts.body, color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: '600' },
+  slimPhoto: { width: 76, height: 76, borderRadius: 14, borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)', backgroundColor: colors.bgDeep },
   bannerWide: { borderRadius: radius.xl, ...shadow.md },
   bannerPhone: { borderRadius: 0 },
   fallback: {

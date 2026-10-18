@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { formatAisle } from '../lib/shared/aisleSort';
+import { aisleGroupName } from '../lib/shared/aisleSort';
+import type { CheaperOption } from '../lib/shared/cheaper';
+import { lineCost, saleLimit } from '../lib/shared/price';
 import type { PackPlan } from '../lib/shared/packs';
 import type { Item, Product, Store } from '../lib/shared/types';
 import { AisleSign } from './AisleSign';
-import { aisleDetail, cap, effectivePrice, money, qtyLabel, stockBadge, type StockTone } from './format';
+import { aisleDetail, aisleSpoken, cap, effectivePrice, money, qtyLabel, stockBadge, type StockTone } from './format';
 import { chainColor, colors, fonts, radius, shadow, transition, useBreakpoint, web } from './theme';
 import { pstate, Skeleton } from './ui';
 
@@ -20,12 +22,13 @@ export type StoreRow = {
   fallbackNote?: string;
   /** The shopper skipped it: still shown in place, but not in the totals or the copied list. */
   skipped: boolean;
+  /** An equally good match here that costs meaningfully less for the recipe's need (the pick itself is unchanged). */
+  cheaper?: CheaperOption;
 };
 
 /** Price the row adds to the total: one product's price times the packs needed. */
 export function lineTotal(row: Pick<StoreRow, 'product' | 'plan'>): number | undefined {
-  const eff = effectivePrice(row.product);
-  return eff === undefined ? undefined : eff * row.plan.packs;
+  return lineCost(row.product, row.plan.packs);
 }
 
 type Props = {
@@ -43,12 +46,12 @@ export function StoreHeader({ store, right }: { store: Store; right?: ReactNode 
   return (
     <>
       <View style={[styles.strip, { backgroundColor: c.bg }]} />
-      <View style={[styles.header, isPhone && { flexWrap: 'wrap' }]}>
-        <View style={[styles.badge, { backgroundColor: c.bg }]}>
+      <View style={[styles.header, isPhone && styles.headerPhone]}>
+        <View style={[styles.badge, { backgroundColor: c.bg }, isPhone && styles.badgePhone]}>
           <Text style={[styles.badgeText, c.initials.length > 2 && { fontSize: 12 }]}>{c.initials}</Text>
         </View>
-        <View style={{ flex: 1, minWidth: 160 }}>
-          <Text style={styles.storeName} role="heading" aria-level={2}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[styles.storeName, isPhone && { fontSize: 20 }]} role="heading" aria-level={2}>
             {store.name}
           </Text>
           <Text style={styles.address} numberOfLines={2}>
@@ -63,6 +66,7 @@ export function StoreHeader({ store, right }: { store: Store; right?: ReactNode 
 
 export function StoreCard({ store, rows, onPick, onSkip, reason }: Props) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const { isPhone } = useBreakpoint();
   const kept = rows.filter((r) => !r.skipped);
   const subtotal = kept.reduce((sum, r) => sum + (lineTotal(r) ?? 0), 0);
 
@@ -75,9 +79,9 @@ export function StoreCard({ store, rows, onPick, onSkip, reason }: Props) {
             accessibilityRole="link"
             accessibilityLabel={`Open ${store.name} in Maps`}
             onPress={() => Linking.openURL(store.mapsUrl)}
-            style={(s) => [styles.mapsBtn, transition, pstate(s).hovered && { backgroundColor: colors.accentSoft, borderColor: colors.accentBright }]}
+            style={(s) => [styles.mapsBtn, isPhone && styles.mapsBtnPhone, transition, pstate(s).hovered && { backgroundColor: colors.accentSoft, borderColor: colors.accentBright }]}
           >
-            <Text style={styles.mapsText}>🗺️ Open in Maps</Text>
+            <Text style={styles.mapsText}>{isPhone ? '🗺️ Maps' : '🗺️ Open in Maps'}</Text>
           </Pressable>
         }
       />
@@ -136,13 +140,14 @@ function ProductRow({
   const others = candidates.filter((c) => c.productId !== p.productId);
   const detail = aisleDetail(p.aisle);
   const sub = row.substitute;
+  const cheaper = row.cheaper;
   const total = lineTotal(row);
   const needLine = [plan.needLabel, plan.packLabel].filter(Boolean).join(' · ');
 
   const name = [
     `${cap(item.name)}: ${p.description}`,
     total !== undefined ? `${money(total)}${plan.packs > 1 ? ` for ${plan.packs}` : ''}` : 'no price',
-    formatAisle(p.aisle),
+    aisleSpoken(p.aisle),
     badge?.label.toLowerCase(),
   ]
     .filter(Boolean)
@@ -152,6 +157,7 @@ function ProductRow({
     needLine,
     sub ? `Closest match: ${sub.reason}` : '',
     row.fallbackNote ?? '',
+    cheaper && !skipped ? `${money(cheaper.saving)} cheaper option: ${cheaper.product.description}` : '',
     others.length ? (open ? 'Hide other options' : `Show ${others.length} other option${others.length === 1 ? '' : 's'}`) : '',
   ].filter(Boolean);
 
@@ -169,17 +175,22 @@ function ProductRow({
           <AisleSign aisle={p.aisle} size={isPhone ? 'sm' : 'md'} />
           {!isPhone ? <Thumb uri={p.image} /> : null}
           <View style={styles.productText}>
-            <Text style={styles.forItem} numberOfLines={1}>
+            <Text style={styles.forItem} numberOfLines={isPhone ? 2 : 1}>
               {cap(item.name)}
               {qty ? <Text style={styles.forQty}> · {qty}</Text> : null}
             </Text>
             <Text style={[styles.desc, skipped && styles.struck]} numberOfLines={isPhone ? 3 : 2}>
               {p.description}
             </Text>
-            <Text style={styles.sub} numberOfLines={1}>
+            <Text style={styles.sub} numberOfLines={isPhone ? 2 : 1}>
               {[p.size, detail].filter(Boolean).join(' · ')}
             </Text>
             {needLine ? <Text style={styles.need}>{needLine}</Text> : null}
+            {cheaper && !skipped ? (
+              <View style={styles.cheapChip}>
+                <Text style={styles.cheapText}>{money(cheaper.saving)} cheaper option →</Text>
+              </View>
+            ) : null}
             {sub ? (
               <View style={styles.subRow}>
                 <View style={styles.subChip}>
@@ -224,7 +235,7 @@ function ProductRow({
                 key={c.productId}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: current }}
-                accessibilityLabel={[c.description, c.size, money(effectivePrice(c) ?? 0), formatAisle(c.aisle), cb?.label].filter(Boolean).join(', ')}
+                accessibilityLabel={[c.description, c.size, money(effectivePrice(c) ?? 0), aisleSpoken(c.aisle), cb?.label, cheaper?.product.productId === c.productId ? `saves ${money(cheaper.saving)}` : ''].filter(Boolean).join(', ')}
                 onPress={() => onPick(c.productId)}
                 style={(s) => [styles.candidate, transition, current && styles.candidateOn, pstate(s).hovered && !current && { backgroundColor: '#fff', borderColor: colors.borderStrong }]}
               >
@@ -235,10 +246,11 @@ function ProductRow({
                     {c.description}
                   </Text>
                   <Text style={styles.sub} numberOfLines={1}>
-                    {[c.size, c.aisle ? (c.aisle.isNumbered ? `Aisle ${c.aisle.number}` : cap(c.aisle.label.toLowerCase())) : null, cb?.label]
+                    {[c.size, c.aisle ? aisleGroupName(c.aisle) : null, cb?.label]
                       .filter(Boolean)
                       .join(' · ')}
                   </Text>
+                  {cheaper?.product.productId === c.productId ? <Text style={styles.cheapNote}>Saves {money(cheaper.saving)} for this recipe</Text> : null}
                 </View>
                 <Price p={c} small />
               </Pressable>
@@ -268,6 +280,8 @@ export function Price({ p, small, packs = 1, struck }: { p: Product; small?: boo
   const eff = effectivePrice(p);
   if (eff === undefined) return <Text style={styles.noPrice}>no price</Text>;
   const onSale = p.price !== undefined && eff < p.price;
+  const limit = saleLimit(p);
+  const limited = onSale && limit !== undefined && packs > limit ? limit : undefined;
   return (
     <View style={styles.priceBox}>
       {onSale || packs > 1 ? (
@@ -284,10 +298,10 @@ export function Price({ p, small, packs = 1, struck }: { p: Product; small?: boo
           ) : null}
         </View>
       ) : null}
-      <Text style={[styles.price, small && { fontSize: 15 }, onSale && { color: colors.accent }, struck && styles.struck]}>{money(eff * packs)}</Text>
+      <Text style={[styles.price, small && { fontSize: 15 }, onSale && { color: colors.accent }, struck && styles.struck]}>{money(lineCost(p, packs) ?? eff * packs)}</Text>
       {packs > 1 ? (
         <Text style={styles.each}>
-          {packs} × {money(eff)}
+          {limited ? `sale price for ${limited} of ${packs}` : `${packs} × ${money(eff)}`}
         </Text>
       ) : onSale ? (
         <Text style={styles.was}>{money(p.price!)}</Text>
@@ -359,6 +373,9 @@ const styles = StyleSheet.create({
   },
   strip: { height: 5 },
   header: { flexDirection: 'row', alignItems: 'center', padding: 18, paddingBottom: 12, gap: 14 },
+  headerPhone: { padding: 14, paddingBottom: 10, gap: 10, alignItems: 'flex-start' },
+  badgePhone: { width: 40, height: 40, borderRadius: 10 },
+  mapsBtnPhone: { minHeight: 40, paddingHorizontal: 10 },
   badge: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   badgeText: { color: '#fff', fontFamily: fonts.body, fontWeight: '800', fontSize: 15, letterSpacing: 0.5 },
   storeName: { fontFamily: fonts.display, fontSize: 22, fontWeight: '700', color: colors.ink, letterSpacing: -0.3 },
@@ -418,6 +435,9 @@ const styles = StyleSheet.create({
   subReason: { fontFamily: fonts.body, fontSize: 12, color: colors.warn, flexShrink: 1 },
   saleTag: { backgroundColor: colors.saffronSoft, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1 },
   saleTagText: { fontFamily: fonts.body, fontSize: 10, fontWeight: '800', color: colors.warn, letterSpacing: 0.4, textTransform: 'uppercase' },
+  cheapChip: { alignSelf: 'flex-start', marginTop: 6, backgroundColor: colors.accentSoft, borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2 },
+  cheapText: { fontFamily: fonts.body, fontSize: 12, fontWeight: '800', color: colors.accentDark },
+  cheapNote: { fontFamily: fonts.body, fontSize: 12, fontWeight: '800', color: colors.accentDark, marginTop: 2 },
   swapHint: { fontFamily: fonts.body, fontSize: 12, color: colors.accentDark, fontWeight: '700', marginTop: 6 },
   right: { alignItems: 'flex-end', gap: 6, minWidth: 64 },
   thumb: { borderRadius: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },

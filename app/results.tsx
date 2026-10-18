@@ -2,6 +2,10 @@ import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { aisleDetail, cap, effectivePrice, itemStyle, money, qtyLabel } from '../components/format';
+import { cheaperOption } from '../lib/shared/cheaper';
+import { haversineMiles } from '../lib/shared/haversine';
+import { readChoices, writeChoices } from '../lib/client/resultsSession';
+import { storesKey } from '../lib/client/state';
 import { RecipeBanner } from '../components/RecipeBanner';
 import { lineTotal, SkeletonRows, StoreCard, StoreSkeleton, type StoreRow } from '../components/StoreCard';
 import { chainColor, colors, fonts, radius, transition, useBreakpoint, web } from '../components/theme';
@@ -10,7 +14,7 @@ import { client } from '../lib/client/mock';
 import { useAppState } from '../lib/client/state';
 import { aisleGroupName, compareAisles } from '../lib/shared/aisleSort';
 import { packPlan } from '../lib/shared/packs';
-import type { Item, ItemResult, SearchRequest, Store } from '../lib/shared/types';
+import type { Item, ItemResult, SearchRequest, SearchResponse, Store } from '../lib/shared/types';
 
 const MAX_STORES = 3;
 
@@ -33,6 +37,16 @@ function passReason(r: ItemResult | undefined, store: Store): string {
   return `Not in stock at ${store.name}`;
 }
 type Miss = { item: Item; reason: 'no_match' | 'unavailable' };
+/** The whole list searched at a farther store, to offer "all at one store" when the nearest-first plan splits. */
+type FullSearch = { state: 'searching' } | { state: 'done'; results: ItemResult[] } | { state: 'error' };
+type OneStop = {
+  store: Store;
+  status: 'checking' | 'done' | 'error';
+  rows: StoreRow[];
+  /** has every item the nearest-first plan found */
+  complete: boolean;
+  total: number;
+};
 type Phase = 'stores' | 'searching' | 'done' | 'no_stores' | 'error';
 
 function toRequestItem(i: Item): SearchRequest['items'][number] {
@@ -54,11 +68,20 @@ export default function Results() {
   const [fatal, setFatal] = useState<string | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
   const [misses, setMisses] = useState<Miss[]>([]);
-  const [picks, setPicks] = useState<Record<string, string>>({});
+  // Swaps, skips and the one-stop choice survive a refresh (sessionStorage, keyed by recipe, items and location).
+  const choicesKey = `${storesKey(location)}|${recipe?.title ?? ''}|${recipe?.sourceUrl ?? ''}|${items.map((i) => i.id).join(',')}`;
+  const [restored] = useState(() => readChoices(choicesKey));
+  const [picks, setPicks] = useState<Record<string, string>>(restored.picks);
   const [attempt, setAttempt] = useState(0);
   const [copied, setCopied] = useState<'idle' | 'ok' | 'fail'>('idle');
   const [showRuns, setShowRuns] = useState(false);
-  const [skipped, setSkipped] = useState<Record<string, boolean>>({});
+  const [skipped, setSkipped] = useState<Record<string, boolean>>(restored.skipped);
+  const [full, setFull] = useState<Record<string, FullSearch>>({});
+  const [oneStop, setOneStop] = useState<string | null>(restored.oneStop);
+
+  useEffect(() => {
+    writeChoices(choicesKey, { picks, skipped, oneStop });
+  }, [choicesKey, picks, skipped, oneStop]);
 
   useEffect(() => {
     const wanted = itemsRef.current;
@@ -71,8 +94,13 @@ export default function Results() {
     setFatal(null);
     setRuns([]);
     setMisses([]);
-    setPicks({});
-    setSkipped({});
+    setFull({});
+    if (attempt > 0) {
+      // "Search again" starts fresh; the first run keeps choices restored after a refresh.
+      setPicks({});
+      setSkipped({});
+      setOneStop(null);
+    }
 
     (async () => {
       let stores: Store[];
@@ -94,14 +122,32 @@ export default function Results() {
 
       let pending = wanted;
       const noMatch: Item[] = [];
+      // When the nearest store can't supply everything, the farther stores are searched for the whole list, in parallel
+      // (one request each): the same response gives the fallback items and a possible one-stop alternative.
+      const fullRuns = new Map<number, Promise<SearchResponse>>();
+      const searchFull = (idx: number) => {
+        let p = fullRuns.get(idx);
+        if (!p) {
+          const storeId = stores[idx].id;
+          p = client.searchStore({ storeId, items: wanted.map(toRequestItem) });
+          fullRuns.set(idx, p);
+          setFull((f) => ({ ...f, [storeId]: { state: 'searching' } }));
+          p.then(
+            (res) => !cancelled && setFull((f) => ({ ...f, [storeId]: { state: 'done', results: res.results } })),
+            () => !cancelled && setFull((f) => ({ ...f, [storeId]: { state: 'error' } })),
+          );
+        }
+        return p;
+      };
       for (let idx = 0; idx < stores.length; idx++) {
         if (!pending.length) {
           patchRun(idx, { state: 'skipped' });
           continue;
         }
+        if (idx === 1) for (let j = 1; j < stores.length; j++) void searchFull(j).catch(() => {});
         patchRun(idx, { state: 'searching', count: pending.length });
         try {
-          const res = await client.searchStore({ storeId: stores[idx].id, items: pending.map(toRequestItem) });
+          const res = idx === 0 ? await client.searchStore({ storeId: stores[idx].id, items: pending.map(toRequestItem) }) : await searchFull(idx);
           if (cancelled) return;
           const byId = new Map(res.results.map((r) => [r.itemId, r]));
           const found: ItemResult[] = [];
@@ -139,44 +185,73 @@ export default function Results() {
 
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
 
-  // Rows per store with the user's swaps, pack math and skips applied, sorted by aisle.
-  const cards = useMemo(() => {
-    const nearest = runs[0]?.store.distanceMi ?? 0;
-    return runs
-      .map((r, idx) => ({ r, idx }))
-      .filter(({ r }) => r.found.length)
-      .map(({ r, idx }) => {
-        const firstReason = (itemId: string) => runs.slice(0, idx).map((p) => p.passedOn?.[itemId]).find(Boolean);
-        const rows: StoreRow[] = r.found
+  // Rows for one store's results, with the user's swaps, pack math, skips and cheaper-option hints, sorted by aisle.
+  const makeRows = useMemo(
+    () =>
+      (found: ItemResult[], note?: (itemId: string) => string | undefined): StoreRow[] =>
+        found
           .map((res) => {
             const item = itemById.get(res.itemId);
-            if (!item || !res.best) return null;
+            if (!item || !res.best || res.status !== 'found') return null;
             const pool = res.candidates.some((c) => c.productId === res.best!.productId) ? res.candidates : [res.best, ...res.candidates];
             const product = pool.find((c) => c.productId === picks[res.itemId]) ?? res.best;
             const row: StoreRow = {
               item,
               product,
               candidates: pool,
-              substitute: res.substitute,
+              substitute: product.productId === res.best.productId ? res.substitute : undefined,
               plan: packPlan(item, product),
-              fallbackNote: firstReason(res.itemId),
+              fallbackNote: note?.(res.itemId),
               skipped: !!skipped[res.itemId],
+              cheaper: cheaperOption(item, res.termUsed, product, pool),
             };
             return row;
           })
           .filter((x): x is StoreRow => x !== null)
-          .sort((a, b) => compareAisles(a.product.aisle, b.product.aisle));
-        // One line under a farther store's header: why it's on the list.
-        let reason: string | undefined;
-        const notes = [...new Set(rows.map((x) => x.fallbackNote).filter((x): x is string => !!x))];
-        if (idx > 0 && notes.length) {
-          const further = r.store.distanceMi - nearest;
-          const dist = further >= 0.05 ? ` · ${further.toFixed(1)} mi further` : '';
-          reason = notes.length === 1 ? `${notes[0]}${dist}` : `Not available at the nearer store${idx > 1 ? 's' : ''}${dist}`;
-        }
-        return { store: r.store, rows, reason };
-      });
-  }, [runs, picks, skipped, itemById]);
+          .sort((a, b) => compareAisles(a.product.aisle, b.product.aisle)),
+    [itemById, picks, skipped],
+  );
+
+  // Nearest-first plan: each store supplies what the nearer ones couldn't.
+  const splitCards = useMemo(() => {
+    const out: { store: Store; rows: StoreRow[]; reason?: string }[] = [];
+    runs.forEach((r, idx) => {
+      if (!r.found.length) return;
+      const firstReason = (itemId: string) => runs.slice(0, idx).map((p) => p.passedOn?.[itemId]).find(Boolean);
+      const rows = makeRows(r.found, firstReason);
+      // One line under a farther store's header: why it's on the list, and how far it is from the previous stop.
+      let reason: string | undefined;
+      const prev = out[out.length - 1]?.store;
+      const notes = [...new Set(rows.map((x) => x.fallbackNote).filter((x): x is string => !!x))];
+      if (idx > 0 && notes.length) {
+        const hop = prev ? ` · ${haversineMiles(prev.lat, prev.lng, r.store.lat, r.store.lng).toFixed(1)} mi from ${prev.name}` : '';
+        reason = notes.length === 1 ? `${notes[0]}${hop}` : `Not available at the nearer store${idx > 1 ? 's' : ''}${hop}`;
+      }
+      out.push({ store: r.store, rows, reason });
+    });
+    return out;
+  }, [runs, makeRows]);
+
+  // "All at one store" alternatives: farther stores searched for the whole list.
+  const splitIds = useMemo(() => new Set(splitCards.flatMap((c) => c.rows.map((r) => r.item.id))), [splitCards]);
+  const oneStops = useMemo<OneStop[]>(
+    () =>
+      runs
+        .slice(1)
+        .filter((r) => full[r.store.id])
+        .map((r) => {
+          const f = full[r.store.id];
+          if (f.state !== 'done') return { store: r.store, status: f.state === 'searching' ? 'checking' : 'error', rows: [], complete: false, total: 0 };
+          const rows = makeRows(f.results.filter((x) => x.status === 'found'));
+          const have = new Set(rows.map((x) => x.item.id));
+          const complete = splitIds.size > 0 && [...splitIds].every((id) => have.has(id));
+          const total = rows.filter((x) => !x.skipped).reduce((t, x) => t + (lineTotal(x) ?? 0), 0);
+          return { store: r.store, status: 'done', rows, complete, total };
+        }),
+    [runs, full, makeRows, splitIds],
+  );
+  const chosen = oneStop ? oneStops.find((o) => o.store.id === oneStop && o.status === 'done' && o.complete) : undefined;
+  const cards = chosen ? [{ store: chosen.store, rows: chosen.rows, reason: undefined as string | undefined }] : splitCards;
 
   if (!recipe) return <Redirect href="/" />;
   if (!items.length) return <Redirect href="/review" />;
@@ -185,6 +260,8 @@ export default function Results() {
   const allRows = shownRows.filter((r) => !r.skipped);
   const skippedCount = shownRows.length - allRows.length;
   const total = allRows.reduce((s, r) => s + (lineTotal(r) ?? 0), 0);
+  const splitTotal = splitCards.flatMap((c) => c.rows).filter((r) => !r.skipped).reduce((s, r) => s + (lineTotal(r) ?? 0), 0);
+  const offerStops = splitCards.length > 1 && !chosen ? oneStops : [];
   const unpriced = allRows.filter((r) => effectivePrice(r.product) === undefined).length;
   // "Estimated" either way (some produce is priced per lb); say so when some rows could only be counted once.
   const unsure = allRows.filter((r) => !r.plan.confident).length;
@@ -217,6 +294,12 @@ export default function Results() {
     }
     setCopied(ok ? 'ok' : 'fail');
     setTimeout(() => setCopied('idle'), 2500);
+  };
+
+  // A store the nearest-first plan didn't need, but that was searched for the one-stop offer.
+  const checkedFor = (r: Run) => {
+    const o = r.state === 'skipped' ? oneStops.find((x) => x.store.id === r.store.id && x.status === 'done') : undefined;
+    return o ? { found: o.rows.length, of: items.length } : undefined;
   };
 
   const copyLabel = copied === 'ok' ? '✓ Copied!' : copied === 'fail' ? "Couldn't copy" : 'Copy list';
@@ -258,7 +341,7 @@ export default function Results() {
               </View>
             </View>
           ))
-        : runs.map((r) => <RunRow key={r.store.id} run={r} />)}
+        : runs.map((r) => <RunRow key={r.store.id} run={r} checked={checkedFor(r)} />)}
       {errored.length ? <Text style={[styles.muted, { color: colors.danger, marginTop: 8 }]}>Some stores couldn't be searched; their items moved on to the next store.</Text> : null}
     </Card>
   );
@@ -335,7 +418,7 @@ export default function Results() {
         </Text>
         <Text style={styles.lineToggle}>{showRuns ? 'Hide ▴' : 'Stores ▾'}</Text>
       </Pressable>
-      {showRuns ? <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>{runs.map((r) => <RunRow key={r.store.id} run={r} />)}</View> : null}
+      {showRuns ? <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>{runs.map((r) => <RunRow key={r.store.id} run={r} checked={checkedFor(r)} />)}</View> : null}
     </Card>
   );
 
@@ -346,8 +429,20 @@ export default function Results() {
   const main = (
     <View>
       {done && !allRows.length && !misses.length ? <Notice tone="warn">No results came back. Check your connection and try again.</Notice> : null}
-      {cards.map((c) => (
+      {chosen ? (
+        <OneStopNote
+          store={chosen.store}
+          count={chosen.rows.length}
+          splitStores={splitCards.length}
+          splitTotal={splitTotal}
+          onBack={() => setOneStop(null)}
+        />
+      ) : null}
+      {cards.map((c, i) => (
         <FadeIn key={c.store.id}>
+          {i === 1 && offerStops.length ? (
+            <OneStopOffer count={splitIds.size} stops={offerStops} splitTotal={splitTotal} splitStores={splitCards.length} onChoose={(id) => setOneStop(id)} />
+          ) : null}
           <StoreCard
             store={c.store}
             rows={c.rows}
@@ -367,6 +462,7 @@ export default function Results() {
   const banner = (
     <RecipeBanner
       compact
+      slimOnPhone
       title={recipe.title}
       image={recipe.image}
       eyebrow="Shopping list"
@@ -432,6 +528,83 @@ export default function Results() {
   );
 }
 
+/** How a one-stop total compares with the nearest-first split. */
+function versusSplit(total: number, splitTotal: number, splitStores: number): string {
+  const d = total - splitTotal;
+  if (Math.abs(d) < 0.005) return `same as ${splitStores} stops`;
+  return `${money(Math.abs(d))} ${d < 0 ? 'less' : 'more'} than ${splitStores} stops`;
+}
+
+/** Shown above the second store card when the list is split: farther stores that have everything, in one stop. */
+function OneStopOffer({ count, stops, splitTotal, splitStores, onChoose }: { count: number; stops: OneStop[]; splitTotal: number; splitStores: number; onChoose: (storeId: string) => void }) {
+  return (
+    <View style={styles.offer}>
+      <Text style={styles.offerTitle} role="heading" aria-level={3}>
+        Or get all {count} in one stop
+      </Text>
+      {stops.map((o) => {
+        const ready = o.status === 'done' && o.complete;
+        const meta =
+          o.status === 'checking'
+            ? 'checking…'
+            : o.status === 'error'
+              ? "couldn't check"
+              : o.complete
+                ? versusSplit(o.total, splitTotal, splitStores)
+                : `has ${o.rows.length} of ${count}`;
+        return (
+          <View key={o.store.id} style={styles.offerRow}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.offerStore} numberOfLines={2}>
+                {o.store.name}
+              </Text>
+              <Text style={[styles.offerMeta, ready && o.total < splitTotal && { color: colors.accentDark }]} numberOfLines={2}>
+                {o.store.distanceMi.toFixed(1)} mi from you · {meta}
+              </Text>
+            </View>
+            {ready ? (
+              <>
+                <Text style={styles.offerTotal}>{money(o.total)}</Text>
+                <Button
+                  small
+                  variant="secondary"
+                  label="Shop here"
+                  onPress={() => onChoose(o.store.id)}
+                  accessibilityLabel={`Shop here: all ${count} items at ${o.store.name}, ${money(o.total)}, ${o.store.distanceMi.toFixed(1)} miles from you`}
+                />
+              </>
+            ) : o.status === 'checking' ? (
+              <Spinner />
+            ) : null}
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+/** In one-stop mode: what the list is now, and the way back to the nearest-first split. */
+function OneStopNote({ store, count, splitStores, splitTotal, onBack }: { store: Store; count: number; splitStores: number; splitTotal: number; onBack: () => void }) {
+  return (
+    <View style={[styles.offer, styles.offerChosen]}>
+      <Text style={styles.offerTitle} role="heading" aria-level={3}>
+        ✓ One stop: all {count} at {store.name}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Back to nearest store first: ${splitStores} stores, ${money(splitTotal)}`}
+        onPress={onBack}
+        hitSlop={6}
+        style={(s) => [styles.offerBack, transition, pstate(s).hovered && { opacity: 0.75 }]}
+      >
+        <Text style={styles.offerBackText}>
+          ← Back to nearest store first · {splitStores} stores · {money(splitTotal)}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
 /** Before the stores are known: a store-card-shaped placeholder with one row per item. */
 function SkeletonPlaceholder({ count }: { count: number }) {
   return (
@@ -452,8 +625,9 @@ function SkeletonPlaceholder({ count }: { count: number }) {
   );
 }
 
-function RunRow({ run }: { run: Run }) {
-  const { store, state } = run;
+function RunRow({ run, checked }: { run: Run; checked?: { found: number; of: number } }) {
+  const { store } = run;
+  const state: RunState | 'checked' = checked ? 'checked' : run.state;
   const c = chainColor(store.chain);
   let text: string;
   switch (state) {
@@ -469,11 +643,15 @@ function RunRow({ run }: { run: Run }) {
     case 'error':
       text = "Couldn't search";
       break;
+    case 'checked':
+      text = `${checked!.found} of ${checked!.of} · for one stop`;
+      break;
     default:
       text = 'Not needed';
   }
-  const barColor = state === 'done' ? colors.accentBright : state === 'error' ? colors.danger : colors.border;
-  const fill = state === 'done' ? (run.count ? Math.max(0.06, run.found.length / run.count) : 1) : state === 'error' ? 1 : 0;
+  const barColor = state === 'done' ? colors.accentBright : state === 'checked' ? colors.borderStrong : state === 'error' ? colors.danger : colors.border;
+  const fill =
+    state === 'done' ? (run.count ? Math.max(0.06, run.found.length / run.count) : 1) : state === 'checked' ? checked!.found / Math.max(1, checked!.of) : state === 'error' ? 1 : 0;
   return (
     <View style={[styles.runRow, state === 'skipped' && { opacity: 0.55 }]}>
       <View style={[styles.runBadge, { backgroundColor: c.bg }]}>
@@ -563,6 +741,24 @@ function legacyCopy(text: string): boolean {
 }
 
 const styles = StyleSheet.create({
+  offer: {
+    backgroundColor: colors.accentTint,
+    borderWidth: 1.5,
+    borderColor: colors.accentSoft,
+    borderRadius: radius.lg,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+    gap: 4,
+  },
+  offerChosen: { borderColor: colors.accentBright },
+  offerTitle: { fontFamily: fonts.body, fontSize: 13, fontWeight: '800', color: colors.accentDark, letterSpacing: 0.3, marginBottom: 2 },
+  offerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingVertical: 2 },
+  offerStore: { fontFamily: fonts.body, fontSize: 15, fontWeight: '700', color: colors.text },
+  offerMeta: { fontFamily: fonts.body, fontSize: 12.5, color: colors.muted, marginTop: 1 },
+  offerTotal: { fontFamily: fonts.body, fontSize: 16, fontWeight: '800', color: colors.text },
+  offerBack: { minHeight: 36, justifyContent: 'center', alignSelf: 'flex-start' },
+  offerBackText: { fontFamily: fonts.body, fontSize: 13, fontWeight: '700', color: colors.accentDark },
   columns: { flexDirection: 'row', alignItems: 'flex-start', gap: 28 },
   sidebar: { width: 340, gap: 16, ...web({ position: 'sticky', top: 16 }) },
   panel: { padding: 18, marginBottom: 16 },

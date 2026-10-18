@@ -37,7 +37,7 @@ export function Page({
     <View style={styles.page}>
       <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: footer ? 24 : 56 }} keyboardShouldPersistTaps="handled">
         <View style={[styles.column, { maxWidth: maxWidth + gutter * 2, paddingHorizontal: gutter }]}>
-          <NavBar />
+          <NavBar compact={isPhone} />
         </View>
         {top ? <View style={[styles.column, { maxWidth: maxWidth + gutter * 2, paddingHorizontal: isPhone ? 0 : gutter }]}>{top}</View> : null}
         <View style={[styles.column, { maxWidth: maxWidth + gutter * 2, paddingHorizontal: gutter }]}>{children}</View>
@@ -51,10 +51,10 @@ export function Page({
   );
 }
 
-export function NavBar() {
+export function NavBar({ compact }: { compact?: boolean } = {}) {
   return (
-    <View style={styles.nav}>
-      <Logo />
+    <View style={[styles.nav, compact && { height: 54 }]}>
+      <Logo size={compact ? 30 : 34} />
     </View>
   );
 }

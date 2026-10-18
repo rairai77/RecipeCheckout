@@ -497,7 +497,7 @@ body.notes-open #notes{transform:none}
 <div id="prog"><i></i></div>
 
 <!-- 1 · TITLE -->
-<section class="slide art s-title" data-title="Any recipe, sorted by aisle" data-time="8" aria-label="Title">
+<section class="slide art s-title" data-title="Any recipe, sorted by aisle" data-time="16" aria-label="Title">
   <div class="artbg"><div class="img"></div><div class="shade"></div></div>
   <div class="top">
     <div class="brand" data-in="fade"><svg class="logo"><use href="#logo"/></svg><span>Recipe<b>Checkout</b></span></div>
@@ -594,7 +594,7 @@ body.notes-open #notes{transform:none}
 </section>
 
 <!-- 5 · ROUTE -->
-<section class="slide light s-route" data-title="One loop, plus one stop" data-time="12" aria-label="Result">
+<section class="slide light s-route" data-title="One loop, plus one stop" data-time="18" aria-label="Result">
   <div class="wrap">
     <div>
       <div class="kicker" data-in>The result</div>
@@ -610,14 +610,14 @@ body.notes-open #notes{transform:none}
       <div class="bar"><span>IN WALKING ORDER · WHOLE PACKS</span><span><span data-run="items">11</span> ITEMS</span></div>
       <div id="rows"></div>
       <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="83.35" data-prefix="$" data-dec="2">$83.35</div></div>
-        <div class="cartnext" aria-label="Coming next, not built yet: send to pickup cart"><span class="nexttag">Next build · not live yet</span><div class="cartbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><small>Kroger Cart API · pay with your card at pickup</small></div>
+        <div class="cartnext" aria-label="Coming next, not built yet: send the list to your QFC cart"><span class="nexttag">Next build · not live yet</span><div class="cartbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><small>Fills your QFC cart · checkout in Kroger's app</small></div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- 6 · PRODUCT -->
-<section class="slide dark s-product" data-title="Live demo" data-time="35" aria-label="Product">
+<section class="slide dark s-product" data-title="Live demo" data-time="32" aria-label="Product">
   <div class="head">
     <div>
       <div class="kicker" data-in>The product</div>
@@ -658,7 +658,7 @@ body.notes-open #notes{transform:none}
   <h2 data-in style="--d:.08s">Robust by design, <em>cheap by default.</em></h2>
   <div class="stats">
     <div class="stat" data-in style="--d:.2s"><div class="v"><span data-count="0.001" data-prefix="$" data-dec="3">$0.001</span></div><p><b>One AI call per recipe.</b> Claude Haiku reads the whole ingredient list at once: about a tenth of a cent.</p></div>
-    <div class="stat" data-in style="--d:.3s"><div class="v"><span data-count="97" data-suffix="%" data-dec="0">97%</span></div><p><b>of ~120 products had a shelf location</b> in our test at QFC Broadway Market (12 search terms × 10 results each).</p></div>
+    <div class="stat" data-in style="--d:.3s"><div class="v"><span id="cov-pct" data-count="96" data-suffix="%" data-dec="0">96%</span></div><p id="cov-txt"><b>of 55 products at QFC Uptown had an aisle or department</b> · 84% down to the shelf (recorded run).</p></div>
   </div>
   <div class="panel" data-in style="--d:.45s">
     <h3>Gets the recipe, even when sites say no</h3>
@@ -673,23 +673,23 @@ body.notes-open #notes{transform:none}
 </section>
 
 <!-- 8 · VISA -->
-<section class="slide dark s-visa" data-title="Why Visa: Reimagine Shopping" data-time="18" aria-label="Visa Reimagine Shopping">
+<section class="slide dark s-visa" data-title="Why Visa: Reimagine Shopping" data-time="16" aria-label="Visa Reimagine Shopping">
   <div class="kicker" data-in>Visa · Reimagine Shopping</div>
   <h2 data-in style="--d:.08s">GenAI reads the recipe.<br><em>Rules plan the trip.</em></h2>
   <div class="journey">
     <div class="track"><i></i></div>
     <div class="stops">
       <div class="stop" style="--t:.6s"><div class="dot">💡</div><div class="card" data-in style="--d:.3s"><small>01 · Discovery</small><h3>Start from a recipe</h3><p>Inspiration is a recipe, not a search box. <b>GenAI turns messy recipe text</b> into a shoppable list.</p></div></div>
-      <div class="stop" style="--t:1.3s"><div class="dot">⚖️</div><div class="card" data-in style="--d:.42s"><small>02 · Decision-making</small><h3>AI reads, rules pick</h3><p>AI turns each line into a search term; <b>transparent rules pick the shelf</b>, with live price, stock and aisle.</p></div></div>
+      <div class="stop" style="--t:1.3s"><div class="dot">⚖️</div><div class="card" data-in style="--d:.42s"><small>02 · Decision-making</small><h3>AI reads, rules pick</h3><p>AI picks the search terms and what to avoid; <b>transparent rules pick the product</b> by stock and aisle, and flag cheaper options.</p></div></div>
       <div class="stop" style="--t:2s"><div class="dot">📍</div><div class="card" data-in style="--d:.54s"><small>03 · Personalization</small><h3>Fits your kitchen</h3><p>Your nearest store, <b>staples you already have unchecked</b>, your swaps. No account needed.</p></div></div>
-      <div class="stop next" style="--t:2.7s"><div class="dot">🧾</div><div class="card" data-in style="--d:.66s"><small>04 · Checkout</small><h3>Today: the total</h3><p><b>Estimated total before you leave</b>, in walking order.</p><div class="cartbtn"><span class="nexttag">Next build</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><p style="margin-top:10px">Kroger Cart API; <b>pay with your card</b> at pickup.</p></div></div>
+      <div class="stop next" style="--t:2.7s"><div class="dot">🧾</div><div class="card" data-in style="--d:.66s"><small>04 · Checkout</small><h3>Today: the total</h3><p><b>Estimated total before you leave</b>, in walking order.</p><div class="cartbtn"><span class="nexttag">Next build</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><p style="margin-top:10px">Fills your QFC cart; <b>checkout stays in Kroger's app</b>.</p></div></div>
     </div>
   </div>
   <div class="quote" data-in="fade" style="--d:1s">Shopping starts with intent, <b>“I want to cook this”</b>, not a search box.</div>
 </section>
 
 <!-- 9 · BUSINESS -->
-<section class="slide light s-biz" data-title="Business model & go-to-market" data-time="16" aria-label="Business model">
+<section class="slide light s-biz" data-title="Business model & go-to-market" data-time="17" aria-label="Business model">
   <div class="kicker" data-in>SideShift · DubHacks NEXT</div>
   <h2 data-in style="--d:.08s">Every recipe online, <em>a storefront.</em></h2>
   <div class="biz">
@@ -723,12 +723,12 @@ body.notes-open #notes{transform:none}
 </section>
 
 <!-- 10 · NEXT -->
-<section class="slide dark s-next" data-title="What's next" data-time="12" aria-label="What's next">
+<section class="slide dark s-next" data-title="What's next" data-time="13" aria-label="What's next">
   <div class="kicker" data-in>What's next</div>
   <h2 data-in style="--d:.08s">Next aisle: <em>from list to checkout.</em></h2>
   <div class="signs">
     <div class="rail"></div>
-    <div class="hang" style="--d:.2s"><div class="bigsign gold"><div><small>NEXT · 1</small><b>Pickup cart</b></div></div><p><b>Send to pickup cart</b> via Kroger's public Cart API. <b>Pay with your card</b> at pickup.</p></div>
+    <div class="hang" style="--d:.2s"><div class="bigsign gold"><div><small>NEXT · 1</small><b>Pickup cart</b></div></div><p>Kroger's Cart API fills your QFC cart. <b>Explore:</b> agent checkout via <b>Visa Intelligent Commerce</b>.</p></div>
     <div class="hang" style="--d:.35s"><div class="bigsign"><div><small>NEXT · 2</small><b>More chains</b></div></div><p>Other grocers' product APIs, then <b>partnerships</b>.</p></div>
     <div class="hang" style="--d:.5s"><div class="bigsign"><div><small>NEXT · 3</small><b>In-store map</b></div></div><p>Draw the route on the <b>real floor plan</b>, not just aisle order.</p></div>
     <div class="hang" style="--d:.65s"><div class="bigsign"><div><small>NEXT · 4</small><b>Pantry memory</b></div></div><p>Remember what's already at home, so it <b>never lands on the list</b>.</p></div>
@@ -738,7 +738,7 @@ body.notes-open #notes{transform:none}
 </section>
 
 <!-- 11 · CLOSE -->
-<section class="slide art s-close" data-title="Thank you" data-time="8" aria-label="Closing">
+<section class="slide art s-close" data-title="Thank you" data-time="7" aria-label="Closing">
   <div class="artbg"><div class="img"></div><div class="shade"></div></div>
   <div class="inner">
     <div>
@@ -797,6 +797,7 @@ const RUN = {               // source: lib/client/demo-run.json + live /?demo=1&
   ingredients: 12,          // lines in the recipe (slide 4 card)
   items: 11,                // items shopped after pantry staples are unchecked (vegetable oil)
   total: 83.35,             // estimated total, whole packs ($66.47 Uptown + $16.88 Broadway Market)
+  coverage: { store: 0, products: 55, withAisle: 53, withShelf: 46 }, // slide 7: distinct best+candidate products at stores[store] in demo-run.json
   missReason: 'sold in-store', // why stores[0] missed items, as the site words it: "Not sold in-store at QFC Uptown" (inStore:false)
   stores: [                 // nearest first; found = items bought at that store
     { name: 'QFC Uptown',          logo: 'QFC', dist: '0.5 mi', addr: '500 Mercer St, Seattle', found: 9 },
@@ -824,25 +825,27 @@ const splitText = fellThrough.length
   ? `${S0.found} at ${S0.name}, ${fellThrough.map(st => `${st.found} at ${st.name}`).join(', ')}`
   : `all ${S0.found} at the first store`;
 
-/* ---------- speaker notes (~390 spoken words; [cues] and "If asked" lines are not spoken) ---------- */
+/* ---------- speaker notes (~345 spoken words, budgets sum to 3:00; [cues] and "If asked" lines are not spoken) ---------- */
 const DEMO_URL = 'https://recipecheckout.vercel.app/?demo=1&clean=1';
 const NOTES = [
-  "Hi, we're RecipeCheckout: <b>any recipe, sorted by aisle.</b> Paste a recipe link and every ingredient is located at your nearest grocery stores, with live price and stock.",
-  "Recipes are written for cooks, not stores. Which product is \"double cream\" here? And recipe order isn't aisle order: this red line is that trip, <b>about twice the walking</b>. Then you find out it's out of stock at the shelf." +
+  "<span class=\"cue\">[Names first: \"We're A, B and C.\" About 4 s.]</span> Hi, we're RecipeCheckout: <b>any recipe, sorted by aisle.</b> Paste a recipe link and every ingredient is located at your nearest grocery stores, with live price and stock.",
+  "Recipes are written for cooks, not stores. Which product is \"double cream\" here? And recipe order isn't aisle order: this red line is that trip, <b>about twice the walking</b>." +
     "<span class=\"qa\">If asked: ≈2× = the two routes measured on this illustrative plan ({LM} vs {LC} units); the aisles are real.</span>",
   "So: <b>paste a recipe, walk the store once.</b> \"150 ml double cream\": the AI makes it heavy cream, never whipped topping or creamer. Then the real product at your store: aisle 1, left side, shelf 5, $7.99, in stock.",
-  "Four steps. We read the recipe. <b>One</b> Claude Haiku call turns each line into a search term. Kroger's API searches the nearest store in parallel. Plain math rounds up to whole packs, we sort by aisle, and misses fall through to the next store.",
+  "Four steps. We read the recipe. <b>One</b> Claude Haiku call turns each line into a search term. Kroger's API searches the nearest store. Plain math rounds up to whole packs, we sort by aisle, and misses fall through to the next store.",
   `A <b>real recorded run</b>: ` + (fellThrough.length
     ? `one loop for ${S0.found} items at ${S0.name}. ${foundAll - S0.found} aren't ${RUN.missReason} there, so we found them at the next ${fellThrough[0].logo}; you can skip them. One is a flagged "closest match". ${money(RUN.total)} in whole packs.`
-    : `all ${foundAll} items at ${S0.name}, one clean loop, about ${money(RUN.total)}.`) + ` That dashed button is our next build.`,
+    : `all ${foundAll} items at ${S0.name}, one clean loop, about ${money(RUN.total)}.`),
   `<span class="cue">[Click the laptop or press D to open the <a href="${DEMO_URL}" target="_blank" rel="noopener">demo replay</a>. Backup: press V for the <a href="/demo" target="_blank" rel="noopener">/demo video</a>. About 30 s.]</span> ` +
-    "<b>The app is live:</b> scan and try any recipe. On stage I'm using a recorded real run, so wifi can't bite. Start a list… staples start unchecked… find in stores… the list, by aisle, with price and stock. No sign-up.",
-  `Two numbers: <b>one AI call per recipe, about a tenth of a cent</b>, and 97% of about 120 products we searched at QFC Broadway Market had a shelf location. Blocked sites fall through to Wayback, a reader proxy, then paste.` +
+    "<b>The app is live:</b> scan and try any recipe. On stage I'm using a recorded real run, so wifi can't bite. Start a list… staples start unchecked… find in stores… the list, by aisle, with price and stock.",
+  `<b>One AI call per recipe, about a tenth of a cent.</b> Blocked sites fall through to an archive, then paste.` +
     "<span class=\"qa\">If asked, stack: Expo Router + React Native Web, Vercel functions, Kroger Locations &amp; Products APIs, Claude Haiku 5.5 via OpenRouter, offline demo replay. Product picking is rules, not AI: term words, avoid words, department, aisle, stock.</span>",
-  "For Visa's <b>Reimagine Shopping</b>: GenAI reads the recipe, rules pick the shelf. Discovery, decision, personal. Checkout is next: <b>Send to pickup cart</b> through Kroger's Cart API, paid with your card at pickup.",
-  "Our user: the home cook who finds recipes online. Revenue: \"shop this recipe\" links for creators, clearly labelled sponsored swaps, and affiliate fees on pickup orders. Creators are distribution. <b>Next to validate:</b> will creators add the link, and will grocers pay?",
-  "Next: the pickup cart, more chains, the real floor plan, pantry memory, native apps. This weekend we redesigned the home screen three times and fixed a bug that turned white sugar into monkfruit.",
-  "<span class=\"cue\">[Introduce the team: names and roles, one line each.]</span> RecipeCheckout: <b>any recipe, sorted by aisle.</b> Scan to try it. Thank you!"
+  "For Visa's <b>Reimagine Shopping</b>: GenAI reads the recipe, rules pick the product. Discovery, decision, personal. Checkout is next: Kroger's Cart API fills your QFC cart, and we'll explore <b>agent checkout with Visa Intelligent Commerce</b>." +
+    "<span class=\"qa\">If asked \"What does the AI decide?\": for every recipe line, the search term, backup terms, words to avoid, the department, and whether it's a pantry staple. Rules then pick from Kroger's live results; \"closest match\" fires when a product hits one of the AI's avoid words.</span>" +
+    "<span class=\"qa\">If asked \"Why are quantities plain math?\": on purpose. Pack counts land on your bill, so they come from unit conversion we can test (8 breasts × ½ lb → 4 × 1 lb), never a model's guess. No hallucinated quantities.</span>",
+  "Our user: the home cook who finds recipes online. Revenue: \"shop this recipe\" links for creators, clearly labelled sponsored swaps, and affiliate fees on pickup orders. <b>Next to validate:</b> will creators add the link, and will grocers pay?",
+  "Next: the pickup cart, more chains, the real floor plan, pantry memory, native apps. This weekend we fixed a bug that turned white sugar into monkfruit.",
+  "RecipeCheckout: <b>any recipe, sorted by aisle.</b> Scan to try it. Thank you!"
 ];
 window.__NOTES_WORDS__ = (() => {
   const d = document.createElement('div');
@@ -866,15 +869,19 @@ document.getElementById('found').querySelector('span').innerHTML = fellThrough.l
   const sec = document.getElementById('why').closest('section'), h = sec.querySelector('h2'), w = document.getElementById('why');
   if (fellThrough.length) {
     const n = foundAll - S0.found;
-    const further = (parseFloat(fellThrough[fellThrough.length - 1].dist) - parseFloat(S0.dist)).toFixed(1);
     w.innerHTML = `${n} item${n > 1 ? 's' : ''} ${n > 1 ? "aren't" : "isn't"} ${RUN.missReason} at <b>${S0.name}</b>, so ${n > 1 ? 'they come' : 'it comes'} from ` +
-      `<b>${fellThrough.map(st => st.name).join('</b> and <b>')}</b>, ${further} mi further. Every row has a Skip.`;
+      `<b>${fellThrough.map(st => st.name).join('</b> and <b>')}</b>. Every row has a Skip.`;
   } else {
     h.innerHTML = 'Same trip, <em>one clean loop.</em>'; sec.dataset.title = 'Same trip, one clean loop';
     w.innerHTML = `Every item at <b>${S0.name}</b>.`;
   }
 }
 { const t = document.getElementById('total'); t.dataset.count = RUN.total; t.textContent = money(RUN.total); }
+{ // slide 7 coverage stat
+  const c = RUN.coverage, pct = n => Math.round(100 * n / c.products), e = document.getElementById('cov-pct');
+  e.dataset.count = pct(c.withAisle); e.textContent = pct(c.withAisle) + '%';
+  document.getElementById('cov-txt').innerHTML = `<b>of ${c.products} products at ${RUN.stores[c.store].name} had an aisle or department</b> · ${pct(c.withShelf)}% down to the shelf (recorded run).`;
+}
 
 /* ---------- logo-centered QR (static, generated offline; error level H) ---------- */
 const QR_N = 33;

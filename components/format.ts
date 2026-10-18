@@ -1,4 +1,6 @@
-import type { Item, Product } from '../lib/shared/types';
+import { formatAisle } from '../lib/shared/aisleSort';
+import { unitPrice } from '../lib/shared/price';
+import type { Aisle, Item, Product } from '../lib/shared/types';
 
 export function qtyLabel(item: Pick<Item, 'quantity' | 'unit'>): string {
   return [item.quantity, item.unit].map((s) => s?.trim()).filter(Boolean).join(' ');
@@ -10,9 +12,7 @@ export function money(n: number): string {
 
 /** Price the shopper will actually pay: promo when there is one. */
 export function effectivePrice(p?: Product): number | undefined {
-  if (!p) return undefined;
-  if (p.promoPrice !== undefined && p.promoPrice > 0 && (p.price === undefined || p.promoPrice < p.price)) return p.promoPrice;
-  return p.price;
+  return unitPrice(p);
 }
 
 export type StockTone = 'ok' | 'low' | 'out' | 'neutral';
@@ -111,6 +111,14 @@ export function sectionLook(label: string): SectionLook {
   if (/WINE|BEER|LIQUOR/.test(l)) return { emoji: '🍷', bg: '#F5E3EA', fg: '#7A1F3D', short: 'Wine' };
   if (/WALL|END|CAP/.test(l)) return { emoji: '🧱', bg: '#EFEAE2', fg: '#5E5446', short: 'Back wall' };
   return { emoji: '🛒', bg: '#EFEAE2', fg: '#4E5A50' };
+}
+
+/** The aisle as the screen names it, for accessible names: "Produce", "Meat", "Aisle 1, left side, shelf 4". */
+export function aisleSpoken(aisle?: Aisle): string {
+  if (!aisle) return 'Aisle unknown';
+  const name = aisle.isNumbered && aisle.number ? `Aisle ${aisle.number}` : (sectionLook(aisle.label).short ?? formatAisle(aisle));
+  const side = sideWord(aisle.side);
+  return [name, side ? `${side.toLowerCase()} side` : '', aisle.shelf ? `shelf ${aisle.shelf}` : ''].filter(Boolean).join(', ');
 }
 
 export function sideWord(side?: string): string | undefined {
