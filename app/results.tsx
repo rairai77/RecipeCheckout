@@ -7,58 +7,52 @@ import { haversineMiles } from '../lib/shared/haversine';
 import { readChoices, writeChoices } from '../lib/client/resultsSession';
 import { storesKey } from '../lib/client/state';
 import { RecipeBanner } from '../components/RecipeBanner';
-import { lineTotal, SkeletonRows, StoreCard, StoreSkeleton, type StoreRow } from '../components/StoreCard';
+import { lineTotal, SkeletonRows, StoreCard, type StoreRow } from '../components/StoreCard';
 import { chainColor, colors, fonts, radius, transition, useBreakpoint, web } from '../components/theme';
 import { Button, Card, FadeIn, Notice, Page, pstate, Skeleton, Spinner } from '../components/ui';
-import { client } from '../lib/client/mock';
+import { clientMode } from '../lib/client/mock';
+import { getPreferred, mapsUrlFor, togglePreferred, usePreferredStores } from '../lib/client/preferredStores';
+import { clearSearchCache, eachLimit, searchStoreCached } from '../lib/client/storeSearch';
 import { useAppState } from '../lib/client/state';
 import { aisleGroupName, compareAisles } from '../lib/shared/aisleSort';
 import { packPlan } from '../lib/shared/packs';
-import type { Item, ItemResult, SearchRequest, SearchResponse, Store } from '../lib/shared/types';
+import { candidateStores, choosePlan, FAR_MI, milesLabel, priorityOrder, type PlanOption, type PlanResult, type StoreOffer } from '../lib/shared/plan';
+import type { Item, ItemResult, SearchRequest, Store, StoresResponse } from '../lib/shared/types';
 
-const MAX_STORES = 3;
+/** The nearest stores searched (preferred stores are searched as well). */
+const MAX_NEAREST = 3;
+/** Stores searched at once: Kroger answers bursts with 403s (the server retries those). */
+const MAX_PARALLEL = 3;
 
-type RunState = 'waiting' | 'searching' | 'done' | 'error' | 'skipped';
-type Run = {
-  store: Store;
-  state: RunState;
-  count: number;
-  found: ItemResult[];
-  error?: string;
-  /** Items this store couldn't supply, with the reason (shown on the row at the store that did). */
-  passedOn?: Record<string, string>;
-};
+type RunState = 'waiting' | 'searching' | 'done' | 'error';
+/** One store's search for the whole list. */
+type Run = { store: Store; state: RunState; results: ItemResult[]; error?: string };
+type Miss = { item: Item; reason: 'no_match' | 'unavailable' };
+type Phase = 'stores' | 'searching' | 'done' | 'no_stores' | 'error';
+type CardData = { store: Store; rows: StoreRow[]; reason?: string };
 
-/** Why an item moved on from a store, in the words the data supports. */
+/** Why an item isn't bought at a store that ranks higher, in the words the data supports. */
 function passReason(r: ItemResult | undefined, store: Store): string {
   if (!r) return `Not returned by ${store.name}`;
+  if (r.status === 'no_match') return `No good match at ${store.name}`;
   if (r.best?.stockLevel === 'TEMPORARILY_OUT_OF_STOCK') return `Out of stock at ${store.name}`;
   if (r.best?.inStore === false) return `Not sold in-store at ${store.name}`;
   return `Not in stock at ${store.name}`;
 }
-type Miss = { item: Item; reason: 'no_match' | 'unavailable' };
-/** The whole list searched at a farther store, to offer "all at one store" when the nearest-first plan splits. */
-type FullSearch = { state: 'searching' } | { state: 'done'; results: ItemResult[] } | { state: 'error' };
-type OneStop = {
-  store: Store;
-  status: 'checking' | 'done' | 'error';
-  rows: StoreRow[];
-  /** has every item the nearest-first plan found */
-  complete: boolean;
-  total: number;
-};
-type Phase = 'stores' | 'searching' | 'done' | 'no_stores' | 'error';
 
 function toRequestItem(i: Item): SearchRequest['items'][number] {
   return { id: i.id, name: i.name, searchTerm: i.searchTerm, altTerms: i.altTerms, department: i.department, avoidWords: i.avoidWords, quantity: i.quantity, unit: i.unit };
 }
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 export default function Results() {
   const router = useRouter();
   const { recipe, selectedIds, location, loadStores } = useAppState();
   const { isDesktop } = useBreakpoint();
+  const preferred = usePreferredStores();
+  const preferredIds = useMemo(() => preferred.map((s) => s.id), [preferred]);
 
   const items = useMemo(() => (recipe ? recipe.items.filter((i) => selectedIds.includes(i.id)) : []), [recipe, selectedIds]);
   const itemsRef = useRef(items);
@@ -67,8 +61,7 @@ export default function Results() {
   const [phase, setPhase] = useState<Phase>('stores');
   const [fatal, setFatal] = useState<string | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
-  const [misses, setMisses] = useState<Miss[]>([]);
-  // Swaps, skips and the one-stop choice survive a refresh (sessionStorage, keyed by recipe, items and location).
+  // Swaps, skips and the picked plan survive a refresh (sessionStorage, keyed by recipe, items and location).
   const choicesKey = `${storesKey(location)}|${recipe?.title ?? ''}|${recipe?.sourceUrl ?? ''}|${items.map((i) => i.id).join(',')}`;
   const [restored] = useState(() => readChoices(choicesKey));
   const [picks, setPicks] = useState<Record<string, string>>(restored.picks);
@@ -76,36 +69,34 @@ export default function Results() {
   const [copied, setCopied] = useState<'idle' | 'ok' | 'fail'>('idle');
   const [showRuns, setShowRuns] = useState(false);
   const [skipped, setSkipped] = useState<Record<string, boolean>>(restored.skipped);
-  const [full, setFull] = useState<Record<string, FullSearch>>({});
-  const [oneStop, setOneStop] = useState<string | null>(restored.oneStop);
+  const [choice, setChoice] = useState<string | null>(restored.plan);
 
   useEffect(() => {
-    writeChoices(choicesKey, { picks, skipped, oneStop });
-  }, [choicesKey, picks, skipped, oneStop]);
+    writeChoices(choicesKey, { picks, skipped, plan: choice });
+  }, [choicesKey, picks, skipped, choice]);
 
+  // Search the whole list at every candidate store (the nearest few plus the preferred stores), a few at a time.
   useEffect(() => {
     const wanted = itemsRef.current;
     if (!wanted.length) return;
     let cancelled = false;
-    const patchRun = (idx: number, patch: Partial<Run>) =>
-      setRuns((prev) => prev.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+    const patchRun = (id: string, patch: Partial<Run>) => setRuns((prev) => prev.map((r) => (r.store.id === id ? { ...r, ...patch } : r)));
 
     setPhase('stores');
     setFatal(null);
     setRuns([]);
-    setMisses([]);
-    setFull({});
     if (attempt > 0) {
       // "Search again" starts fresh; the first run keeps choices restored after a refresh.
       setPicks({});
       setSkipped({});
-      setOneStop(null);
+      setChoice(null);
+      clearSearchCache();
     }
 
     (async () => {
-      let stores: Store[];
+      let data: StoresResponse;
       try {
-        stores = (await loadStores()).stores.slice(0, MAX_STORES);
+        data = await loadStores();
       } catch (e) {
         if (cancelled) return;
         setFatal(`Couldn't find nearby stores: ${errMsg(e)}`);
@@ -113,69 +104,29 @@ export default function Results() {
         return;
       }
       if (cancelled) return;
-      if (!stores.length) {
+      // The replay and mock data only know their own stores, so other preferred stores are left out there.
+      const known = clientMode() === 'live' ? undefined : new Set(data.stores.map((s) => s.id));
+      const saved = getPreferred().map((s) => ({ ...s, mapsUrl: mapsUrlFor(s) }));
+      const candidates = candidateStores(data.stores.slice(0, MAX_NEAREST), saved, data.origin, known);
+      if (!candidates.length) {
         setPhase('no_stores');
         return;
       }
-      setRuns(stores.map((store) => ({ store, state: 'waiting', count: 0, found: [] })));
+      setRuns(candidates.map((store) => ({ store, state: 'waiting', results: [] })));
       setPhase('searching');
 
-      let pending = wanted;
-      const noMatch: Item[] = [];
-      // When the nearest store can't supply everything, the farther stores are searched for the whole list, in parallel
-      // (one request each): the same response gives the fallback items and a possible one-stop alternative.
-      const fullRuns = new Map<number, Promise<SearchResponse>>();
-      const searchFull = (idx: number) => {
-        let p = fullRuns.get(idx);
-        if (!p) {
-          const storeId = stores[idx].id;
-          p = client.searchStore({ storeId, items: wanted.map(toRequestItem) });
-          fullRuns.set(idx, p);
-          setFull((f) => ({ ...f, [storeId]: { state: 'searching' } }));
-          p.then(
-            (res) => !cancelled && setFull((f) => ({ ...f, [storeId]: { state: 'done', results: res.results } })),
-            () => !cancelled && setFull((f) => ({ ...f, [storeId]: { state: 'error' } })),
-          );
-        }
-        return p;
-      };
-      for (let idx = 0; idx < stores.length; idx++) {
-        if (!pending.length) {
-          patchRun(idx, { state: 'skipped' });
-          continue;
-        }
-        if (idx === 1) for (let j = 1; j < stores.length; j++) void searchFull(j).catch(() => {});
-        patchRun(idx, { state: 'searching', count: pending.length });
+      const req = wanted.map(toRequestItem);
+      await eachLimit(candidates, MAX_PARALLEL, async (store) => {
+        if (cancelled) return;
+        patchRun(store.id, { state: 'searching' });
         try {
-          const res = idx === 0 ? await client.searchStore({ storeId: stores[idx].id, items: pending.map(toRequestItem) }) : await searchFull(idx);
-          if (cancelled) return;
-          const byId = new Map(res.results.map((r) => [r.itemId, r]));
-          const found: ItemResult[] = [];
-          const next: Item[] = [];
-          const passedOn: Record<string, string> = {};
-          for (const it of pending) {
-            const r = byId.get(it.id);
-            if (r?.status === 'found' && r.best) found.push(r);
-            else if (r?.status === 'no_match') noMatch.push(it); // a bad term fails everywhere: don't retry
-            else {
-              next.push(it); // 'unavailable' (or missing from the response): try the next store
-              passedOn[it.id] = passReason(r, stores[idx]);
-            }
-          }
-          pending = next;
-          patchRun(idx, { state: 'done', found, passedOn });
+          const res = await searchStoreCached({ storeId: store.id, items: req });
+          if (!cancelled) patchRun(store.id, { state: 'done', results: res.results });
         } catch (e) {
-          if (cancelled) return;
-          patchRun(idx, { state: 'error', error: errMsg(e), passedOn: Object.fromEntries(pending.map((it) => [it.id, `${stores[idx].name} couldn't be searched`])) });
-          // keep `pending` as is: the next store gets the same items
+          if (!cancelled) patchRun(store.id, { state: 'error', error: errMsg(e) });
         }
-      }
-      if (cancelled) return;
-      setMisses([
-        ...pending.map((item) => ({ item, reason: 'unavailable' as const })),
-        ...noMatch.map((item) => ({ item, reason: 'no_match' as const })),
-      ]);
-      setPhase('done');
+      });
+      if (!cancelled) setPhase('done');
     })();
 
     return () => {
@@ -212,65 +163,82 @@ export default function Results() {
     [itemById, picks, skipped],
   );
 
-  // Nearest-first plan: each store supplies what the nearer ones couldn't.
-  const splitCards = useMemo(() => {
-    const out: { store: Store; rows: StoreRow[]; reason?: string }[] = [];
-    runs.forEach((r, idx) => {
-      if (!r.found.length) return;
-      const firstReason = (itemId: string) => runs.slice(0, idx).map((p) => p.passedOn?.[itemId]).find(Boolean);
-      const rows = makeRows(r.found, firstReason);
-      // One line under a farther store's header: why it's on the list, and how far it is from the previous stop.
+  const rowsByStore = useMemo(() => new Map(runs.filter((r) => r.state === 'done').map((r) => [r.store.id, makeRows(r.results)])), [runs, makeRows]);
+
+  // Which store(s) to shop at: see lib/shared/plan.ts for the rules.
+  const plan: PlanResult<Store> = useMemo(() => {
+    const offers: StoreOffer<Store>[] = runs.map((r) => ({
+      store: r.store,
+      status: r.state === 'done' ? 'done' : r.state === 'error' ? 'error' : 'pending',
+      costs: Object.fromEntries((rowsByStore.get(r.store.id) ?? []).map((row) => [row.item.id, row.skipped ? 0 : (lineTotal(row) ?? 0)])),
+    }));
+    return choosePlan({ itemIds: items.map((i) => i.id), offers, preferredIds, choice });
+  }, [runs, rowsByStore, items, preferredIds, choice]);
+
+  const done = phase === 'done';
+  const shown = done ? plan.shown : undefined;
+
+  const cards = useMemo<CardData[]>(() => {
+    if (!shown) return [];
+    if (shown.kind === 'store') return [{ store: shown.stores[0], rows: rowsByStore.get(shown.id) ?? [] }];
+    // Split: each store's share, with why an item isn't at a store that ranks higher.
+    const runById = new Map(runs.map((r) => [r.store.id, r]));
+    const order = priorityOrder(
+      runs.map((r) => r.store),
+      preferredIds,
+    );
+    // Every store that ranks above the one an item is bought at lacks it (or couldn't be searched): name the top one.
+    const firstReason = (itemId: string, storeId: string): string | undefined => {
+      const above = order.findIndex((x) => x.id === storeId) > 0 ? order[0] : undefined;
+      if (!above) return undefined;
+      const r = runById.get(above.id)!;
+      return r.state === 'error' ? `${above.name} couldn't be searched` : passReason(r.results.find((x) => x.itemId === itemId), above);
+    };
+    const out: CardData[] = [];
+    shown.stores.forEach((store, idx) => {
+      const ids = new Set(Object.keys(shown.assign).filter((id) => shown.assign[id] === store.id));
+      const results = (runById.get(store.id)?.results ?? []).filter((x) => ids.has(x.itemId));
+      const rows = makeRows(results, (itemId) => firstReason(itemId, store.id));
+      // One line under a later store's header: why it's on the list, and how far it is from the previous stop.
       let reason: string | undefined;
       const prev = out[out.length - 1]?.store;
       const notes = [...new Set(rows.map((x) => x.fallbackNote).filter((x): x is string => !!x))];
       if (idx > 0 && notes.length) {
-        const hop = prev ? ` · ${haversineMiles(prev.lat, prev.lng, r.store.lat, r.store.lng).toFixed(1)} mi from ${prev.name}` : '';
-        reason = notes.length === 1 ? `${notes[0]}${hop}` : `Not available at the nearer store${idx > 1 ? 's' : ''}${hop}`;
+        const hop = prev ? ` · ${haversineMiles(prev.lat, prev.lng, store.lat, store.lng).toFixed(1)} mi from ${prev.name}` : '';
+        reason = notes.length === 1 ? `${notes[0]}${hop}` : `Not available at ${idx === 1 && prev ? prev.name : 'the stores above'}${hop}`;
       }
-      out.push({ store: r.store, rows, reason });
+      out.push({ store, rows, reason });
     });
     return out;
-  }, [runs, makeRows]);
-
-  // "All at one store" alternatives: farther stores searched for the whole list.
-  const splitIds = useMemo(() => new Set(splitCards.flatMap((c) => c.rows.map((r) => r.item.id))), [splitCards]);
-  const oneStops = useMemo<OneStop[]>(
-    () =>
-      runs
-        .slice(1)
-        .filter((r) => full[r.store.id])
-        .map((r) => {
-          const f = full[r.store.id];
-          if (f.state !== 'done') return { store: r.store, status: f.state === 'searching' ? 'checking' : 'error', rows: [], complete: false, total: 0 };
-          const rows = makeRows(f.results.filter((x) => x.status === 'found'));
-          const have = new Set(rows.map((x) => x.item.id));
-          const complete = splitIds.size > 0 && [...splitIds].every((id) => have.has(id));
-          const total = rows.filter((x) => !x.skipped).reduce((t, x) => t + (lineTotal(x) ?? 0), 0);
-          return { store: r.store, status: 'done', rows, complete, total };
-        }),
-    [runs, full, makeRows, splitIds],
-  );
-  const chosen = oneStop ? oneStops.find((o) => o.store.id === oneStop && o.status === 'done' && o.complete) : undefined;
-  const cards = chosen ? [{ store: chosen.store, rows: chosen.rows, reason: undefined as string | undefined }] : splitCards;
+  }, [shown, runs, rowsByStore, preferredIds, makeRows]);
 
   if (!recipe) return <Redirect href="/" />;
   if (!items.length) return <Redirect href="/review" />;
 
+  const doneRuns = runs.filter((r) => r.state === 'done');
+  const misses: Miss[] = done
+    ? items
+        .filter((i) => !plan.needed.includes(i.id))
+        .map((item) => ({
+          item,
+          reason: doneRuns.length && doneRuns.every((r) => r.results.find((x) => x.itemId === item.id)?.status === 'no_match') ? 'no_match' : 'unavailable',
+        }))
+    : [];
   const shownRows = cards.flatMap((c) => c.rows);
   const allRows = shownRows.filter((r) => !r.skipped);
   const skippedCount = shownRows.length - allRows.length;
   const total = allRows.reduce((s, r) => s + (lineTotal(r) ?? 0), 0);
-  const splitTotal = splitCards.flatMap((c) => c.rows).filter((r) => !r.skipped).reduce((s, r) => s + (lineTotal(r) ?? 0), 0);
-  const offerStops = splitCards.length > 1 && !chosen ? oneStops : [];
   const unpriced = allRows.filter((r) => effectivePrice(r.product) === undefined).length;
   // "Estimated" either way (some produce is priced per lb); say so when some rows could only be counted once.
   const unsure = allRows.filter((r) => !r.plan.confident).length;
   const totalNote = unsure ? `${unsure} item${unsure === 1 ? '' : 's'} counted once: check “Recipe needs”` : 'Quantities from the recipe, rounded up to whole packs';
-  const firstStoreDone = runs.some((r) => r.state === 'done' || r.state === 'error');
-  const active = runs.find((r) => r.state === 'searching');
-  const searchedStores = runs.filter((r) => r.state === 'done' || r.state === 'error').length;
+  const searchedStores = doneRuns.length;
   const errored = runs.filter((r) => r.state === 'error');
-  const done = phase === 'done';
+  const oneStore = cards.length === 1 ? cards[0].store : undefined;
+  const options: PlanOption<Store>[] = [...plan.oneStop, ...(plan.splitAlternative && plan.split ? [plan.split] : [])];
+  const showChooser = done && !!shown && options.length >= 2;
+  const cheaper = done ? plan.cheaper : undefined;
+  const choose = (id: string) => setChoice(id);
 
   const copyList = async () => {
     const text = buildPlainList(recipe.title, cards, misses, total, skippedCount);
@@ -296,25 +264,24 @@ export default function Results() {
     setTimeout(() => setCopied('idle'), 2500);
   };
 
-  // A store the nearest-first plan didn't need, but that was searched for the one-stop offer.
-  const checkedFor = (r: Run) => {
-    const o = r.state === 'skipped' ? oneStops.find((x) => x.store.id === r.store.id && x.status === 'done') : undefined;
-    return o ? { found: o.rows.length, of: items.length } : undefined;
-  };
-
   const copyLabel = copied === 'ok' ? '✓ Copied!' : copied === 'fail' ? "Couldn't copy" : 'Copy list';
+  const where = oneStore ? oneStore.name : plural(cards.length, 'store');
   const statusLine =
     phase === 'stores'
       ? `Finding stores near ${location.label}…`
-      : active
-        ? `Searching ${active.count} item${active.count === 1 ? '' : 's'} at ${active.store.name}…`
+      : phase === 'searching'
+        ? `Checking ${plural(runs.length, 'store')} for ${plural(items.length, 'item')}…`
         : done
-          ? `Found ${shownRows.length} of ${items.length} item${items.length === 1 ? '' : 's'} at ${cards.length} store${cards.length === 1 ? '' : 's'}`
+          ? `Found ${shownRows.length} of ${plural(items.length, 'item')} at ${where}`
           : phase === 'no_stores'
             ? 'No stores nearby'
             : phase === 'error'
               ? 'Something went wrong'
               : 'Getting ready…';
+
+  const runRows = runs.map((r) => (
+    <RunRow key={r.store.id} run={r} of={items.length} preferred={preferredIds.includes(r.store.id)} shopping={cards.some((c) => c.store.id === r.store.id)} />
+  ));
 
   const progress = (
     <Card style={styles.panel}>
@@ -341,8 +308,8 @@ export default function Results() {
               </View>
             </View>
           ))
-        : runs.map((r) => <RunRow key={r.store.id} run={r} checked={checkedFor(r)} />)}
-      {errored.length ? <Text style={[styles.muted, { color: colors.danger, marginTop: 8 }]}>Some stores couldn't be searched; their items moved on to the next store.</Text> : null}
+        : runRows}
+      {errored.length ? <Text style={[styles.muted, { color: colors.danger, marginTop: 8 }]}>Some stores couldn't be searched.</Text> : null}
     </Card>
   );
 
@@ -377,12 +344,13 @@ export default function Results() {
   const summary = (
     <Card style={[styles.panel, styles.summary]}>
       <Text style={styles.summaryLabel}>Estimated total</Text>
-      {firstStoreDone ? <Text style={styles.summaryTotal}>{money(total)}</Text> : <Skeleton width={150} height={44} radius={10} style={{ marginVertical: 5 }} />}
-      <Text style={styles.muted} numberOfLines={1}>
-        {firstStoreDone
-          ? `${allRows.length} item${allRows.length === 1 ? '' : 's'} across ${cards.length} store${cards.length === 1 ? '' : 's'}${skippedCount ? ` · ${skippedCount} skipped` : ''}${unpriced ? ` · ${unpriced} without price` : ''}`
-          : `Searching ${items.length} item${items.length === 1 ? '' : 's'}…`}
+      {done ? <Text style={styles.summaryTotal}>{money(total)}</Text> : <Skeleton width={150} height={44} radius={10} style={{ marginVertical: 5 }} />}
+      <Text style={styles.muted} numberOfLines={2}>
+        {done
+          ? `${plural(allRows.length, 'item')} ${oneStore ? 'at' : 'across'} ${where}${skippedCount ? ` · ${skippedCount} skipped` : ''}${unpriced ? ` · ${unpriced} without price` : ''}`
+          : `Searching ${plural(items.length, 'item')}…`}
       </Text>
+      {cheaper ? <CheaperNote cheaper={cheaper} onSwitch={choose} /> : null}
       <Text style={styles.eachHint} numberOfLines={2}>
         {totalNote}
       </Text>
@@ -395,7 +363,7 @@ export default function Results() {
         style={{ marginTop: 16 }}
         accessibilityLabel="Copy list"
       />
-      <Text style={styles.summaryHint}>Plain text, grouped by store and aisle. Paste it into Notes or a text.</Text>
+      <Text style={styles.summaryHint}>{oneStore ? `Plain text for ${oneStore.name}, in aisle order.` : 'Plain text, grouped by store and aisle.'} Paste it into Notes or a text.</Text>
     </Card>
   );
 
@@ -418,7 +386,7 @@ export default function Results() {
         </Text>
         <Text style={styles.lineToggle}>{showRuns ? 'Hide ▴' : 'Stores ▾'}</Text>
       </Pressable>
-      {showRuns ? <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>{runs.map((r) => <RunRow key={r.store.id} run={r} checked={checkedFor(r)} />)}</View> : null}
+      {showRuns ? <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>{runRows}</View> : null}
     </Card>
   );
 
@@ -429,33 +397,27 @@ export default function Results() {
   const main = (
     <View>
       {done && !allRows.length && !misses.length ? <Notice tone="warn">No results came back. Check your connection and try again.</Notice> : null}
-      {chosen ? (
-        <OneStopNote
-          store={chosen.store}
-          count={chosen.rows.length}
-          splitStores={splitCards.length}
-          splitTotal={splitTotal}
-          onBack={() => setOneStop(null)}
-        />
+      {showChooser ? (
+        <FadeIn>
+          <PlanChooser options={options} shownId={shown!.id} cheapestId={plan.cheapestId} nearestId={plan.nearestId} onChoose={choose} />
+        </FadeIn>
       ) : null}
-      {cards.map((c, i) => (
+      {cards.map((c) => (
         <FadeIn key={c.store.id}>
-          {i === 1 && offerStops.length ? (
-            <OneStopOffer count={splitIds.size} stops={offerStops} splitTotal={splitTotal} splitStores={splitCards.length} onChoose={(id) => setOneStop(id)} />
-          ) : null}
           <StoreCard
             store={c.store}
             rows={c.rows}
             reason={c.reason}
+            preferred={preferredIds.includes(c.store.id)}
+            onTogglePreferred={() => togglePreferred(c.store)}
             onPick={(itemId, pid) => setPicks((p) => ({ ...p, [itemId]: pid }))}
             onSkip={(itemId, skip) => setSkipped((s) => ({ ...s, [itemId]: skip }))}
           />
         </FadeIn>
       ))}
-      {/* Keyed by store: a finished store's card takes its skeleton's place, and the next store's skeleton is a new node
-          below it (re-using the old node would count as a big layout shift). */}
-      {active ? <StoreSkeleton key={`skel-${active.store.id}`} store={active.store} count={active.count} /> : null}
-      {phase === 'stores' ? <SkeletonPlaceholder key="skel-stores" count={items.length} /> : null}
+      {/* One placeholder while stores are found and searched: the same node throughout, so nothing shifts until the
+          plan is ready and replaces it. */}
+      {phase === 'stores' || phase === 'searching' ? <SkeletonPlaceholder key="skel" count={items.length} /> : null}
     </View>
   );
 
@@ -495,20 +457,23 @@ export default function Results() {
       top={banner}
       footer={
         done && allRows.length ? (
-          <View style={styles.bar}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.barLabel}>
-                Estimated total{unsure ? <Text style={styles.barEach}> · {unsure} counted once</Text> : null}
-              </Text>
-              <Text style={styles.barTotal}>
-                {money(total)}
-                <Text style={styles.barNote}>
-                  {'  '}
-                  {allRows.length} item{allRows.length === 1 ? '' : 's'}
+          <View>
+            {cheaper ? <CheaperNote cheaper={cheaper} onSwitch={choose} compact /> : null}
+            <View style={styles.bar}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.barLabel}>
+                  Estimated total{unsure ? <Text style={styles.barEach}> · {unsure} counted once</Text> : null}
                 </Text>
-              </Text>
+                <Text style={styles.barTotal}>
+                  {money(total)}
+                  <Text style={styles.barNote}>
+                    {'  '}
+                    {plural(allRows.length, 'item')}
+                  </Text>
+                </Text>
+              </View>
+              <Button label={copyLabel} onPress={copyList} variant={copied === 'ok' ? 'secondary' : 'primary'} style={{ minWidth: 140 }} accessibilityLabel="Copy list" />
             </View>
-            <Button label={copyLabel} onPress={copyList} variant={copied === 'ok' ? 'secondary' : 'primary'} style={{ minWidth: 140 }} accessibilityLabel="Copy list" />
           </View>
         ) : phase === 'searching' || phase === 'stores' ? (
           <View style={[styles.bar, { minHeight: 52 }]}>
@@ -528,84 +493,90 @@ export default function Results() {
   );
 }
 
-/** How a one-stop total compares with the nearest-first split. */
-function versusSplit(total: number, splitTotal: number, splitStores: number): string {
-  const d = total - splitTotal;
-  if (Math.abs(d) < 0.005) return `same as ${splitStores} stops`;
-  return `${money(Math.abs(d))} ${d < 0 ? 'less' : 'more'} than ${splitStores} stops`;
+/** "QFC Harvard Market has everything for $6.90 less (1.1 mi)", with a way to switch. Sits by the total. */
+function CheaperNote({ cheaper, onSwitch, compact }: { cheaper: NonNullable<PlanResult<Store>['cheaper']>; onSwitch: (id: string) => void; compact?: boolean }) {
+  const { option, saving } = cheaper;
+  const s = option.stores[0];
+  const text = `${s.name} has everything for ${money(saving)} less (${milesLabel(s.distanceMi).replace(' ', '\u00a0')})`;
+  return (
+    <View style={[styles.note, compact && styles.noteCompact]}>
+      <Text style={[styles.noteText, compact && { fontSize: 13 }]} numberOfLines={3}>
+        {text}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Switch to ${s.name}, ${money(option.total)}`}
+        onPress={() => onSwitch(option.id)}
+        hitSlop={8}
+        style={(st) => [styles.noteBtn, transition, pstate(st).hovered && { backgroundColor: '#D9EBDF' }]}
+      >
+        <Text style={styles.noteBtnText}>Switch</Text>
+      </Pressable>
+    </View>
+  );
 }
 
-/** Shown above the second store card when the list is split: farther stores that have everything, in one stop. */
-function OneStopOffer({ count, stops, splitTotal, splitStores, onChoose }: { count: number; stops: OneStop[]; splitTotal: number; splitStores: number; onChoose: (storeId: string) => void }) {
+/** The plans worth comparing: every store that has everything, plus the split when it differs. The shown one is checked. */
+function PlanChooser({
+  options,
+  shownId,
+  cheapestId,
+  nearestId,
+  onChoose,
+}: {
+  options: PlanOption<Store>[];
+  shownId: string;
+  cheapestId?: string;
+  nearestId?: string;
+  onChoose: (id: string) => void;
+}) {
+  const stores = options.filter((o) => o.kind === 'store').length;
   return (
-    <View style={styles.offer}>
-      <Text style={styles.offerTitle} role="heading" aria-level={3}>
-        Or get all {count} in one stop
+    <View style={styles.chooser} accessibilityRole="radiogroup" accessibilityLabel="Where to shop">
+      <Text style={styles.chooserTitle} role="heading" aria-level={3}>
+        {stores >= 2 ? `${stores} stores have everything` : 'Where to shop'}
       </Text>
-      {stops.map((o) => {
-        const ready = o.status === 'done' && o.complete;
+      {options.map((o, i) => {
+        const on = o.id === shownId;
+        const first = o.stores[0];
+        const far = o.kind === 'store' && first.distanceMi > FAR_MI;
+        const name = o.kind === 'split' ? `Split across ${o.stores.length} stores` : first.name;
         const meta =
-          o.status === 'checking'
-            ? 'checking…'
-            : o.status === 'error'
-              ? "couldn't check"
-              : o.complete
-                ? versusSplit(o.total, splitTotal, splitStores)
-                : `has ${o.rows.length} of ${count}`;
+          o.kind === 'split'
+            ? o.stores.map((s) => s.name).join(', then ')
+            : [`${milesLabel(first.distanceMi)}${far ? ' away' : ''}`, o.id === nearestId ? 'Nearest' : '', o.preferred ? 'Preferred' : ''].filter(Boolean).join(' · ');
+        const cheapest = o.id === cheapestId;
         return (
-          <View key={o.store.id} style={styles.offerRow}>
+          <Pressable
+            key={o.id}
+            accessibilityRole="radio"
+            aria-checked={on}
+            accessibilityLabel={`${name}, ${o.kind === 'split' ? meta : `${first.distanceMi.toFixed(1)} miles`}, ${money(o.total)}${cheapest ? ', cheapest' : ''}${o.id === nearestId ? ', nearest' : ''}${o.preferred ? ', preferred' : ''}`}
+            onPress={() => onChoose(o.id)}
+            style={(s) => [styles.opt, i > 0 && styles.optBorder, transition, on && styles.optOn, !on && pstate(s).hovered && { backgroundColor: colors.accentTint }]}
+          >
+            <View style={[styles.radio, on && styles.radioOn]}>{on ? <View style={styles.radioDot} /> : null}</View>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text style={styles.offerStore} numberOfLines={2}>
-                {o.store.name}
+              <Text style={styles.optName} numberOfLines={2}>
+                {o.preferred && o.kind === 'store' ? <Text style={styles.optStar}>★ </Text> : null}
+                {name}
               </Text>
-              <Text style={[styles.offerMeta, ready && o.total < splitTotal && { color: colors.accentDark }]} numberOfLines={2}>
-                {o.store.distanceMi.toFixed(1)} mi from you · {meta}
+              <Text style={[styles.optMeta, far && { color: colors.warn }]} numberOfLines={2}>
+                {meta}
               </Text>
             </View>
-            {ready ? (
-              <>
-                <Text style={styles.offerTotal}>{money(o.total)}</Text>
-                <Button
-                  small
-                  variant="secondary"
-                  label="Shop here"
-                  onPress={() => onChoose(o.store.id)}
-                  accessibilityLabel={`Shop here: all ${count} items at ${o.store.name}, ${money(o.total)}, ${o.store.distanceMi.toFixed(1)} miles from you`}
-                />
-              </>
-            ) : o.status === 'checking' ? (
-              <Spinner />
-            ) : null}
-          </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={[styles.optTotal, cheapest && { color: colors.accentDark }]}>{money(o.total)}</Text>
+              {cheapest ? <Text style={styles.optCheapest}>Cheapest</Text> : null}
+            </View>
+          </Pressable>
         );
       })}
     </View>
   );
 }
 
-/** In one-stop mode: what the list is now, and the way back to the nearest-first split. */
-function OneStopNote({ store, count, splitStores, splitTotal, onBack }: { store: Store; count: number; splitStores: number; splitTotal: number; onBack: () => void }) {
-  return (
-    <View style={[styles.offer, styles.offerChosen]}>
-      <Text style={styles.offerTitle} role="heading" aria-level={3}>
-        ✓ One stop: all {count} at {store.name}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Back to nearest store first: ${splitStores} stores, ${money(splitTotal)}`}
-        onPress={onBack}
-        hitSlop={6}
-        style={(s) => [styles.offerBack, transition, pstate(s).hovered && { opacity: 0.75 }]}
-      >
-        <Text style={styles.offerBackText}>
-          ← Back to nearest store first · {splitStores} stores · {money(splitTotal)}
-        </Text>
-      </Pressable>
-    </View>
-  );
-}
-
-/** Before the stores are known: a store-card-shaped placeholder with one row per item. */
+/** Before the plan is ready: a store-card-shaped placeholder with one row per item. */
 function SkeletonPlaceholder({ count }: { count: number }) {
   return (
     <View style={styles.skelCard}>
@@ -625,45 +596,28 @@ function SkeletonPlaceholder({ count }: { count: number }) {
   );
 }
 
-function RunRow({ run, checked }: { run: Run; checked?: { found: number; of: number } }) {
-  const { store } = run;
-  const state: RunState | 'checked' = checked ? 'checked' : run.state;
+function RunRow({ run, of, preferred, shopping }: { run: Run; of: number; preferred: boolean; shopping: boolean }) {
+  const { store, state } = run;
   const c = chainColor(store.chain);
-  let text: string;
-  switch (state) {
-    case 'waiting':
-      text = 'Waiting';
-      break;
-    case 'searching':
-      text = `Searching ${run.count}…`;
-      break;
-    case 'done':
-      text = `${run.found.length} of ${run.count} found`;
-      break;
-    case 'error':
-      text = "Couldn't search";
-      break;
-    case 'checked':
-      text = `${checked!.found} of ${checked!.of} · for one stop`;
-      break;
-    default:
-      text = 'Not needed';
-  }
-  const barColor = state === 'done' ? colors.accentBright : state === 'checked' ? colors.borderStrong : state === 'error' ? colors.danger : colors.border;
-  const fill =
-    state === 'done' ? (run.count ? Math.max(0.06, run.found.length / run.count) : 1) : state === 'checked' ? checked!.found / Math.max(1, checked!.of) : state === 'error' ? 1 : 0;
+  const found = run.results.filter((r) => r.status === 'found' && r.best).length;
+  const text =
+    state === 'waiting' ? 'Waiting' : state === 'searching' ? 'Searching…' : state === 'error' ? "Couldn't search" : `${found} of ${of} found${shopping ? ' · on your list' : ''}`;
+  const barColor = state === 'done' ? (shopping ? colors.accentBright : colors.borderStrong) : state === 'error' ? colors.danger : colors.border;
+  const fill = state === 'done' ? Math.max(0.06, found / Math.max(1, of)) : state === 'error' ? 1 : 0;
+  const far = store.distanceMi > FAR_MI;
   return (
-    <View style={[styles.runRow, state === 'skipped' && { opacity: 0.55 }]}>
+    <View style={styles.runRow}>
       <View style={[styles.runBadge, { backgroundColor: c.bg }]}>
         <Text style={styles.runBadgeText}>{c.initials}</Text>
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={styles.runName} numberOfLines={1}>
+          {preferred ? <Text style={styles.optStar}>★ </Text> : null}
           {store.name}
         </Text>
         <View style={styles.runTop}>
-          <Text style={styles.runDist}>{store.distanceMi.toFixed(1)} mi away</Text>
-          <Text style={[styles.runState, state === 'done' && { color: colors.accentDark }, state === 'error' && { color: colors.danger }]}>{text}</Text>
+          <Text style={[styles.runDist, far && { color: colors.warn, fontWeight: '700' }]}>{milesLabel(store.distanceMi)} away</Text>
+          <Text style={[styles.runState, state === 'done' && shopping && { color: colors.accentDark }, state === 'error' && { color: colors.danger }]}>{text}</Text>
         </View>
         <View style={styles.track}>
           {state === 'searching' ? <View style={[styles.indeterminate]} /> : <View style={[styles.fill, { width: `${fill * 100}%`, backgroundColor: barColor }]} />}
@@ -678,14 +632,14 @@ function RunRow({ run, checked }: { run: Run; checked?: { found: number; of: num
   );
 }
 
-function buildPlainList(title: string, cards: { store: Store; rows: StoreRow[] }[], misses: Miss[], total: number, skippedCount: number): string {
-  const out: string[] = [`${title}: shopping list`, ''];
+function buildPlainList(title: string, cards: CardData[], misses: Miss[], total: number, skippedCount: number): string {
+  const out: string[] = [cards.length === 1 ? `${title}: shopping list for ${cards[0].store.name}` : `${title}: shopping list`, ''];
   const skipped: string[] = [];
   for (const { store, rows } of cards) {
     const kept = rows.filter((r) => !r.skipped);
     for (const r of rows) if (r.skipped) skipped.push(r.item.name);
     if (!kept.length) continue;
-    out.push(`${store.name} (${store.distanceMi.toFixed(1)} mi), ${store.address}`);
+    out.push(`${store.name} (${milesLabel(store.distanceMi)}), ${store.address}`);
     // One header per aisle group, even if rows of a group aren't adjacent.
     const groups = new Map<string, StoreRow[]>();
     for (const r of kept) {
@@ -741,31 +695,40 @@ function legacyCopy(text: string): boolean {
 }
 
 const styles = StyleSheet.create({
-  offer: {
-    backgroundColor: colors.accentTint,
-    borderWidth: 1.5,
-    borderColor: colors.accentSoft,
+  chooser: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: radius.lg,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 8,
+    paddingTop: 12,
+    paddingBottom: 6,
     marginBottom: 16,
-    gap: 4,
   },
-  offerChosen: { borderColor: colors.accentBright },
-  offerTitle: { fontFamily: fonts.body, fontSize: 13, fontWeight: '800', color: colors.accentDark, letterSpacing: 0.3, marginBottom: 2 },
-  offerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingVertical: 2 },
-  offerStore: { fontFamily: fonts.body, fontSize: 15, fontWeight: '700', color: colors.text },
-  offerMeta: { fontFamily: fonts.body, fontSize: 12.5, color: colors.muted, marginTop: 1 },
-  offerTotal: { fontFamily: fonts.body, fontSize: 16, fontWeight: '800', color: colors.text },
-  offerBack: { minHeight: 36, justifyContent: 'center', alignSelf: 'flex-start' },
-  offerBackText: { fontFamily: fonts.body, fontSize: 13, fontWeight: '700', color: colors.accentDark },
+  chooserTitle: { fontFamily: fonts.body, fontSize: 12, fontWeight: '800', color: colors.muted, letterSpacing: 0.6, textTransform: 'uppercase', paddingHorizontal: 10, marginBottom: 4 },
+  opt: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingHorizontal: 10, paddingVertical: 8, borderRadius: radius.md },
+  optBorder: { borderTopWidth: 1, borderTopColor: colors.border, borderTopLeftRadius: 0, borderTopRightRadius: 0 },
+  optOn: { backgroundColor: colors.accentTint },
+  optName: { fontFamily: fonts.body, fontSize: 15, fontWeight: '700', color: colors.text },
+  optStar: { color: colors.warn },
+  optMeta: { fontFamily: fonts.body, fontSize: 12.5, color: colors.muted, marginTop: 1 },
+  optTotal: { fontFamily: fonts.body, fontSize: 16, fontWeight: '800', color: colors.text },
+  optCheapest: { fontFamily: fonts.body, fontSize: 11.5, fontWeight: '800', color: colors.accentDark, marginTop: 1 },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: colors.borderStrong, alignItems: 'center', justifyContent: 'center' },
+  radioOn: { borderColor: colors.accent },
+  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.accent },
+  note: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10, paddingVertical: 8, paddingLeft: 12, paddingRight: 6, borderRadius: radius.md, backgroundColor: colors.accentTint, borderWidth: 1, borderColor: colors.accentSoft },
+  noteCompact: { marginTop: 0, marginBottom: 10 },
+  noteText: { flex: 1, fontFamily: fonts.body, fontSize: 13.5, fontWeight: '700', color: colors.accentDark, lineHeight: 19 },
+  noteBtn: { minHeight: 36, paddingHorizontal: 12, borderRadius: radius.pill, justifyContent: 'center', backgroundColor: colors.accentSoft },
+  noteBtnText: { fontFamily: fonts.body, fontSize: 13, fontWeight: '800', color: colors.accentDark },
   columns: { flexDirection: 'row', alignItems: 'flex-start', gap: 28 },
   sidebar: { width: 340, gap: 16, ...web({ position: 'sticky', top: 16 }) },
   panel: { padding: 18, marginBottom: 16 },
   summary: { padding: 22 },
   summaryLabel: { fontFamily: fonts.body, fontSize: 12, fontWeight: '800', color: colors.muted, letterSpacing: 0.6, textTransform: 'uppercase' },
   summaryTotal: { fontFamily: fonts.display, fontSize: 48, lineHeight: 54, fontWeight: '700', color: colors.ink, letterSpacing: -1, marginVertical: 2 },
-  eachHint: { fontFamily: fonts.body, fontSize: 12, color: colors.faint, marginTop: 4, lineHeight: 17 },
+  eachHint: { fontFamily: fonts.body, fontSize: 12, color: colors.faint, marginTop: 8, lineHeight: 17 },
   lineRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 12, borderRadius: radius.md },
   lineToggle: { fontFamily: fonts.body, fontSize: 13, fontWeight: '700', color: colors.accentDark },
   barEach: { fontWeight: '600', textTransform: 'none', letterSpacing: 0, color: colors.faint },

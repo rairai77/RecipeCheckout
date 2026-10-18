@@ -4,6 +4,7 @@ import { cap, itemStyle, qtyLabel } from '../components/format';
 import { RecipeBanner } from '../components/RecipeBanner';
 import { colors, fonts, radius, shadow, transition, useBreakpoint, web } from '../components/theme';
 import { Button, Checkbox, FadeIn, Page, pstate } from '../components/ui';
+import { usePreferredStores } from '../lib/client/preferredStores';
 import { useAppState } from '../lib/client/state';
 import type { Item } from '../lib/shared/types';
 
@@ -20,6 +21,7 @@ export default function Review() {
   const router = useRouter();
   const { bp, isPhone } = useBreakpoint();
   const { recipe, selectedIds, setSelectedIds, toggleSelected, location } = useAppState();
+  const preferred = usePreferredStores();
 
   if (!recipe) return <Redirect href="/" />;
 
@@ -43,7 +45,11 @@ export default function Review() {
               <Text style={styles.barTitle}>
                 {count} of {recipe.items.length} selected
               </Text>
-              <Text style={styles.barSub}>We'll check the nearest store first, then up to 2 more.</Text>
+              <Text style={styles.barSub} numberOfLines={2}>
+                {preferred.length
+                  ? `We'll check ${preferred.length === 1 ? `your store, ${preferred[0].name},` : `your ${preferred.length} stores`} and the 3 nearest.`
+                  : "We'll check the 3 nearest stores and pick one that has everything."}
+              </Text>
             </View>
           ) : null}
           <Button

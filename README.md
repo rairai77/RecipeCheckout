@@ -1,6 +1,6 @@
 # RecipeCheckout
 
-Paste a recipe URL, pick a location, and get a shopping list with the **aisle, side and shelf** of every ingredient at your nearest Kroger-family store (QFC, Fred Meyer, Kroger, Ralphs, King Soopers, ...). Items a store doesn't have are searched at the next nearest store (up to 3).
+Paste a recipe URL, pick a location, and get a shopping list with the **aisle, side and shelf** of every ingredient at a nearby Kroger-family store (QFC, Fred Meyer, Kroger, Ralphs, King Soopers, ...). The whole list is checked at the 3 nearest stores (and your preferred stores), and the list goes to one store that has everything whenever there is one.
 
 Built with Expo Router + React Native Web (static SPA) and plain Vercel Node functions in `api/`.
 
@@ -8,7 +8,8 @@ Built with Expo Router + React Native Web (static SPA) and plain Vercel Node fun
 
 1. `POST /api/recipe` fetches the page, reads the schema.org `Recipe` JSON-LD (falls back to common recipe-plugin selectors, then an LLM), and makes **one** LLM call (Claude Haiku 5.5 via OpenRouter, low reasoning effort) that turns the ingredient lines into grocery search terms, alternates, department, "avoid" words and pantry-staple flags. If the LLM is unavailable a heuristic parser is used instead.
 2. `GET /api/stores?lat=&lng=` (or `?zip=`) finds the 3 nearest stores with the Kroger Locations API.
-3. `POST /api/search` searches one store's catalog (Kroger Products API with `filter.locationId`, which returns aisle locations, price and stock) for all pending items in parallel, and picks the best match with a no-LLM heuristic (term words must appear, avoid words and non-food categories are rejected, aisle and stock are preferred). The client calls it store by store with whatever is still unavailable.
+3. `POST /api/search` searches one store's catalog (Kroger Products API with `filter.locationId`, which returns aisle locations, price and stock) for all the items in parallel, and picks the best match with a no-LLM heuristic (term words must appear, avoid words and non-food categories are rejected, aisle and stock are preferred). The client calls it once per candidate store (the 3 nearest plus any preferred stores, 3 at a time) with the whole list.
+4. `lib/shared/plan.ts` picks where to shop: the first preferred store that has everything, else the nearest store that has everything, else a split that fills from preferred stores first, then by distance. When several stores have everything the results compare them (Cheapest, Nearest) and say when another store is cheaper. Preferred stores are starred on a store card and live in localStorage; they are listed under "Your stores" in the location menu.
 
 ## Environment variables
 
@@ -42,7 +43,7 @@ Rules for `api/` and `lib/server/`: relative imports only (no `@/` alias), keep 
 
 ## Demo replay
 
-Add `?demo=1` to the URL to replay a recorded real run (BBC Good Food chicken tikka masala, QFC stores near South Lake Union, where two items fall through to the second-nearest store) with no network calls, in case venue wifi or an API fails. Any recipe link works in this mode. `?demo=0` turns it off. The recording lives in `lib/client/demo-run.json`. `?mock=1` uses small hand-written mock data for UI development instead.
+Add `?demo=1` to the URL to replay a recorded real run (BBC Good Food chicken tikka masala, QFC stores near South Lake Union: the nearest store lacks two items, so QFC Broadway Market is the one-stop plan and QFC Harvard Market is flagged as $6.90 cheaper) with no network calls, in case venue wifi or an API fails. Any recipe link works in this mode. `?demo=0` turns it off. The recording lives in `lib/client/demo-run.json`. `?mock=1` uses small hand-written mock data for UI development instead.
 
 ## Recipe sites
 

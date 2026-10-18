@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { colors, fonts, radius, transition, web } from '../theme';
 import { pstate } from '../ui';
+import { YourStores } from '../YourStores';
 import { useHomeForm, type HomeForm } from './useHomeForm';
 
 /**
@@ -399,70 +400,73 @@ function LocationOptions({ f, onClose, inline }: { f: HomeForm; onClose: () => v
   else if (s.status === 'empty') storeLine = 'No QFC, Fred Meyer or other Kroger stores nearby.';
 
   return (
-    <View style={inline ? styles.inlineOptions : undefined} accessibilityRole="radiogroup" accessibilityLabel="Shopping location">
-      <Option
-        icon="🏙️"
-        label={f.presetLabel}
-        selected={f.locMode === 'preset'}
-        onPress={() => {
-          f.choosePreset();
-          onClose();
-        }}
-      />
-      <Option
-        icon="🧭"
-        label={f.locating ? 'Locating…' : 'Use my location'}
-        selected={f.locMode === 'gps'}
-        busy={f.locating}
-        onPress={() => {
-          void f.chooseMyLocation();
-          onClose();
-        }}
-      />
-      {f.locMode === 'zip' ? (
-        <View style={[styles.option, styles.optionOn]}>
-          <Text style={styles.optionIcon} aria-hidden>
-            🔢
-          </Text>
-          <TextInput
-            ref={zipRef}
-            style={[styles.zipInput, web({ outlineStyle: 'none' })]}
-            value={f.zip}
-            onChangeText={f.setZip}
-            placeholder="ZIP code, e.g. 98103"
-            placeholderTextColor={colors.faint}
-            keyboardType="number-pad"
-            inputMode="numeric"
-            maxLength={5}
-            returnKeyType="done"
-            onSubmitEditing={() => {
-              if (!f.zipMissing) onClose();
-            }}
-            accessibilityLabel="ZIP code"
-          />
-          {!f.zipMissing ? (
-            <Pressable accessibilityRole="button" accessibilityLabel="Use this ZIP" onPress={onClose} style={styles.zipDone}>
-              <Text style={styles.check}>✓</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : (
-        <Option icon="🔢" label="Enter a ZIP code" selected={false} onPress={f.chooseZip} />
-      )}
-
-      {storeLine || s.status === 'error' ? (
-        <View style={styles.menuFoot}>
-          {s.status === 'error' ? (
-            <Pressable accessibilityRole="button" onPress={f.retryStores} style={{ minHeight: 32, justifyContent: 'center' }}>
-              <Text style={[styles.menuFootText, { color: colors.danger }]}>Couldn't load stores. Tap to retry.</Text>
-            </Pressable>
-          ) : (
-            <Text style={styles.menuFootText} numberOfLines={1}>
-              {storeLine}
+    <View style={inline ? styles.inlineOptions : undefined}>
+      <View accessibilityRole="radiogroup" accessibilityLabel="Shopping location">
+        <Option
+          icon="🏙️"
+          label={f.presetLabel}
+          selected={f.locMode === 'preset'}
+          onPress={() => {
+            f.choosePreset();
+            onClose();
+          }}
+        />
+        <Option
+          icon="🧭"
+          label={f.locating ? 'Locating…' : 'Use my location'}
+          selected={f.locMode === 'gps'}
+          busy={f.locating}
+          onPress={() => {
+            void f.chooseMyLocation();
+            onClose();
+          }}
+        />
+        {f.locMode === 'zip' ? (
+          <View style={[styles.option, styles.optionOn]}>
+            <Text style={styles.optionIcon} aria-hidden>
+              🔢
             </Text>
-          )}
-        </View>
-      ) : null}
+            <TextInput
+              ref={zipRef}
+              style={[styles.zipInput, web({ outlineStyle: 'none' })]}
+              value={f.zip}
+              onChangeText={f.setZip}
+              placeholder="ZIP code, e.g. 98103"
+              placeholderTextColor={colors.faint}
+              keyboardType="number-pad"
+              inputMode="numeric"
+              maxLength={5}
+              returnKeyType="done"
+              onSubmitEditing={() => {
+                if (!f.zipMissing) onClose();
+              }}
+              accessibilityLabel="ZIP code"
+            />
+            {!f.zipMissing ? (
+              <Pressable accessibilityRole="button" accessibilityLabel="Use this ZIP" onPress={onClose} style={styles.zipDone}>
+                <Text style={styles.check}>✓</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ) : (
+          <Option icon="🔢" label="Enter a ZIP code" selected={false} onPress={f.chooseZip} />
+        )}
+
+        {storeLine || s.status === 'error' ? (
+          <View style={styles.menuFoot}>
+            {s.status === 'error' ? (
+              <Pressable accessibilityRole="button" onPress={f.retryStores} style={{ minHeight: 32, justifyContent: 'center' }}>
+                <Text style={[styles.menuFootText, { color: colors.danger }]}>Couldn't load stores. Tap to retry.</Text>
+              </Pressable>
+            ) : (
+              <Text style={styles.menuFootText} numberOfLines={1}>
+                {storeLine}
+              </Text>
+            )}
+          </View>
+        ) : null}
+      </View>
+      <YourStores />
     </View>
   );
 }
