@@ -1,0 +1,121 @@
+{
+ "results": [
+  {
+   "regularPrice": 6.29,
+   "name": "Organic Unsalted Butter, 8 OZ",
+   "slug": "nancys-yogurt-organic-unsalted-butter-8-oz-b0d2y59kdg",
+   "brand": "Nancys Yogurt",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/4131MfXD03L.jpg",
+   "store": 10216,
+   "isLocal": true
+  },
+  {
+   "regularPrice": 9.99,
+   "name": "Unsalted Butter Sticks, 16 OZ",
+   "slug": "kerrygold-unsalted-butter-sticks-16-oz-b0cpf1w6b5",
+   "brand": "Kerrygold",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41Zn4ZMumlL.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 5.49,
+   "salePrice": 4.88,
+   "incrementalSalePrice": 4.39,
+   "saleStartDate": "2026-10-07T00:00:00Z",
+   "saleEndDate": "2026-10-20T23:59:59Z",
+   "name": "Unsalted Butter Sticks, 8 OZ",
+   "slug": "kerrygold-unsalted-butter-sticks-8-oz-b01hxz022a",
+   "brand": "KERRYGOLD",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41aLHXKA-oL.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 5.99,
+   "name": "Organic Unsalted Butter, 8 OZ",
+   "slug": "organic-valley-organic-unsalted-butter-8-oz-b0097ha64w",
+   "brand": "Organic Valley",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41KDdVM5-RL.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 3.99,
+   "name": "Unsalted Butter, 16 OZ",
+   "slug": "365-by-whole-foods-market-unsalted-butter-16-oz-b08bqwy8yj",
+   "brand": "365 by Whole Foods Market",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/31LNWZ0yJ4L.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 9.99,
+   "name": "Organic Unsalted Butter Quarters, 16 OZ",
+   "slug": "organic-valley-organic-unsalted-butter-quarters-16-oz-b08x9lb2f3",
+   "brand": "Organic Valley",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41nfBIQthLL.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 7.49,
+   "name": "Organic Grassfed Unsalted Butter, 8 OZ",
+   "slug": "maple-hill-creamery-organic-grassfed-unsalted-butter-8-oz-b09xcjkhkn",
+   "brand": "Maple Hill Creamery",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41MmOpzvLkL.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 6.79,
+   "name": "Organic Unsalted Butter, 16 OZ",
+   "slug": "365-by-whole-foods-market-organic-unsalted-butter-16-oz-b074v3v1v3",
+   "brand": "365 by Whole Foods Market",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41RW41yVRWL.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 5.49,
+   "salePrice": 4.88,
+   "incrementalSalePrice": 4.39,
+   "saleStartDate": "2026-10-07T00:00:00Z",
+   "saleEndDate": "2026-10-20T23:59:59Z",
+   "name": "Unsalted Irish Butter, 8 OZ",
+   "slug": "kerrygold-unsalted-irish-butter-8-oz-b0011edtgg",
+   "brand": "Kerrygold",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41738xQ1WSL.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 5.79,
+   "name": "Unsalted Peanut Butter, 16 OZ",
+   "slug": "teddie-peanut-butter-unsalted-peanut-butter-16-oz-b009yzgeno",
+   "brand": "TEDDIE PEANUT BUTTER",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41HJw7AvSyL.jpg",
+   "store": 10216,
+   "isLocal": false
+  },
+  {
+   "regularPrice": 4.19,
+   "name": "Organic Crunchy Unsweetend Unsalted Peanut Butter, 16 OZ",
+   "slug": "365-by-whole-foods-market-organic-crunchy-unsweetend-unsalted-peanut-butter-16-oz-b0frw6ccwn",
+   "brand": "365 by Whole Foods Market",
+   "imageThumbnail": "https://m.media-amazon.com/images/S/assets.wholefoodsmarket.com/PIE/product/41-8cmJ24-L.jpg",
+   "store": 10216,
+   "isLocal": false
+  }
+ ],
+ "meta": {
+  "total": {
+   "value": 11,
+   "relation": "EQUAL_TO"
+  },
+  "state": {
+   "searchText": "unsalted butter",
+   "sort": "relevance"
+  }
+ }
+}

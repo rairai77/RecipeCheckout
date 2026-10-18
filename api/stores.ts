@@ -1,6 +1,6 @@
 import type { StoresResponse } from '../lib/shared/types';
 import { errorJson, json } from '../lib/server/http';
-import { nearestStores } from '../lib/server/kroger';
+import { nearestStores } from '../lib/server/providers';
 
 const zipCache = new Map<string, { lat: number; lng: number; label: string }>();
 
