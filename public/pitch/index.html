@@ -436,6 +436,7 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 .cartbtn svg{width:28px;height:28px;flex:none}
 .listp .cartnext small{font:600 19px/1.2 var(--sans);letter-spacing:0;color:var(--muted);text-align:right}
 .row .it .cm{display:inline-block;font:700 17px/1 var(--sans);font-style:normal;color:#7A5200;background:#FBF0DC;border:1.5px solid #F2D49A;border-radius:999px;padding:3px 8px;margin-left:6px;vertical-align:1px}
+.row .it .q{font-style:normal;font-weight:800;color:var(--green-dk)}
 .row .it .alt{display:inline-block;font:700 18px/1 var(--sans);font-style:normal;color:#7A5200;background:#FBF0DC;border-radius:999px;padding:4px 9px;margin-left:8px;vertical-align:2px}
 .stop.next .dot{border-style:dashed}
 .slide.active .stop.next .dot{background:rgba(247,201,120,.18);border-color:var(--saffron)}
@@ -583,8 +584,8 @@ body.notes-open #notes{transform:none}
     </div>
     <div class="step" data-in style="--d:.85s">
       <div class="num">4</div>
-      <h3>Sorted &amp; rerouted</h3>
-      <p>Aisle order. Misses and out-of-stock items fall through to the next-nearest store.</p>
+      <h3>Packed &amp; sorted</h3>
+      <p>Plain math rounds up to whole packs (8 breasts → 4 × 1 lb). Aisle order; misses fall through to the next store.</p>
       <div class="runs" id="runs"><!-- filled from RUN.stores --></div>
       <div class="foot"><span class="chip">🏪 Nearest + up to 2 more</span></div>
     </div>
@@ -606,9 +607,9 @@ body.notes-open #notes{transform:none}
     </div>
     <div class="listp" data-in="right" style="--d:.3s">
       <div class="store"><div class="qfc">QFC</div><div><b data-run="store0">QFC Uptown</b><span id="store0-meta">0.5 mi · 500 Mercer St, Seattle</span></div><div class="found" id="found"><i>✓</i><span>11 of 11 found<br>9 here · +2 next store</span></div></div>
-      <div class="bar"><span>IN WALKING ORDER</span><span><span data-run="items">11</span> ITEMS</span></div>
+      <div class="bar"><span>IN WALKING ORDER · WHOLE PACKS</span><span><span data-run="items">11</span> ITEMS</span></div>
       <div id="rows"></div>
-      <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="58.20" data-prefix="$" data-dec="2">$58.20</div></div>
+      <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="83.35" data-prefix="$" data-dec="2">$83.35</div></div>
         <div class="cartnext" aria-label="Coming next, not built yet: send to pickup cart"><span class="nexttag">Next build · not live yet</span><div class="cartbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><small>Kroger Cart API · pay with your card at pickup</small></div>
       </div>
     </div>
@@ -795,24 +796,24 @@ const RUN = {               // source: lib/client/demo-run.json + live /?demo=1&
   location: 'South Lake Union', // slide 1 search-bar mock
   ingredients: 12,          // lines in the recipe (slide 4 card)
   items: 11,                // items shopped after pantry staples are unchecked (vegetable oil)
-  total: 58.20,             // estimated total, dollars ($41.72 Uptown + $16.48 Broadway Market)
-  missReason: 'in stock',   // why stores[0] missed items: demo-run.json status "unavailable" = listed but not in stock there
+  total: 83.35,             // estimated total, whole packs ($66.47 Uptown + $16.88 Broadway Market)
+  missReason: 'sold in-store', // why stores[0] missed items, as the site words it: "Not sold in-store at QFC Uptown" (inStore:false)
   stores: [                 // nearest first; found = items bought at that store
     { name: 'QFC Uptown',          logo: 'QFC', dist: '0.5 mi', addr: '500 Mercer St, Seattle', found: 9 },
     { name: 'QFC Broadway Market', logo: 'QFC', dist: '0.7 mi', found: 2 },
     { name: 'QFC Harvard Market',  logo: 'QFC', dist: '1.1 mi', found: 0 },
   ],
 };
-/* Slide 5 rows, in walking order: [kind, sign value, sign label, item(s), product(s) (HTML ok), price, map keys, storeIndex?]
+/* Slide 5 rows, in walking order: [kind, sign value, sign label, item(s) ("×N" = whole packs, as the site shows), product(s) (HTML ok), price (line total), map keys, storeIndex?]
    kind: 'sign' (aisle) | 'wall' | 'meat' | 'veg'. storeIndex (optional, default 0) marks an item that
    fell through to RUN.stores[i]; it gets a small "from <store>" tag and no map pin (the map is store 0).
    Map keys must exist in ITEMS below; the clean route's pin order follows these rows. */
 const ROWS = [
-  ['veg','🥬','Produce','Onions · Red pepper · Cilantro','Jumbo onions · hothouse pepper · organic cilantro','$4.98',['onions','pepper','cilantro']],
-  ['sign','1','LEFT','Butter · Heavy cream · Yogurt','Kroger butter · Horizon Organic cream · Mountain High','$21.47',['butter','cream','yogurt']],
-  ['sign','9','RIGHT','Diced tomatoes · Tomato purée','Kroger petite diced · Cento purée','$7.78',['tomatoes','puree']],
-  ['meat','🥩','Meat','Chicken breasts','Simple Truth natural chicken breasts','$7.49',['chicken']],
-  ['sign','5','LEFT','Tikka masala paste',"Patak's simmer sauce <em class=\"cm\">Closest match</em>",'$6.49',[],1],
+  ['veg','🥬','Produce','Onions ×2 · Red pepper ×2 · Cilantro','Jumbo onions · hothouse pepper · organic cilantro','$7.97',['onions','pepper','cilantro']],
+  ['sign','1','LEFT','Butter · Heavy cream · Yogurt','Kerrygold butter · Horizon cream · Mountain High','$19.47',['butter','cream','yogurt']],
+  ['sign','9','RIGHT','Diced tomatoes ×2 · Tomato purée','Kroger petite diced · Cento purée','$9.07',['tomatoes','puree']],
+  ['meat','🥩','Meat','Chicken breasts ×4','Simple Truth natural chicken breasts · 1 lb packs','$29.96',['chicken']],
+  ['sign','5','LEFT','Tikka masala paste',"Maya Kaimal simmer sauce <em class=\"cm\">Closest match</em>",'$6.89',[],1],
   ['sign','5','LEFT','Mango chutney','Indianlife medium mango chutney','$9.99',[],1],
 ];
 const S0 = RUN.stores[0];
@@ -830,9 +831,9 @@ const NOTES = [
   "Recipes are written for cooks, not stores. Which product is \"double cream\" here? And recipe order isn't aisle order: this red line is that trip, <b>about twice the walking</b>. Then you find out it's out of stock at the shelf." +
     "<span class=\"qa\">If asked: ≈2× = the two routes measured on this illustrative plan ({LM} vs {LC} units); the aisles are real.</span>",
   "So: <b>paste a recipe, walk the store once.</b> \"150 ml double cream\": the AI makes it heavy cream, never whipped topping or creamer. Then the real product at your store: aisle 1, left side, shelf 5, $7.99, in stock.",
-  "Four steps. We read the recipe, with fallbacks for blocked sites. <b>One</b> Claude Haiku call turns each line into a search term. Kroger's API searches the nearest store in parallel; we sort by aisle, and misses fall through to the next store.",
+  "Four steps. We read the recipe. <b>One</b> Claude Haiku call turns each line into a search term. Kroger's API searches the nearest store in parallel. Plain math rounds up to whole packs, we sort by aisle, and misses fall through to the next store.",
   `A <b>real recorded run</b>: ` + (fellThrough.length
-    ? `one loop for ${S0.found} items at ${S0.name}. It didn't have ${foundAll - S0.found} ${RUN.missReason}, so we found them at the next ${fellThrough[0].logo}; you can skip them. One is a flagged "closest match". About ${money(RUN.total)}.`
+    ? `one loop for ${S0.found} items at ${S0.name}. ${foundAll - S0.found} aren't ${RUN.missReason} there, so we found them at the next ${fellThrough[0].logo}; you can skip them. One is a flagged "closest match". ${money(RUN.total)} in whole packs.`
     : `all ${foundAll} items at ${S0.name}, one clean loop, about ${money(RUN.total)}.`) + ` That dashed button is our next build.`,
   `<span class="cue">[Click the laptop or press D to open the <a href="${DEMO_URL}" target="_blank" rel="noopener">demo replay</a>. Backup: press V for the <a href="/demo" target="_blank" rel="noopener">/demo video</a>. About 30 s.]</span> ` +
     "<b>The app is live:</b> scan and try any recipe. On stage I'm using a recorded real run, so wifi can't bite. Start a list… staples start unchecked… find in stores… the list, by aisle, with price and stock. No sign-up.",
@@ -865,8 +866,9 @@ document.getElementById('found').querySelector('span').innerHTML = fellThrough.l
   const sec = document.getElementById('why').closest('section'), h = sec.querySelector('h2'), w = document.getElementById('why');
   if (fellThrough.length) {
     const n = foundAll - S0.found;
-    w.innerHTML = `${n} item${n > 1 ? 's' : ''} ${n > 1 ? "weren't" : "wasn't"} ${RUN.missReason} at <b>${S0.name}</b>, so ${n > 1 ? 'they come' : 'it comes'} from ` +
-      `<b>${fellThrough.map(st => st.name).join('</b> and <b>')}</b>, the next-nearest ${fellThrough.length > 1 ? 'stores' : fellThrough[0].logo}.`;
+    const further = (parseFloat(fellThrough[fellThrough.length - 1].dist) - parseFloat(S0.dist)).toFixed(1);
+    w.innerHTML = `${n} item${n > 1 ? 's' : ''} ${n > 1 ? "aren't" : "isn't"} ${RUN.missReason} at <b>${S0.name}</b>, so ${n > 1 ? 'they come' : 'it comes'} from ` +
+      `<b>${fellThrough.map(st => st.name).join('</b> and <b>')}</b>, ${further} mi further. Every row has a Skip.`;
   } else {
     h.innerHTML = 'Same trip, <em>one clean loop.</em>'; sec.dataset.title = 'Same trip, one clean loop';
     w.innerHTML = `Every item at <b>${S0.name}</b>.`;
@@ -971,7 +973,7 @@ function signHTML(kind, a, b){
 }
 if (ROWS.length > 7) document.querySelector('.listp').classList.add('dense');
 document.getElementById('rows').innerHTML = ROWS.map(r =>
-  `<div class="row" data-keys="${r[6].join(' ')}">${signHTML(r[0],r[1],r[2])}<div class="it"><b>${r[3]}${r[7] ? `<em class="alt">from ${RUN.stores[r[7]].name}</em>` : ''}</b><span>${r[4]}</span></div><div class="pr">${r[5]}</div></div>`).join('');
+  `<div class="row" data-keys="${r[6].join(' ')}">${signHTML(r[0],r[1],r[2])}<div class="it"><b>${r[3].replace(/×(\d+)/g, '<i class="q">×$1</i>')}${r[7] ? `<em class="alt">from ${RUN.stores[r[7]].name}</em>` : ''}</b><span>${r[4]}</span></div><div class="pr">${r[5]}</div></div>`).join('');
 
 /* route animation */
 const routeAnims = new Map();
@@ -1053,11 +1055,11 @@ function typeUrl(){
 }
 
 /* ---------- slide 3: recipe line → intent → product ---------- */
-const MORPH = [ // real picks at QFC Uptown in the recorded run (lib/client/demo-run.json)
+const MORPH = [ // real picks at QFC Uptown in the recorded run (lib/client/demo-run.json); pd/price show whole packs like the site (2 × $1.29, 4 × $7.49)
   {raw:'150ml <mark>double cream</mark>', term:'heavy cream', meta:['🧈 dairy'], avoid:['whipped topping','creamer','sour'], pn:'Horizon Organic Heavy Whipping Cream', pd:'1 pt · Left side · shelf 5', price:'$7.99', stock:true, sign:['sign','1','LEFT']},
   {raw:'chopped <mark>coriander leaves</mark>, to serve', term:'cilantro', meta:['🥬 produce'], avoid:['seeds','dried','soap'], pn:'Organic Cilantro', pd:'1 ct · Produce section', price:'$1.99', stock:true, sign:['veg','🥬','Produce']},
-  {raw:'2 x 400g cans <mark>chopped tomatoes</mark>', term:'diced tomatoes', meta:['🥫 pantry'], avoid:['sauce','paste','soup'], pn:'Kroger® Petite Diced Tomatoes in Tomato Juice', pd:'14.5 oz · Right side · shelf 5', price:'$1.29', stock:true, sign:['sign','9','RIGHT']},
-  {raw:'8 boneless, skinless <mark>chicken breasts</mark> cut into 2.5cm cubes', term:'chicken breasts', meta:['🥩 meat'], avoid:['broth','seasoning','nuggets'], pn:'Simple Truth Natural Chicken Breasts', pd:'1 lb · Meat · Right side · shelf 2', price:'$7.49', stock:true, sign:['meat','🥩','Meat']},
+  {raw:'2 x 400g cans <mark>chopped tomatoes</mark>', term:'diced tomatoes', meta:['🥫 pantry'], avoid:['sauce','paste','soup'], pn:'Kroger® Petite Diced Tomatoes in Tomato Juice', pd:'2 × 14.5 oz · Right side · shelf 5', price:'$2.58', stock:true, sign:['sign','9','RIGHT']},
+  {raw:'8 boneless, skinless <mark>chicken breasts</mark> cut into 2.5cm cubes', term:'chicken breasts', meta:['🥩 meat'], avoid:['broth','seasoning','nuggets'], pn:'Simple Truth Natural Chicken Breasts', pd:'4 × 1 lb · Meat · Right side · shelf 2', price:'$29.96', stock:true, sign:['meat','🥩','Meat']},
 ];
 const morph = document.getElementById('morph');
 const mdots = document.getElementById('m-dots');
