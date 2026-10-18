@@ -10,6 +10,7 @@
 import * as real from './api';
 import * as demo from './demo';
 import { ApiCallError } from './api';
+import { SEATTLE_PRESET, type UserLocation } from './location';
 import type {
   Aisle,
   Department,
@@ -56,9 +57,61 @@ export function isMockMode(): boolean {
   return urlFlag('mock');
 }
 
-/** `?demo=1`: replay a recorded real run (BBC Good Food chicken tikka masala near Capitol Hill) with no network calls. */
+/** `?demo=1`: replay a recorded real run (BBC Good Food chicken tikka masala, Seattle) with no network calls. */
 export function isDemoMode(): boolean {
   return urlFlag('demo');
+}
+
+const SAMPLE_KEY = 'recipecheckout:sample';
+
+/**
+ * "See a sample run" on the home page: turn the recorded replay on for this tab without the URL flag.
+ * It only lasts until the person submits their own recipe (see endSampleRun), unlike `?demo=1`.
+ */
+export function startSampleRun(): void {
+  flags.demo = true;
+  try {
+    window.sessionStorage?.setItem('recipecheckout:demo', '1');
+    window.sessionStorage?.setItem(SAMPLE_KEY, '1');
+  } catch {
+    // ignore: the in-memory flag still works for this page load
+  }
+}
+
+/** Turns the replay off again if it was started by startSampleRun (not by `?demo=1`). Returns true if it did. */
+export function endSampleRun(): boolean {
+  let sample = false;
+  try {
+    sample = window.sessionStorage?.getItem(SAMPLE_KEY) === '1';
+    if (sample) {
+      window.sessionStorage?.removeItem(SAMPLE_KEY);
+      window.sessionStorage?.removeItem('recipecheckout:demo');
+    }
+  } catch {
+    // ignore
+  }
+  if (sample) flags.demo = false;
+  return sample;
+}
+
+/** The default "Seattle" location: the recorded run's origin in the replay, so labels match its stores. */
+export function presetLocation(): UserLocation {
+  if (!isDemoMode()) return SEATTLE_PRESET;
+  const o = demo.sampleOrigin();
+  return { lat: o.lat, lng: o.lng, label: o.label };
+}
+
+/** "Seattle (Capitol Hill)" -> "Seattle · Capitol Hill" for compact controls. */
+export function shortLocationLabel(label: string): string {
+  const m = label.match(/^(.*?)\s*\((.+)\)$/);
+  if (!m) return label;
+  const both = `${m[1]} · ${m[2]}`;
+  return both.length > 22 ? m[2] : both; // "South Lake Union" rather than a truncated "Seattle · South Lak…"
+}
+
+/** Which data source the client is using; part of cache keys so demo and live data never mix. */
+export function clientMode(): 'demo' | 'mock' | 'live' {
+  return isDemoMode() ? 'demo' : isMockMode() ? 'mock' : 'live';
 }
 
 /** `?clean=1`: hide the DEMO/MOCK badge, for screenshots and the demo video. */

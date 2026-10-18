@@ -6,7 +6,7 @@ export const colors = {
   card: '#FFFFFF',
   text: '#1D2A21',
   muted: '#5E6A60',
-  faint: '#7D877E', // ≥4.5:1 on white for small text
+  faint: '#646E66', // 5.3:1 on white, ≥4.9:1 on the cream and tint backgrounds
   border: '#ECE5D8',
   borderStrong: '#DCD3C3',
   accent: '#1F7A4D',

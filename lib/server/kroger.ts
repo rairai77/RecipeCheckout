@@ -162,12 +162,25 @@ function pickImage(images: any[] | undefined): string | undefined {
   return (sizes.find((s) => s.size === 'medium') ?? sizes.find((s) => s.size === 'small') ?? sizes[0])?.url;
 }
 
+/** Retailer promo tags that sometimes ride along in product names ("Kroger® Salted Butter Sticks BIG DEAL!"). */
+const PROMO_JUNK = /\s*\b(?:big deal|hot deal|great deal|new|sale|value pack|limited edition|limited time|special buy)!+(?=\s|$)/gi;
+
+export function cleanDescription(d: string): string {
+  return d
+    .replace(PROMO_JUNK, ' ')
+    .replace(/\s*\bBIG DEAL\b\s*/g, ' ')
+    .replace(/\s+([,.;:])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .replace(/[\s,;:-]+$/, '');
+}
+
 export function mapProduct(p: any): Product {
   const item = (p.items ?? [])[0] ?? {};
   const price = item.price ?? {};
   return {
     productId: String(p.productId),
-    description: String(p.description ?? ''),
+    description: cleanDescription(String(p.description ?? '')),
     brand: p.brand || undefined,
     size: item.size || undefined,
     price: typeof price.regular === 'number' && price.regular > 0 ? price.regular : undefined,

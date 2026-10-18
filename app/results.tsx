@@ -1,11 +1,11 @@
 import { Redirect, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, Share, StyleSheet, Text, View } from 'react-native';
-import { cap, deptStyle, effectivePrice, money, qtyLabel } from '../components/format';
+import { Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { cap, effectivePrice, itemStyle, money, qtyLabel } from '../components/format';
 import { RecipeBanner } from '../components/RecipeBanner';
 import { StoreCard, StoreSkeleton, type StoreRow } from '../components/StoreCard';
-import { chainColor, colors, fonts, radius, useBreakpoint, web } from '../components/theme';
-import { Button, Card, FadeIn, Notice, Page, Skeleton, Spinner } from '../components/ui';
+import { chainColor, colors, fonts, radius, transition, useBreakpoint, web } from '../components/theme';
+import { Button, Card, FadeIn, Notice, Page, pstate, Skeleton, Spinner } from '../components/ui';
 import { client } from '../lib/client/mock';
 import { useAppState } from '../lib/client/state';
 import { compareAisles, formatAisle } from '../lib/shared/aisleSort';
@@ -40,6 +40,7 @@ export default function Results() {
   const [picks, setPicks] = useState<Record<string, string>>({});
   const [attempt, setAttempt] = useState(0);
   const [copied, setCopied] = useState<'idle' | 'ok' | 'fail'>('idle');
+  const [showRuns, setShowRuns] = useState(false);
 
   useEffect(() => {
     const wanted = itemsRef.current;
@@ -127,7 +128,8 @@ export default function Results() {
               if (!item || !res.best) return null;
               const pool = res.candidates.some((c) => c.productId === res.best!.productId) ? res.candidates : [res.best, ...res.candidates];
               const product = pool.find((c) => c.productId === picks[res.itemId]) ?? res.best;
-              return { item, product, candidates: pool };
+              const row: StoreRow = { item, product, candidates: pool, substitute: res.substitute };
+              return row;
             })
             .filter((x): x is StoreRow => x !== null)
             .sort((a, b) => compareAisles(a.product.aisle, b.product.aisle));
@@ -192,7 +194,7 @@ export default function Results() {
         <Text style={styles.statusText}>{statusLine}</Text>
       </View>
       {phase === 'no_stores' ? (
-        <Text style={styles.muted}>No QFC, Fred Meyer or other Kroger-family stores within 10 miles of {location.label}. Try another location.</Text>
+        <Text style={styles.muted}>No QFC, Fred Meyer or other Kroger stores within 30 miles of {location.label}. Try another location.</Text>
       ) : null}
       {phase === 'error' ? (
         <View>
@@ -221,7 +223,7 @@ export default function Results() {
         <Card style={styles.panel}>
           <Text style={styles.panelTitle}>Not found nearby</Text>
           {misses.map(({ item, reason }, i) => {
-            const d = deptStyle(item.department);
+            const d = itemStyle(item);
             return (
               <View key={item.id} style={[styles.missRow, i > 0 && styles.missBorder]}>
                 <View style={[styles.missEmoji, { backgroundColor: d.tint }]}>
@@ -251,6 +253,7 @@ export default function Results() {
         {allRows.length} item{allRows.length === 1 ? '' : 's'} across {cards.length} store{cards.length === 1 ? '' : 's'}
         {unpriced ? ` · ${unpriced} without price` : ''}
       </Text>
+      <Text style={styles.eachHint}>Counts 1 of each item; check “Recipe needs” for more.</Text>
       <Button
         label={copyLabel}
         icon={copied === 'idle' ? '📋' : undefined}
@@ -261,6 +264,27 @@ export default function Results() {
         accessibilityLabel="Copy list"
       />
       <Text style={styles.summaryHint}>Plain text, grouped by store and aisle. Paste it into Notes or a text.</Text>
+    </Card>
+  );
+
+  // Phones and tablets: once the search is done, the store progress shrinks to one line under the list.
+  const progressLine = (
+    <Card style={[styles.panel, { paddingVertical: 4, paddingHorizontal: 6 }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showRuns }}
+        accessibilityLabel={`${statusLine}. ${showRuns ? 'Hide' : 'Show'} stores searched`}
+        onPress={() => setShowRuns((v) => !v)}
+        style={(s) => [styles.lineRow, transition, pstate(s).hovered && { backgroundColor: colors.accentTint }]}
+      >
+        <Text style={styles.statusCheck}>✓</Text>
+        <Text style={[styles.statusText, { fontSize: 14 }]} numberOfLines={2}>
+          {statusLine}
+          {errored.length ? <Text style={{ color: colors.danger }}> · {errored.length} store{errored.length === 1 ? '' : 's'} couldn't be searched</Text> : null}
+        </Text>
+        <Text style={styles.lineToggle}>{showRuns ? 'Hide ▴' : 'Stores ▾'}</Text>
+      </Pressable>
+      {showRuns ? <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>{runs.map((r) => <RunRow key={r.store.id} run={r} />)}</View> : null}
     </Card>
   );
 
@@ -318,7 +342,9 @@ export default function Results() {
         done && allRows.length ? (
           <View style={styles.bar}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.barLabel}>Estimated total</Text>
+              <Text style={styles.barLabel}>
+                Estimated total <Text style={styles.barEach}>· 1 of each</Text>
+              </Text>
               <Text style={styles.barTotal}>
                 {money(total)}
                 <Text style={styles.barNote}>
@@ -339,9 +365,10 @@ export default function Results() {
         ) : undefined
       }
     >
-      {progress}
+      {done ? null : progress}
       {main}
       {notFound}
+      {done ? progressLine : null}
       {again}
     </Page>
   );
@@ -442,7 +469,7 @@ function buildPlainList(title: string, cards: { store: Store; rows: StoreRow[] }
     for (const { item } of misses) out.push(`    [ ] ${item.name}${qtyLabel(item) ? `, ${qtyLabel(item)}` : ''}`);
     out.push('');
   }
-  out.push(`Estimated total: ${money(total)}`);
+  out.push(`Estimated total (1 of each item): ${money(total)}`);
   return out.join('\n');
 }
 
@@ -470,6 +497,10 @@ const styles = StyleSheet.create({
   summary: { padding: 22 },
   summaryLabel: { fontFamily: fonts.body, fontSize: 12, fontWeight: '800', color: colors.muted, letterSpacing: 0.6, textTransform: 'uppercase' },
   summaryTotal: { fontFamily: fonts.display, fontSize: 48, lineHeight: 54, fontWeight: '700', color: colors.ink, letterSpacing: -1, marginVertical: 2 },
+  eachHint: { fontFamily: fonts.body, fontSize: 12, color: colors.faint, marginTop: 4, lineHeight: 17 },
+  lineRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 12, borderRadius: radius.md },
+  lineToggle: { fontFamily: fonts.body, fontSize: 13, fontWeight: '700', color: colors.accentDark },
+  barEach: { fontWeight: '600', textTransform: 'none', letterSpacing: 0, color: colors.faint },
   summaryHint: { fontFamily: fonts.body, fontSize: 12, color: colors.faint, marginTop: 10, lineHeight: 17 },
   muted: { fontFamily: fonts.body, fontSize: 14, color: colors.muted, lineHeight: 20 },
   panelTitle: { fontFamily: fonts.display, fontSize: 20, fontWeight: '700', color: colors.ink, marginBottom: 8 },

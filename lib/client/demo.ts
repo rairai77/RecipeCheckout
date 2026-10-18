@@ -10,6 +10,16 @@ const recorded = run as unknown as {
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** The recorded recipe, for "See a sample run" (no wait). */
+export function sampleRecipe(): RecipeResponse {
+  return recorded.recipe;
+}
+
+/** Where the recorded run searched from (its nearest stores are in `stores`). */
+export function sampleOrigin(): StoresResponse['origin'] {
+  return recorded.stores.origin;
+}
+
 export async function fetchRecipe(): Promise<RecipeResponse> {
   await wait(2500);
   return recorded.recipe;

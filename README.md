@@ -35,7 +35,7 @@ Rules for `api/` and `lib/server/`: relative imports only (no `@/` alias), keep 
 
 ## Demo replay
 
-Add `?demo=1` to the URL to replay a recorded real run (BBC Good Food chicken tikka masala, QFC stores near Capitol Hill) with no network calls, in case venue wifi or an API fails. Any recipe link works in this mode. `?demo=0` turns it off. The recording lives in `lib/client/demo-run.json`. `?mock=1` uses small hand-written mock data for UI development instead.
+Add `?demo=1` to the URL to replay a recorded real run (BBC Good Food chicken tikka masala, QFC stores near South Lake Union, where two items fall through to the second-nearest store) with no network calls, in case venue wifi or an API fails. Any recipe link works in this mode. `?demo=0` turns it off. The recording lives in `lib/client/demo-run.json`. `?mock=1` uses small hand-written mock data for UI development instead.
 
 ## Recipe sites
 

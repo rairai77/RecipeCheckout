@@ -44,7 +44,7 @@ export async function searchItemsAtStore(req: SearchRequest): Promise<ItemResult
       } catch (err) {
         console.error(`search failed for "${item.searchTerm}" at ${req.storeId}:`, (err as Error).message);
       }
-      return pickBest(item.id, attempts);
+      return pickBest(item.id, attempts, item);
     }),
   );
 }

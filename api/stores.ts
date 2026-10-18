@@ -37,7 +37,7 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const stores = await nearestStores(origin.lat, origin.lng, 3);
     if (stores.length === 0) {
-      return errorJson('No supported stores (QFC, Fred Meyer, Kroger family) within 30 miles.', 404, 'no_stores');
+      return errorJson('No QFC, Fred Meyer or other Kroger stores within 30 miles.', 404, 'no_stores');
     }
     return json({ origin, stores } satisfies StoresResponse);
   } catch (err) {

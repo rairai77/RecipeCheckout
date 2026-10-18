@@ -7,8 +7,19 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": ["expo-router"],
-    "ios": { "supportsTablet": true },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "asyncRoutes": {
+            "web": false
+          }
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -17,6 +28,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
     },
-    "web": { "favicon": "./assets/favicon.png", "output": "single", "bundler": "metro" }
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "bundler": "metro"
+    }
   }
 }

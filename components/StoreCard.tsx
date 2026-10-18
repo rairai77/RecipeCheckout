@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Item, Product, Store } from '../lib/shared/types';
 import { AisleSign } from './AisleSign';
-import { aisleDetail, cap, effectivePrice, money, qtyLabel, stockBadge } from './format';
+import { aisleDetail, cap, effectivePrice, money, qtyLabel, recipeNeed, stockBadge } from './format';
 import { chainColor, colors, fonts, radius, shadow, transition, useBreakpoint, web } from './theme';
 import { pstate, Skeleton } from './ui';
 
@@ -10,6 +10,8 @@ export type StoreRow = {
   item: Item;
   product: Product;
   candidates: Product[];
+  /** The store had no exact match; this is the closest stand-in. */
+  substitute?: { reason: string };
 };
 
 type Props = {
@@ -99,15 +101,17 @@ function ProductRow({
   const { isPhone } = useBreakpoint();
   const { item, product: p, candidates } = row;
   const badge = stockBadge(p.stockLevel);
-  const qty = qtyLabel(item);
+  const need = recipeNeed(item);
+  const qty = need ? '' : qtyLabel(item);
   const others = candidates.filter((c) => c.productId !== p.productId);
   const detail = aisleDetail(p.aisle);
+  const sub = row.substitute;
 
   return (
     <View style={[!first && styles.rowBorder]}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`${p.description}. ${others.length ? 'Tap to see other matches.' : ''}`}
+        accessibilityLabel={`${sub ? 'Closest match: ' : ''}${p.description}. ${need ? `${need}. ` : ''}${others.length ? 'Tap to see other matches.' : ''}`}
         accessibilityState={{ expanded: open }}
         onPress={onToggle}
         style={(s) => [styles.row, transition, (pstate(s).hovered || open) && { backgroundColor: colors.accentTint }]}
@@ -125,6 +129,15 @@ function ProductRow({
           <Text style={styles.sub} numberOfLines={1}>
             {[p.size, detail].filter(Boolean).join(' · ')}
           </Text>
+          {need ? <Text style={styles.need}>{need}</Text> : null}
+          {sub ? (
+            <View style={styles.subRow}>
+              <View style={styles.subChip}>
+                <Text style={styles.subChipText}>Closest match</Text>
+              </View>
+              <Text style={styles.subReason}>{sub.reason}</Text>
+            </View>
+          ) : null}
           {others.length ? (
             <Text style={styles.swapHint}>{open ? 'Hide options ▴' : `⇄ ${others.length} other option${others.length === 1 ? '' : 's'}`}</Text>
           ) : null}
@@ -192,7 +205,12 @@ export function Price({ p, small }: { p: Product; small?: boolean }) {
   const onSale = p.price !== undefined && eff < p.price;
   return (
     <View style={styles.priceBox}>
-      <Text style={[styles.price, small && { fontSize: 15 }, onSale && { color: colors.tomato }]}>{money(eff)}</Text>
+      {onSale ? (
+        <View style={styles.saleTag}>
+          <Text style={styles.saleTagText}>Sale</Text>
+        </View>
+      ) : null}
+      <Text style={[styles.price, small && { fontSize: 15 }, onSale && { color: colors.accent }]}>{money(eff)}</Text>
       {onSale ? <Text style={styles.was}>{money(p.price!)}</Text> : null}
     </View>
   );
@@ -282,6 +300,13 @@ const styles = StyleSheet.create({
   desc: { fontFamily: fonts.body, fontSize: 15, fontWeight: '700', color: colors.text, lineHeight: 20 },
   candDesc: { fontFamily: fonts.body, fontSize: 14, fontWeight: '600', color: colors.text, lineHeight: 19 },
   sub: { fontFamily: fonts.body, fontSize: 12, color: colors.muted, marginTop: 3 },
+  need: { fontFamily: fonts.body, fontSize: 12, fontWeight: '700', color: colors.text, marginTop: 3 },
+  subRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6, marginTop: 6 },
+  subChip: { backgroundColor: colors.saffronSoft, borderRadius: radius.pill, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: '#F0D59E' },
+  subChipText: { fontFamily: fonts.body, fontSize: 11, fontWeight: '800', color: colors.warn },
+  subReason: { fontFamily: fonts.body, fontSize: 12, color: colors.warn, flexShrink: 1 },
+  saleTag: { backgroundColor: colors.saffronSoft, borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1, marginBottom: 2 },
+  saleTagText: { fontFamily: fonts.body, fontSize: 10, fontWeight: '800', color: colors.warn, letterSpacing: 0.4, textTransform: 'uppercase' },
   swapHint: { fontFamily: fonts.body, fontSize: 12, color: colors.accentDark, fontWeight: '700', marginTop: 6 },
   right: { alignItems: 'flex-end', gap: 6, minWidth: 64 },
   thumb: { borderRadius: 12, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },

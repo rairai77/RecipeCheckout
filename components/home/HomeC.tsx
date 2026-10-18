@@ -121,7 +121,7 @@ export default function HomeC({ background }: HomeCProps = {}) {
               <Text style={styles.h1Accent}>sorted by aisle.</Text>
             </Text>
             <Text style={[styles.lead, isPhone && styles.leadPhone]}>
-              Paste a link and get a grocery list mapped to the shelves of your nearest QFC or Fred Meyer.
+              Paste a link and get a grocery list mapped to the shelves of your nearest QFC, Fred Meyer or other Kroger store.
             </Text>
 
             <View style={[styles.barZone, { width: barWidth }]}>
@@ -304,7 +304,7 @@ function GoButton({ f, onPress, label, style }: { f: HomeForm; onPress: () => vo
       }}
     >
       {f.loading ? (
-        <ActivityIndicator size="small" color="#fff" />
+        <WhiteSpinner />
       ) : (
         <>
           <Text style={styles.goText}>{label}</Text>
@@ -395,13 +395,13 @@ function LocationOptions({ f, onClose, inline }: { f: HomeForm; onClose: () => v
   if (s.status === 'loading') storeLine = 'Finding nearby stores…';
   else if (s.status === 'ready' && s.nearest)
     storeLine = `Nearest: ${s.nearest.name} · ${s.nearest.distanceMi.toFixed(1)} mi`;
-  else if (s.status === 'empty') storeLine = 'No QFC or Fred Meyer stores nearby.';
+  else if (s.status === 'empty') storeLine = 'No QFC, Fred Meyer or other Kroger stores nearby.';
 
   return (
     <View style={inline ? styles.inlineOptions : undefined} accessibilityRole="radiogroup" accessibilityLabel="Shopping location">
       <Option
         icon="🏙️"
-        label="Seattle · Capitol Hill"
+        label={f.presetLabel}
         selected={f.locMode === 'preset'}
         onPress={() => {
           f.choosePreset();
@@ -500,6 +500,47 @@ function Option({
   );
 }
 
+/** A bold white ring spinner: ActivityIndicator renders greyish on the green button. */
+function WhiteSpinner() {
+  if (Platform.OS !== 'web') return <ActivityIndicator size="small" color="#fff" />;
+  return <View style={styles.spinner} accessibilityElementsHidden />;
+}
+
+/** "Try an example": a recorded sample run plus a couple of recipe links that fill the box. */
+function Examples({ f }: { f: HomeForm }) {
+  const { width } = useWindowDimensions();
+  const tight = width < 440;
+  const chip = [styles.chip, tight && styles.chipTight];
+  const text = [styles.chipText, tight && { fontSize: 12.5 }];
+  return (
+    <View style={styles.examples}>
+      {/* On narrow phones the three chips only fit on one line without the label. */}
+      {tight ? null : <Text style={styles.examplesLabel}>Try</Text>}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="See a sample run (recorded, no link needed)"
+        onPress={f.runSample}
+        hitSlop={6}
+        style={(s) => [chip, styles.chipSample, transition, pstate(s).hovered && styles.chipHover]}
+      >
+        <Text style={[text, { color: HEADLINE_ACCENT }]}>▶ See a sample run</Text>
+      </Pressable>
+      {f.examples.map((ex) => (
+        <Pressable
+          key={ex.url}
+          accessibilityRole="button"
+          accessibilityLabel={`Fill in an example recipe: ${ex.label}, ${ex.site}`}
+          onPress={() => f.pickExample(ex.url)}
+          hitSlop={6}
+          style={(s) => [chip, transition, pstate(s).hovered && styles.chipHover]}
+        >
+          <Text style={text}>{ex.label}</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
 /** Error, loading progress, location notice and the quiet paste/link toggle. */
 function BelowBar({ f }: { f: HomeForm }) {
   return (
@@ -511,6 +552,11 @@ function BelowBar({ f }: { f: HomeForm }) {
           </Text>
           <Text style={styles.errorText}>{f.error}</Text>
         </View>
+      ) : null}
+      {f.error && !f.isDemo ? (
+        <Pressable accessibilityRole="button" onPress={f.runSample} style={(s) => [styles.toggle, transition, pstate(s).hovered && { opacity: 1 }]}>
+          <Text style={[styles.toggleText, { color: HEADLINE_ACCENT }]}>Or see a recorded sample run</Text>
+        </Pressable>
       ) : null}
 
       {f.locationNotice && !f.error ? (
@@ -532,6 +578,8 @@ function BelowBar({ f }: { f: HomeForm }) {
           <Text style={styles.glassText}>{f.loadingSteps[f.loadingStep]}</Text>
         </View>
       ) : (
+        <>
+        {f.mode === 'url' ? <Examples f={f} /> : null}
         <Pressable
           accessibilityRole="button"
           onPress={f.toggleMode}
@@ -541,6 +589,7 @@ function BelowBar({ f }: { f: HomeForm }) {
             {f.mode === 'url' ? 'No link? Paste ingredients instead' : 'Use a recipe link instead'}
           </Text>
         </Pressable>
+        </>
       )}
 
       {f.isMock && !f.isDemo && f.mode === 'url' && !f.loading ? (
@@ -809,7 +858,45 @@ const styles = StyleSheet.create({
     animationDuration: '1s',
     animationIterationCount: 'infinite',
   }),
-  toggle: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12, opacity: 0.88 },
+  toggle: { minHeight: 40, justifyContent: 'center', paddingHorizontal: 12, opacity: 0.88 },
+  examples: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 8, maxWidth: 560 },
+  examplesLabel: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.78)',
+    marginRight: 2,
+    ...web({ textShadow: '0 1px 8px rgba(0,0,0,0.5)' }),
+  },
+  chip: {
+    minHeight: 34,
+    justifyContent: 'center',
+    paddingHorizontal: 13,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(12,18,14,0.42)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    ...web({ backdropFilter: 'blur(8px)', cursor: 'pointer' }),
+  },
+  chipTight: { paddingHorizontal: 10, minHeight: 32 },
+  chipSample: { borderColor: 'rgba(247,201,120,0.45)' },
+  chipHover: { backgroundColor: 'rgba(12,18,14,0.62)', borderColor: 'rgba(255,255,255,0.4)' },
+  chipText: { fontFamily: fonts.body, fontSize: 13, fontWeight: '700', color: '#fff' },
+  spinner: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 3.5,
+    borderColor: 'rgba(255,255,255,0.38)',
+    borderTopColor: '#fff',
+    borderRightColor: '#fff',
+    ...web({
+      animationKeyframes: [{ '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } }],
+      animationDuration: '0.75s',
+      animationIterationCount: 'infinite',
+      animationTimingFunction: 'linear',
+    }),
+  },
   toggleText: {
     fontFamily: fonts.body,
     fontSize: 15,

@@ -88,6 +88,8 @@ export interface ItemResult {
   termUsed: string;
   best?: Product;
   candidates: Product[];
+  /** Set when `best` is only the closest stand-in (e.g. a simmer sauce for "tikka masala paste"). */
+  substitute?: { reason: string };
 }
 
 export interface SearchRequest {

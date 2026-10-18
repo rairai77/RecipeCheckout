@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>%WEB_TITLE% · Any recipe, sorted by aisle</title>
+    <meta name="description" content="Paste any recipe link and get a grocery list sorted by aisle, with shelf, price and stock, at your nearest QFC, Fred Meyer or other Kroger store." />
+    <meta name="theme-color" content="#0C0D0B" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RecipeCheckout" />
+    <meta property="og:url" content="https://recipecheckout.vercel.app/" />
+    <meta property="og:title" content="RecipeCheckout · Any recipe, sorted by aisle" />
+    <meta property="og:description" content="Paste a recipe link, get a grocery list sorted in walking order with aisle, price and stock at your nearest Kroger-family store." />
+    <meta property="og:image" content="https://recipecheckout.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="RecipeCheckout home page: Any recipe, sorted by aisle, with a recipe link box over a produce aisle." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="RecipeCheckout · Any recipe, sorted by aisle" />
+    <meta name="twitter:description" content="Paste a recipe link, get a grocery list sorted in walking order with aisle, price and stock at your nearest Kroger-family store." />
+    <meta name="twitter:image" content="https://recipecheckout.vercel.app/og.png" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon-180.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      id="rc-fonts"
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..800;1,9..144,500..800&family=Plus+Jakarta+Sans:wght@400..800&display=swap"
+    />
+
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* Dark like the home page until the app paints, so slow networks never show a white page. */
+      html,
+      body {
+        height: 100%;
+        background: #0C0D0B;
+      }
+      /* Other routes are cream: set before first paint so a refresh there doesn't flash dark either. */
+      html.rc-light,
+      html.rc-light body {
+        background: #FBF7F0;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+    <script>
+      try {
+        if (location.pathname !== '/' && location.pathname !== '/index.html') document.documentElement.className = 'rc-light';
+      } catch (e) {}
+    </script>
+  </head>
+
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript> You need to enable JavaScript to run this app. </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  </body>
+</html>

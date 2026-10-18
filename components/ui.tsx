@@ -201,7 +201,16 @@ export function Spinner({ color = colors.accent }: { color?: string }) {
 }
 
 export const styles = StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.bg },
+  page: {
+    flex: 1,
+    backgroundColor: colors.bg,
+    // Short entrance so the switch from the dark home to the light pages feels intended; content is visible from frame 1.
+    ...web({
+      animationKeyframes: [{ '0%': { opacity: 0.4 }, '100%': { opacity: 1 } }],
+      animationDuration: '180ms',
+      animationTimingFunction: 'ease-out',
+    }),
+  },
   scroll: { flex: 1 },
   column: { width: '100%', alignSelf: 'center' },
   nav: { height: 68, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

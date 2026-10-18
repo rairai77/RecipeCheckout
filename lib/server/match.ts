@@ -68,6 +68,24 @@ export function isAvailable(p: Product): boolean {
 // Words that mean "not the real thing" unless the search term itself asks for them.
 const GLOBAL_AVOID = ['substitute', 'alternative', 'replacer', 'replacement', 'sweetener', 'zero', 'imitation', 'artificial', 'candle', 'scented'];
 
+/** Avoid phrases (normalized) that apply to `term`: an avoid word the term itself asks for ("simmer sauce" in
+ * "tikka masala simmer sauce") is dropped for that term. */
+function avoidPhrases(term: string, avoidWords: string[]): string[] {
+  const termSet = new Set(tokens(term).filter((w) => !FILLER.has(w)).map(singular));
+  return [...avoidWords, ...GLOBAL_AVOID]
+    .map((w) => tokens(w).map(singular).join(' '))
+    .filter((w) => w && !w.split(' ').every((t) => termSet.has(t)));
+}
+
+function phraseIn(phrase: string, descSingular: string[]): boolean {
+  if (phrase.includes(' ')) return ` ${descSingular.join(' ')} `.includes(` ${phrase} `);
+  return descSingular.some((d) => d === phrase || d.startsWith(phrase));
+}
+
+function productTokens(p: Product): string[] {
+  return tokens(stripBrand(p).replace(BRANDISH, '')).map(singular);
+}
+
 export interface Scored {
   product: Product;
   score: number;
@@ -79,12 +97,9 @@ export interface Scored {
 
 export function scoreCandidates(term: string, item: Pick<Item, 'department' | 'avoidWords'>, products: Product[]): Scored[] {
   const termTokens = tokens(term).filter((w) => !FILLER.has(w));
-  const termSet = new Set(termTokens.map(singular));
   const head = termTokens[termTokens.length - 1];
   const modifiers = termTokens.slice(0, -1);
-  const avoid = [...item.avoidWords, ...GLOBAL_AVOID]
-    .map((w) => tokens(w).map(singular).join(' '))
-    .filter((w) => w && !w.split(' ').every((t) => termSet.has(t)));
+  const avoid = avoidPhrases(term, item.avoidWords);
   const phrase = termTokens.map(singular).join(' ');
   const deptRe = DEPT_CATEGORIES[item.department];
 
@@ -98,16 +113,22 @@ export function scoreCandidates(term: string, item: Pick<Item, 'department' | 'a
     const modsMatched = modifiers.filter((w) => wordMatches(w, descTokens)).length;
     const headMatch = !!head && wordMatches(head, descTokens);
     const descPhrase = ` ${descSingular.join(' ')} `;
-    const hasAvoid = avoid.some((a) => (a.includes(' ') ? descPhrase.includes(` ${a} `) : descSingular.some((d) => d === a || d.startsWith(a))));
+    const hasAvoid = avoid.some((a) => phraseIn(a, descSingular));
     const nonFood = product.categories.some((c) => NON_FOOD_CATEGORIES.test(c));
     const deptMatch = deptRe.test(cats);
     const deptMismatch = item.department !== 'other' && product.categories.length > 0 && !deptMatch;
+    // "Crushed Tomatoes in Tomato Puree" is crushed tomatoes: words after " in " name the packing, not the product.
+    const inAt = descTokens.indexOf('in', 1);
+    const mainTokens = inAt > 0 ? descTokens.slice(0, inAt) : descTokens;
+    const mainFull =
+      mainTokens.join('').includes(termTokens.map(singular).join('')) ||
+      (!!head && wordMatches(head, mainTokens) && modifiers.every((w) => wordMatches(w, mainTokens)));
     let tier: Scored['tier'] = 0;
     if (!hasAvoid && !nonFood) {
       const full = joinedMatch || (headMatch && modsMatched === modifiers.length);
       // exact words in the wrong department ("Lemongrass Seltzer" for fresh lemongrass) only count as a loose match;
       // head noun only is a loose match, and never from the wrong department ("Zero Sugar" sports drink for "white sugar")
-      if (full) tier = deptMismatch ? 1 : 2;
+      if (full) tier = deptMismatch || !mainFull ? 1 : 2;
       else if (headMatch && !deptMismatch) tier = 1;
     }
     const available = isAvailable(product);
@@ -133,7 +154,32 @@ export function hasStrictHit(scored: Scored[]): boolean {
   return scored.some((s) => s.tier === 2);
 }
 
-export function pickBest(itemId: string, attempts: { term: string; scored: Scored[] }[]): ItemResult {
+/**
+ * Is `best` only a stand-in for what the recipe asked for? True when it carries one of the item's avoid words that the
+ * primary search term doesn't ask for ("Tikka Masala Simmer Sauce" for "tikka masala paste", avoid "simmer sauce"),
+ * or when it was found only through an alternate term and isn't an exact match for the primary term.
+ */
+export function substituteFor(
+  item: Pick<Item, 'searchTerm' | 'department' | 'avoidWords'>,
+  best: Product,
+  termUsed: string,
+): ItemResult['substitute'] {
+  const primary = item.searchTerm.trim();
+  if (!primary) return undefined;
+  const hit = avoidPhrases(primary, item.avoidWords).find((a) => phraseIn(a, productTokens(best)));
+  if (hit) return { reason: `${hit} instead of ${primary}` };
+  if (termUsed.trim().toLowerCase() !== primary.toLowerCase()) {
+    const [asPrimary] = scoreCandidates(primary, item, [best]);
+    if (!asPrimary || asPrimary.tier < 2) return { reason: `${termUsed} instead of ${primary}` };
+  }
+  return undefined;
+}
+
+export function pickBest(
+  itemId: string,
+  attempts: { term: string; scored: Scored[] }[],
+  item?: Pick<Item, 'searchTerm' | 'department' | 'avoidWords'>,
+): ItemResult {
   // Pool every attempt (searchTerm first, then altTerms). Exact matches beat head-noun-only matches,
   // then score; later attempts get a small penalty so the primary term wins ties.
   const pool = new Map<string, { s: Scored; term: string; rankScore: number }>();
@@ -147,11 +193,16 @@ export function pickBest(itemId: string, attempts: { term: string; scored: Score
   });
   const ranked = [...pool.values()].sort((a, b) => b.rankScore - a.rankScore);
   const avail = ranked.filter((r) => r.s.available);
+  const ctx = item ?? { searchTerm: attempts[0]?.term ?? '', department: 'other' as const, avoidWords: [] };
+  const withSub = (r: ItemResult): ItemResult => {
+    const sub = r.best ? substituteFor(ctx, r.best, r.termUsed) : undefined;
+    return sub ? { ...r, substitute: sub } : r;
+  };
   if (avail.length > 0) {
-    return { itemId, status: 'found', termUsed: avail[0].term, best: avail[0].s.product, candidates: avail.slice(0, 6).map((r) => r.s.product) };
+    return withSub({ itemId, status: 'found', termUsed: avail[0].term, best: avail[0].s.product, candidates: avail.slice(0, 6).map((r) => r.s.product) });
   }
   if (ranked.length > 0) {
-    return { itemId, status: 'unavailable', termUsed: ranked[0].term, best: ranked[0].s.product, candidates: [] };
+    return withSub({ itemId, status: 'unavailable', termUsed: ranked[0].term, best: ranked[0].s.product, candidates: [] });
   }
   return { itemId, status: 'no_match', termUsed: attempts[0]?.term ?? '', candidates: [] };
 }

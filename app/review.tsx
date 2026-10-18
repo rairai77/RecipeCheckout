@@ -1,6 +1,6 @@
 import { Redirect, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { cap, deptStyle, qtyLabel } from '../components/format';
+import { cap, itemStyle, qtyLabel } from '../components/format';
 import { RecipeBanner } from '../components/RecipeBanner';
 import { colors, fonts, radius, shadow, transition, useBreakpoint, web } from '../components/theme';
 import { Button, Checkbox, FadeIn, Page, pstate } from '../components/ui';
@@ -97,7 +97,7 @@ function SegButton({ label, active, onPress }: { label: string; active: boolean;
 }
 
 function IngredientCard({ item, on, onToggle }: { item: Item; on: boolean; onToggle: () => void }) {
-  const d = deptStyle(item.department);
+  const d = itemStyle(item);
   const qty = qtyLabel(item);
   return (
     <Pressable

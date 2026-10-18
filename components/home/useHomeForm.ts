@@ -31,9 +31,10 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ApiCallError } from '../../lib/client/api';
-import { getBrowserLocation, isValidZip, LocationError, locationKey, SEATTLE_PRESET } from '../../lib/client/location';
-import { client, isDemoMode, isMockMode } from '../../lib/client/mock';
-import { useAppState } from '../../lib/client/state';
+import { sampleOrigin, sampleRecipe } from '../../lib/client/demo';
+import { getBrowserLocation, isValidZip, LocationError, SEATTLE_PRESET, type UserLocation } from '../../lib/client/location';
+import { client, endSampleRun, isDemoMode, isMockMode, presetLocation, shortLocationLabel, startSampleRun } from '../../lib/client/mock';
+import { storesKey, useAppState } from '../../lib/client/state';
 import type { Store } from '../../lib/shared/types';
 
 export type RecipeMode = 'url' | 'text';
@@ -76,12 +77,25 @@ export type HomeForm = {
   locationNotice: string | null;
   stores: HomeStores;
   retryStores: () => void;
+
+  /** Label of the default Seattle location option. */
+  presetLabel: string;
+  /** "Try an example" links that fill the recipe box. */
+  examples: { label: string; site: string; url: string }[];
+  pickExample: (url: string) => void;
+  /** Opens the recorded replay (no API calls): straight to /review with the sample recipe. */
+  runSample: () => void;
 };
+
+/** Recipe links that are known to work end to end (the first one is the recorded sample run). */
+export const EXAMPLES = [
+  { label: 'Tikka masala', site: 'BBC Good Food', url: 'https://www.bbcgoodfood.com/recipes/chicken-tikka-masala' },
+  { label: 'Bolognese', site: 'BBC Good Food', url: 'https://www.bbcgoodfood.com/recipes/best-spaghetti-bolognese-recipe' },
+];
 
 /** Error codes where the right move is "paste the ingredients instead". */
 const PASTE_FALLBACK_CODES = new Set(['blocked', 'no_recipe', 'not_found', 'network']);
 const LOADING_STEPS = ['Reading recipe…', 'Finding the ingredient list…', 'Turning lines into grocery searches…'];
-export const PRESET_SHORT_LABEL = 'Seattle · Capitol Hill';
 
 export function useHomeForm(): HomeForm {
   const router = useRouter();
@@ -96,8 +110,9 @@ export function useHomeForm(): HomeForm {
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
+  const preset = presetLocation();
   const [locMode, setLocMode] = useState<LocationMode>(() =>
-    'zip' in location ? 'zip' : location.label !== SEATTLE_PRESET.label ? 'gps' : 'preset',
+    'zip' in location ? 'zip' : location.label !== preset.label ? 'gps' : 'preset',
   );
   const [zip, setZipState] = useState(() => ('zip' in location ? location.zip : ''));
   const [locating, setLocating] = useState(false);
@@ -134,6 +149,8 @@ export function useHomeForm(): HomeForm {
       setError('Enter a 5-digit ZIP code, or pick another location.');
       return;
     }
+    // Their own recipe after "See a sample run": go back to live data (a `?demo=1` URL keeps replaying).
+    if (input && endSampleRun() && locMode === 'preset') setLocation(SEATTLE_PRESET);
     setLoading(true);
     loadStores().catch(() => {}); // make sure stores are on their way while the recipe is read
     try {
@@ -162,7 +179,7 @@ export function useHomeForm(): HomeForm {
   const choosePreset = () => {
     setLocMode('preset');
     setLocationNotice(null);
-    setLocation(SEATTLE_PRESET);
+    setLocation(presetLocation());
   };
 
   const chooseMyLocation = async () => {
@@ -174,9 +191,9 @@ export function useHomeForm(): HomeForm {
       setLocation({ ...pos, label: 'your location' });
     } catch (e) {
       const why = e instanceof LocationError ? e.message : "Couldn't get your location.";
-      setLocationNotice(`${why} Using ${SEATTLE_PRESET.label} instead.`);
+      setLocationNotice(`${why} Using ${presetLocation().label} instead.`);
       setLocMode('preset');
-      setLocation(SEATTLE_PRESET);
+      setLocation(presetLocation());
     } finally {
       setLocating(false);
     }
@@ -202,9 +219,9 @@ export function useHomeForm(): HomeForm {
         : 'ZIP code'
       : locMode === 'gps'
         ? 'My location'
-        : PRESET_SHORT_LABEL;
+        : shortLocationLabel(preset.label);
 
-  const key = locationKey(location);
+  const key = storesKey(location);
   let stores: HomeStores = { status: 'idle', count: 0 };
   if (!zipMissing && !locating && 'key' in storesState && storesState.key === key) {
     if (storesState.status === 'loading') stores = { status: 'loading', count: 0 };
@@ -246,6 +263,25 @@ export function useHomeForm(): HomeForm {
     stores,
     retryStores: () => {
       loadStores().catch(() => {});
+    },
+
+    presetLabel: shortLocationLabel(preset.label),
+    examples: EXAMPLES,
+    pickExample: (u: string) => {
+      setModeState('url');
+      setError(null);
+      setUrl(u);
+    },
+    runSample: () => {
+      if (loading) return;
+      startSampleRun();
+      const o = sampleOrigin();
+      const loc: UserLocation = { lat: o.lat, lng: o.lng, label: o.label };
+      setLocMode('preset');
+      setLocationNotice(null);
+      setLocation(loc);
+      setRecipe(sampleRecipe());
+      router.push('/review');
     },
   };
 }
