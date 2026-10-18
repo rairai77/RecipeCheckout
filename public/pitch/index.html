@@ -433,6 +433,7 @@ h2 em,h1 em{font-weight:700;color:var(--green)}
 .cartbtn{display:flex;align-items:center;gap:12px;border:2.5px dashed var(--green-2);color:var(--green-dk);background:#F2F8F3;border-radius:999px;padding:14px 22px;font:800 24px/1 var(--sans);white-space:nowrap}
 .cartbtn svg{width:28px;height:28px;flex:none}
 .listp .cartnext small{font:600 19px/1.2 var(--sans);letter-spacing:0;color:var(--muted);text-align:right}
+.row .it .cm{display:inline-block;font:700 17px/1 var(--sans);font-style:normal;color:#7A5200;background:#FBF0DC;border:1.5px solid #F2D49A;border-radius:999px;padding:3px 8px;margin-left:6px;vertical-align:1px}
 .row .it .alt{display:inline-block;font:700 18px/1 var(--sans);font-style:normal;color:#7A5200;background:#FBF0DC;border-radius:999px;padding:4px 9px;margin-left:8px;vertical-align:2px}
 .stop.next .dot{border-style:dashed}
 .slide.active .stop.next .dot{background:rgba(247,201,120,.18);border-color:var(--saffron)}
@@ -512,7 +513,7 @@ body.notes-open #notes{transform:none}
       </div>
       <div class="f loc">
         <svg class="ico" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="#D9472B"/><circle cx="12" cy="10" r="2.6" fill="#fff"/></svg>
-        <div><small>Shopping near</small><div class="v">Seattle · Capitol Hill</div></div>
+        <div><small>Shopping near</small><div class="v" data-run="location">South Lake Union</div></div>
       </div>
       <div class="go" id="go">Go <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
     </div>
@@ -526,14 +527,14 @@ body.notes-open #notes{transform:none}
   <div class="cols">
     <div class="pains">
       <div class="pain" data-in="left" style="--d:.3s"><div class="n">1</div><div><h3>Cook-speak isn't store-speak</h3><p><q>150 ml double cream</q>, <q>coriander leaves</q>, <q>tikka masala paste</q>: which product is that, at <i>this</i> store?</p></div></div>
-      <div class="pain" data-in="left" style="--d:.45s"><div class="n">2</div><div><h3>Recipe order isn't aisle order</h3><p>Aisle 11, produce, aisle 5, produce again, meat, aisle 7, back to aisle 5…</p></div></div>
+      <div class="pain" data-in="left" style="--d:.45s"><div class="n">2</div><div><h3>Recipe order isn't aisle order</h3><p>Aisle 1, produce, meat, aisle 9, back to aisle 1, produce again…</p></div></div>
       <div class="pain" data-in="left" style="--d:.6s"><div class="n">3</div><div><h3>Price and stock are a surprise</h3><p>You find out it's out of stock, or the wrong jar, standing at the shelf.</p></div></div>
-      <div class="walk" data-in="pop" style="--d:.9s"><div class="x2">≈2<span class="times">×</span></div><div><b>the walking</b><span>Same <span data-run="items">11</span> items, recipe order vs aisle order, on this floor plan.</span></div></div>
+      <div class="walk" data-in="pop" style="--d:.9s"><div class="x2">≈2<span class="times">×</span></div><div><b>the walking</b><span>Same <span data-run="mapItems">9</span> items, recipe order vs aisle order, on this floor plan.</span></div></div>
     </div>
     <div class="mapcard" style="width:860px;--d:.2s" data-in="pop">
-      <div class="mh"><b>Tikka masala, shopped in recipe order</b><span class="chip" style="background:var(--tomato-soft);color:var(--tomato)"><span data-run="items">11</span>&nbsp;items</span></div>
+      <div class="mh"><b>Tikka masala, shopped in recipe order</b><span class="chip" style="background:var(--tomato-soft);color:var(--tomato)"><span data-run="mapItems">9</span>&nbsp;items</span></div>
       <div id="map-messy"></div>
-      <div class="cap">Illustrative floor plan · real aisles from <span data-run="store0">QFC Broadway Market</span></div>
+      <div class="cap">Illustrative floor plan · real aisles from <span data-run="store0">QFC Uptown</span></div>
     </div>
   </div>
 </section>
@@ -548,10 +549,10 @@ body.notes-open #notes{transform:none}
     <div class="arrow a1"><svg viewBox="0 0 60 30"><path d="M2 15h52M42 4l13 11-13 11"/></svg></div>
     <div class="mc ai"><div class="lab">✦ AI · shoppable intent</div><div class="x"><div class="term" id="m-term"></div><div class="meta" id="m-meta"></div></div></div>
     <div class="arrow a2"><svg viewBox="0 0 60 30"><path d="M2 15h52M42 4l13 11-13 11"/></svg></div>
-    <div class="mc prod"><div id="m-sign"></div><div class="pinfo x"><div class="lab" data-run="store0">QFC Broadway Market</div><div class="pn" id="m-pn"></div><div class="pd" id="m-pd"></div><div class="pr"><span class="price" id="m-price"></span><span id="m-stock"></span></div></div></div>
+    <div class="mc prod"><div id="m-sign"></div><div class="pinfo x"><div class="lab" data-run="store0">QFC Uptown</div><div class="pn" id="m-pn"></div><div class="pd" id="m-pd"></div><div class="pr"><span class="price" id="m-price"></span><span id="m-stock"></span></div></div></div>
   </div>
   <div class="dots" id="m-dots" data-in="fade" style="--d:.6s"></div>
-  <div class="fixcap" data-in="fade" style="--d:.7s">Real matches from a recorded run at <span data-run="store0">QFC Broadway Market</span>, Seattle</div>
+  <div class="fixcap" data-in="fade" style="--d:.7s">Real matches from a recorded run at <span data-run="store0">QFC Uptown</span>, Seattle</div>
 </section>
 
 <!-- 4 · HOW IT WORKS -->
@@ -570,15 +571,15 @@ body.notes-open #notes{transform:none}
       <div class="num gold">2</div>
       <h3>One AI call</h3>
       <p>Claude Haiku turns every line into a shoppable intent.</p>
-      <div class="code"><div class="s">"4 onions, roughly chopped"</div><dl><dt class="k">term</dt><dd>yellow onions</dd><dt class="k">dept</dt><dd>produce</dd><dt class="r">avoid</dt><dd>rings · soup · powder</dd><dt class="k">staple</dt><dd>no</dd></dl></div>
+      <div class="code"><div class="s">"4 onions roughly chopped"</div><dl><dt class="k">term</dt><dd>yellow onions</dd><dt class="k">dept</dt><dd>produce</dd><dt class="r">avoid</dt><dd>rings · soup · powder</dd><dt class="k">staple</dt><dd>no</dd></dl></div>
       <div class="foot"><span class="chip gold">⏱ ~6–9 s per recipe</span></div>
     </div>
     <div class="step" data-in style="--d:.65s">
       <div class="num">3</div>
       <h3>Live store catalog</h3>
       <p>Kroger's official API, every item in parallel: aisle or department, shelf where listed, price, stock.</p>
-      <div class="mprod"><div class="minis"><div class="sign"><span><small>AISLE</small><b>12</b><i>LEFT</i></span></div></div><div><b>Horizon Organic Heavy Whipping Cream</b><span>Left side · shelf 6</span><div class="r"><b>$7.99</b><span class="stock">In stock</span></div></div></div>
-      <div class="foot"><span class="chip">⏱ ~1–2 s per store</span></div>
+      <div class="mprod"><div class="minis"><div class="sign"><span><small>AISLE</small><b>1</b><i>LEFT</i></span></div></div><div><b>Horizon Organic Heavy Whipping Cream</b><span>Left side · shelf 5</span><div class="r"><b>$7.99</b><span class="stock">In stock</span></div></div></div>
+      <div class="foot"><span class="chip">⏱ ~2 s per store</span></div>
     </div>
     <div class="step" data-in style="--d:.85s">
       <div class="num">4</div>
@@ -599,14 +600,14 @@ body.notes-open #notes{transform:none}
       <h2 data-in style="--d:.08s">Same trip, <em>one clean loop.</em></h2>
       <div class="mapcard" data-in="pop" style="--d:.2s">
         <div id="map-clean"></div>
-        <div class="cap">Illustrative floor plan · real aisles from the recorded run</div>
+        <div class="cap">Illustrative floor plan · real aisles at <span data-run="store0">QFC Uptown</span></div>
       </div>
     </div>
     <div class="listp" data-in="right" style="--d:.3s">
-      <div class="store"><div class="qfc">QFC</div><div><b data-run="store0">QFC Broadway Market</b><span id="store0-meta">0.1 mi · 417 Broadway E, Seattle</span></div><div class="found" id="found"><i>✓</i><span>11 of 11 found<br>at the first store</span></div></div>
+      <div class="store"><div class="qfc">QFC</div><div><b data-run="store0">QFC Uptown</b><span id="store0-meta">0.5 mi · 500 Mercer St, Seattle</span></div><div class="found" id="found"><i>✓</i><span>11 of 11 found<br>9 here · +2 next store</span></div></div>
       <div class="bar"><span>IN WALKING ORDER</span><span><span data-run="items">11</span> ITEMS</span></div>
       <div id="rows"></div>
-      <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="54.79" data-prefix="$" data-dec="2">$54.79</div></div>
+      <div class="total"><div><small>ESTIMATED TOTAL</small><div class="big" id="total" data-count="58.20" data-prefix="$" data-dec="2">$58.20</div></div>
         <div class="cartnext" aria-label="Coming next, not built yet: send to pickup cart"><span class="nexttag">Next build · not live yet</span><div class="cartbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1.5 1.5 0 0 0 1.5 1.2h8.6a1.5 1.5 0 0 0 1.5-1.1L21 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>Send to pickup cart</div><small>Kroger Cart API · pay with your card at pickup</small></div>
       </div>
     </div>
@@ -627,7 +628,7 @@ body.notes-open #notes{transform:none}
       <div class="lid"><div class="scr" id="lapscr"><a class="demo" href="https://recipecheckout.vercel.app/?demo=1&amp;clean=1" target="_blank" rel="noopener" aria-label="Open the live demo (recorded real run)"></a>
         <img class="on" src="/pitch/assets/desk-home.webp" alt="RecipeCheckout home: Any recipe, sorted by aisle, with a recipe link field and location">
         <img src="/pitch/assets/desk-review.webp" alt="Review screen: ingredient cards with pantry staples unchecked">
-        <img src="/pitch/assets/desk-results.webp" alt="Results: QFC Broadway Market list sorted by aisle with prices">
+        <img src="/pitch/assets/desk-results.webp" alt="Results: QFC Uptown list sorted by aisle with prices, plus 2 items from QFC Broadway Market">
       </div></div>
       <div class="base"></div>
     </div>
@@ -790,27 +791,28 @@ let cur = -1;
    Also check by hand: MORPH (slide 3 examples), the slide 4 sample
    product card (.mprod), and the screenshots in /pitch/assets/.
    ============================================================ */
-const RUN = {
+const RUN = {               // source: lib/client/demo-run.json + live /?demo=1&clean=1 results page
+  location: 'South Lake Union', // slide 1 search-bar mock
   ingredients: 12,          // lines in the recipe (slide 4 card)
-  items: 11,                // items shopped after pantry staples are unchecked
-  total: 54.79,             // estimated total, dollars
+  items: 11,                // items shopped after pantry staples are unchecked (vegetable oil)
+  total: 58.20,             // estimated total, dollars ($41.72 Uptown + $16.48 Broadway Market)
   stores: [                 // nearest first; found = items bought at that store
-    { name: 'QFC Broadway Market', logo: 'QFC', dist: '0.1 mi', addr: '417 Broadway E, Seattle', found: 11 },
-    { name: 'QFC Harvard Market',  logo: 'QFC', dist: '0.5 mi', found: 0 },
-    { name: 'QFC Uptown',          logo: 'QFC', dist: '1.2 mi', found: 0 },
+    { name: 'QFC Uptown',          logo: 'QFC', dist: '0.5 mi', addr: '500 Mercer St, Seattle', found: 9 },
+    { name: 'QFC Broadway Market', logo: 'QFC', dist: '0.7 mi', found: 2 },
+    { name: 'QFC Harvard Market',  logo: 'QFC', dist: '1.1 mi', found: 0 },
   ],
 };
-/* Slide 5 rows, in walking order: [kind, sign value, sign label, item(s), product(s), price, map keys, storeIndex?]
+/* Slide 5 rows, in walking order: [kind, sign value, sign label, item(s), product(s) (HTML ok), price, map keys, storeIndex?]
    kind: 'sign' (aisle) | 'wall' | 'meat' | 'veg'. storeIndex (optional, default 0) marks an item that
-   fell through to RUN.stores[i]; it gets a small "from <store>" tag. Map keys must exist in ITEMS below. */
+   fell through to RUN.stores[i]; it gets a small "from <store>" tag and no map pin (the map is store 0).
+   Map keys must exist in ITEMS below; the clean route's pin order follows these rows. */
 const ROWS = [
-  ['sign','5','LEFT','Tikka masala paste · Mango chutney',"Patak's simmer sauce · Indianlife chutney",'$16.48',['paste','chutney']],
-  ['sign','7','RIGHT','Diced tomatoes · Tomato purée','Kroger petite diced · Hunt’s purée','$3.78',['tomatoes','puree']],
-  ['sign','11','LEFT','Butter','Kroger salted butter sticks','$7.99',['butter']],
-  ['sign','12','LEFT','Heavy cream','Horizon Organic heavy whipping cream','$7.99',['cream']],
-  ['wall','🧱','Back wall','Plain yogurt','Mountain High plain yogurt tub','$5.49',['yogurt']],
+  ['veg','🥬','Produce','Onions · Red pepper · Cilantro','Jumbo onions · hothouse pepper · organic cilantro','$4.98',['onions','pepper','cilantro']],
+  ['sign','1','LEFT','Butter · Heavy cream · Yogurt','Kroger butter · Horizon Organic cream · Mountain High','$21.47',['butter','cream','yogurt']],
+  ['sign','9','RIGHT','Diced tomatoes · Tomato purée','Kroger petite diced · Cento purée','$7.78',['tomatoes','puree']],
   ['meat','🥩','Meat','Chicken breasts','Simple Truth natural chicken breasts','$7.49',['chicken']],
-  ['veg','🥬','Produce','Onions · Red pepper · Cilantro','Jumbo yellow onions · organic bell pepper','$5.57',['onions','pepper','cilantro']],
+  ['sign','5','LEFT','Tikka masala paste',"Patak's simmer sauce <em class=\"cm\">Closest match</em>",'$6.49',[],1],
+  ['sign','5','LEFT','Mango chutney','Indianlife medium mango chutney','$9.99',[],1],
 ];
 const S0 = RUN.stores[0];
 const money = v => '$' + v.toFixed(2);
@@ -826,12 +828,12 @@ const NOTES = [
   "Hi, we're RecipeCheckout: <b>any recipe, sorted by aisle.</b> Paste a recipe link and every ingredient is located at your nearest grocery store, with live price and stock.",
   "Recipes are written for cooks, not stores. Which product is \"double cream\" here? And recipe order isn't aisle order: this red line is that trip, <b>about twice the walking</b>. Then you find out it's out of stock at the shelf." +
     "<span class=\"qa\">If asked: ≈2× = the two routes measured on this illustrative plan ({LM} vs {LC} units); the aisles are real.</span>",
-  "So: <b>paste a recipe, walk the store once.</b> Take \"150 ml double cream\". The AI makes it heavy cream, in dairy, never whipped topping or creamer. Then we find the real product at your store: aisle 12, left side, shelf 6, $7.99, in stock.",
+  "So: <b>paste a recipe, walk the store once.</b> Take \"150 ml double cream\". The AI makes it heavy cream, in dairy, never whipped topping or creamer. Then we find the real product at your store: aisle 1, left side, shelf 5, $7.99, in stock.",
   "Four steps. We read the recipe, with fallbacks for sites that block bots. <b>One</b> Claude Haiku call turns every line into a search term. Kroger's API searches your nearest store, all items in parallel. We sort by aisle, and misses fall through to the next store.",
-  `Same recipe, one clean loop. A <b>real recorded run</b>${fellThrough.length ? '' : ` at ${S0.name}`}: ${foundAll} of ${RUN.items} found, ${splitText}, about ${money(RUN.total)}. That dashed button is our next build.`,
+  `Same recipe, one clean loop. A <b>real recorded run</b>${fellThrough.length ? '' : ` at ${S0.name}`}: ${foundAll} of ${RUN.items} found, ${splitText}, about ${money(RUN.total)}. The simmer sauce is flagged "closest match". That dashed button is our next build.`,
   `<span class="cue">[Click the laptop or press D to open the <a href="${DEMO_URL}" target="_blank" rel="noopener">demo replay</a>. Backup: press V for the <a href="/demo" target="_blank" rel="noopener">/demo video</a>. About 30 s.]</span> ` +
     "It's live. This is a replay of a real run, so it's fast and wifi-proof. Start a list… check ingredients: pantry staples start unchecked… find in stores… and here's the list, by aisle, with price and stock. Scan the code to run any recipe. No sign-up.",
-  `Two numbers: <b>one AI call per recipe, about a tenth of a cent</b>, and 97% of about 120 products we searched at ${S0.name} had a shelf location. Blocked sites fall through to Wayback, a reader proxy, then paste.` +
+  `Two numbers: <b>one AI call per recipe, about a tenth of a cent</b>, and 97% of about 120 products we searched at QFC Broadway Market had a shelf location. Blocked sites fall through to Wayback, a reader proxy, then paste.` +
     "<span class=\"qa\">If asked, stack: Expo Router + React Native Web, Vercel functions, Kroger Locations &amp; Products APIs, Claude Haiku 5.5 via OpenRouter, offline demo replay. Product picking is rules, not AI: term words, avoid words, department, aisle, stock.</span>",
   "For Visa's <b>Reimagine Shopping</b>: discovery starts from a recipe, decisions get the right product with live price and stock, and it's personal to your store and pantry. Checkout, honestly: today it's an estimated total. Our first build after DubHacks is <b>Send to pickup cart</b> through Kroger's public Cart API; you pay with your card at pickup.",
   "Our user: the home cook who finds recipes online. Revenue: \"shop this recipe\" links for creators, clearly labelled sponsored swaps, and affiliate fees on pickup orders. Creators are distribution. <b>Next to validate:</b> will creators add the link, and will grocers pay?",
@@ -847,7 +849,7 @@ window.__NOTES_WORDS__ = (() => {
 /* fill RUN numbers into the slides */
 document.querySelectorAll('[data-run]').forEach(el => {
   const k = el.dataset.run;
-  el.textContent = k === 'store0' ? S0.name : RUN[k];
+  el.textContent = k === 'store0' ? S0.name : k === 'mapItems' ? S0.found : RUN[k];
 });
 document.getElementById('runs').innerHTML = RUN.stores.map((st, i) =>
   `<div class="run${st.found ? '' : ' dim'}"><span class="q">${st.logo}</span><div><b>${st.name}</b><em>${st.dist} · ` +
@@ -868,11 +870,15 @@ function qrSVG(){
 document.querySelectorAll('[data-qr]').forEach(el => el.innerHTML = qrSVG());
 
 /* ---------- store map (shared by slides 2 and 5) ---------- */
-const AX = k => 90 + (k - 1) * 56;
-const ITEMS = { // positions on the illustrative floor plan (aisles and sections from the recorded run)
-  butter:[650,325], onions:[850,612], paste:[314,250], pepper:[780,612], chicken:[885,290], tomatoes:[426,205],
-  puree:[426,255], chutney:[314,200], cream:[706,140], yogurt:[800,90], cilantro:[710,612]
+const AX = k => 146 + (k - 1) * 56;
+const ITEMS = { // pins on the illustrative floor plan; aisles/sections are the real ones at RUN.stores[0] (QFC Uptown)
+  onions:[88,430], pepper:[88,330], cilantro:[88,230],          // produce (left wall)
+  butter:[146,200], cream:[146,300], yogurt:[146,400],          // aisle 1
+  tomatoes:[594,400], puree:[594,300],                          // aisle 9
+  chicken:[885,290]                                             // meat (right wall)
 };
+const RECIPE_ORDER = ['butter','onions','pepper','chicken','tomatoes','puree','cream','yogurt','cilantro']; // store-0 items in recipe order
+const HIT_AISLES = [1, 9];
 function roundedPath(pts, r){
   let d = `M${pts[0][0]} ${pts[0][1]}`;
   for (let i = 1; i < pts.length - 1; i++){
@@ -888,30 +894,31 @@ function roundedPath(pts, r){
 }
 function mapSVG(kind){
   const clean = kind === 'clean';
-  const hit = [5,7,11,12];
+  const hit = HIT_AISLES;
   let s = `<svg class="map" viewBox="0 0 1000 720" aria-hidden="true">`;
   s += `<rect class="m-floor" x="2" y="2" width="996" height="716" rx="26"/>`;
   s += `<rect class="m-back" x="20" y="18" width="960" height="50" rx="12"/><text class="m-lbl" x="40" y="50" fill="#6E6150">BACK WALL</text>`;
   s += `<rect class="m-meat" x="922" y="84" width="58" height="400" rx="12"/><text class="m-lbl" fill="#9F2A1C" transform="translate(958 284) rotate(90)" text-anchor="middle">MEAT</text>`;
-  s += `<rect class="m-veg" x="680" y="556" width="300" height="146" rx="16"/><text class="m-lbl" fill="#1E6B3A" x="830" y="686" text-anchor="middle">PRODUCE</text>`;
-  for (const [cx,c] of [[740,'#9BCB8F'],[812,'#E9A0A0'],[884,'#F2D27A'],[950,'#9BCB8F']]) s += `<ellipse cx="${cx}" cy="648" rx="26" ry="9" fill="${c}" opacity=".55"/>`;
-  for (let g = 0; g <= 14; g++) s += `<rect class="m-shelf" x="${62+56*g-8}" y="112" width="16" height="352" rx="5"/>`;
+  s += `<rect class="m-veg" x="20" y="84" width="50" height="400" rx="12"/><text class="m-lbl" fill="#1E6B3A" transform="translate(45 284) rotate(-90)" text-anchor="middle">PRODUCE</text>`;
+  for (const [cy,c] of [[132,'#9BCB8F'],[436,'#E9A0A0']]) s += `<ellipse cx="45" cy="${cy}" rx="9" ry="22" fill="${c}" opacity=".55"/>`;
+  for (let g = 0; g <= 13; g++) s += `<rect class="m-shelf" x="${110+56*g}" y="112" width="16" height="352" rx="5"/>`;
   let labels = '';
-  for (let k = 1; k <= 14; k++){
+  for (let k = 1; k <= 13; k++){
     const cls = hit.includes(k) ? (clean ? 'hit' : 'miss') : '';
     labels += `<g class="m-al ${cls}"><rect x="${AX(k)-15}" y="476" width="30" height="24" rx="6"/><text x="${AX(k)}" y="493">${k}</text></g>`;
   }
   s += `<rect class="m-door" x="22" y="626" width="112" height="74" rx="14"/><text class="m-lbl" x="78" y="670" fill="#8A8F84" text-anchor="middle" style="font-size:15px">ENTER</text>`;
-  for (let i = 0; i < 4; i++) s += `<rect class="m-reg" x="${300+78*i}" y="592" width="48" height="58" rx="9"/>`;
-  s += `<text class="m-lbl" x="453" y="686" fill="#8A8F84" text-anchor="middle" style="font-size:15px">CHECKOUT</text>`;
+  for (let i = 0; i < 4; i++) s += `<rect class="m-reg" x="${520+78*i}" y="592" width="48" height="58" rx="9"/>`;
+  s += `<text class="m-lbl" x="661" y="686" fill="#8A8F84" text-anchor="middle" style="font-size:15px">CHECKOUT</text>`;
+  s += `<rect class="m-door" x="866" y="626" width="112" height="74" rx="14"/><text class="m-lbl" x="922" y="670" fill="#8A8F84" text-anchor="middle" style="font-size:15px">EXIT</text>`;
 
   let pts, order;
-  if (clean){
-    pts = [[78,626],[78,525],[314,525],[314,90],[426,90],[426,525],[644,525],[644,320],[656,320],[656,525],[706,525],[706,90],[885,90],[885,612],[600,612]];
-    order = ['paste','chutney','tomatoes','puree','butter','cream','yogurt','chicken','onions','pepper','cilantro'];
-  } else {
-    pts = [[78,626],[78,532],[644,532],[644,325],[656,325],[656,520],[850,520],[850,612],[838,612],[838,544],[320,544],[320,250],[308,250],[308,556],[780,556],[780,612],[885,612],[885,290],[873,290],[873,512],[432,512],[432,205],[420,205],[420,255],[420,98],[314,98],[314,200],[326,200],[326,82],[706,82],[706,140],[718,140],[718,82],[897,82],[897,600],[600,600]];
-    order = ['butter','onions','paste','pepper','chicken','tomatoes','puree','chutney','cream','yogurt','cilantro'];
+  if (clean){ // aisle order, as the app lists QFC Uptown: produce → aisle 1 → aisle 9 → meat → checkout
+    pts = [[88,650],[88,90],[146,90],[146,525],[594,525],[594,90],[885,90],[885,560],[700,560],[700,600]];
+    order = ROWS.filter(r => !r[7]).flatMap(r => r[6]);
+  } else {    // recipe order
+    pts = [[88,650],[88,540],[140,540],[140,200],[152,200],[152,532],[100,532],[100,430],[100,330],[100,98],[880,98],[880,290],[870,290],[870,540],[600,540],[600,400],[600,300],[600,82],[158,82],[158,300],[158,400],[158,548],[76,548],[76,230],[90,230],[90,556],[700,556],[700,600]];
+    order = RECIPE_ORDER;
   }
   const d = roundedPath(pts, clean ? 18 : 14);
   if (clean){
@@ -982,7 +989,7 @@ function playRoute(slide, dur){
     head.setAttribute('cx', pt.x); head.setAttribute('cy', pt.y);
     head.style.opacity = t > 0 && t < 1 ? 1 : 0;
     pins.forEach((p,i) => p.classList.toggle('on', t >= at[i] - 0.004));
-    rows.forEach(r => { const ks = r.dataset.keys.split(' '); const firstPin = pins.find(p => p.dataset.k === ks[0]); r.classList.toggle('on', firstPin && t >= at[pins.indexOf(firstPin)] - 0.004); });
+    rows.forEach(r => { const ks = r.dataset.keys.split(' '); const firstPin = pins.find(p => p.dataset.k === ks[0]); r.classList.toggle('on', firstPin ? t >= at[pins.indexOf(firstPin)] - 0.004 : t >= 0.999); });
   };
   if (RM){ set(1); return; }
   const ease = t => t < .5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2;
@@ -1032,11 +1039,11 @@ function typeUrl(){
 }
 
 /* ---------- slide 3: recipe line → intent → product ---------- */
-const MORPH = [
-  {raw:'150ml <mark>double cream</mark>', term:'heavy cream', meta:['🧈 dairy'], avoid:['whipped topping','creamer','sour'], pn:'Horizon Organic Heavy Whipping Cream', pd:'1 pt · Left side · shelf 6', price:'$7.99', stock:true, sign:['sign','12','LEFT']},
-  {raw:'chopped <mark>coriander leaves</mark>, to serve', term:'cilantro', meta:['🥬 produce'], avoid:['seeds','dried','soap'], pn:'Cilantro', pd:'1 ct · Produce section', price:'$1.29', stock:true, sign:['veg','🥬','Produce']},
-  {raw:'2 x 400g cans <mark>chopped tomatoes</mark>', term:'diced tomatoes', meta:['🥫 pantry'], avoid:['sauce','paste','soup'], pn:'Kroger® Petite Diced Tomatoes in Tomato Juice', pd:'14.5 oz · Right side · shelf 7', price:'$1.29', stock:true, sign:['sign','7','RIGHT']},
-  {raw:'8 boneless, skinless <mark>chicken breasts</mark> cut into 2.5cm cubes', term:'chicken breasts', meta:['🥩 meat'], avoid:['broth','seasoning','nuggets'], pn:'Simple Truth Natural Chicken Breasts', pd:'1 lb · Meat department', price:'$7.49', stock:true, sign:['meat','🥩','Meat']},
+const MORPH = [ // real picks at QFC Uptown in the recorded run (lib/client/demo-run.json)
+  {raw:'150ml <mark>double cream</mark>', term:'heavy cream', meta:['🧈 dairy'], avoid:['whipped topping','creamer','sour'], pn:'Horizon Organic Heavy Whipping Cream', pd:'1 pt · Left side · shelf 5', price:'$7.99', stock:true, sign:['sign','1','LEFT']},
+  {raw:'chopped <mark>coriander leaves</mark>, to serve', term:'cilantro', meta:['🥬 produce'], avoid:['seeds','dried','soap'], pn:'Organic Cilantro', pd:'1 ct · Produce section', price:'$1.99', stock:true, sign:['veg','🥬','Produce']},
+  {raw:'2 x 400g cans <mark>chopped tomatoes</mark>', term:'diced tomatoes', meta:['🥫 pantry'], avoid:['sauce','paste','soup'], pn:'Kroger® Petite Diced Tomatoes in Tomato Juice', pd:'14.5 oz · Right side · shelf 5', price:'$1.29', stock:true, sign:['sign','9','RIGHT']},
+  {raw:'8 boneless, skinless <mark>chicken breasts</mark> cut into 2.5cm cubes', term:'chicken breasts', meta:['🥩 meat'], avoid:['broth','seasoning','nuggets'], pn:'Simple Truth Natural Chicken Breasts', pd:'1 lb · Meat · Right side · shelf 2', price:'$7.49', stock:true, sign:['meat','🥩','Meat']},
 ];
 const morph = document.getElementById('morph');
 const mdots = document.getElementById('m-dots');
